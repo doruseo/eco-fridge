@@ -33,3 +33,6 @@ Thumbs.db
 .DS_Store
 .idea/
 .vscode/
+
+# Staging sync media (aduse de pe Hostinger, nu in git)
+media-sync/
