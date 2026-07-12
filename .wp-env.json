@@ -5,7 +5,8 @@
   "plugins": [
     "https://downloads.wordpress.org/plugin/woocommerce.zip",
     "https://downloads.wordpress.org/plugin/ultimate-addons-for-gutenberg.zip",
-    "https://downloads.wordpress.org/plugin/essential-blocks.zip"
+    "https://downloads.wordpress.org/plugin/essential-blocks.zip",
+    "https://downloads.wordpress.org/plugin/tablepress.zip"
   ],
   "themes": [
     "https://downloads.wordpress.org/theme/astra.zip"
