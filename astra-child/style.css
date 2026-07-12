@@ -1,17 +1,106 @@
 /*
 Theme Name: Eco-Fridge Child
 Theme URI: https://eco-fridge.co.uk
-Description: Temă copil Astra pentru ECO-Fridge Ltd. Găzduiește logica custom migrată din tema originală: preț „from-price"/£POA, note livrare + T&C globale pe produs, înlocuiri string WooCommerce. Design 1:1 cu eco-fridge.co.uk.
+Description: Temă copil Astra pentru ECO-Fridge Ltd. Găzduiește logica custom migrată din tema originală: preț „from-price"/£POA, note livrare + T&C globale pe produs, înlocuiri string WooCommerce. Design 1:1 cu eco-fridge.co.uk (Oswald/Open Sans, brand #70b036).
 Author: Migrare eco-fridge
 Template: astra
-Version: 0.1.0
+Version: 0.2.0
 Text Domain: eco-fridge-child
 */
 
-/* Stilurile se moștenesc din Astra (părinte). Adăugări custom mai jos, pe măsură ce reconstruim design-ul. */
-
+/* =========================================================================
+   TOKENS DE DESIGN — extrase 1:1 din tema originală eco-fridge
+   (library/scss/partials/_variables.scss)
+   ========================================================================= */
 :root {
-  --ef-brand: #70b036;   /* verde brand */
+  --ef-brand: #70b036;          /* verde lime brand */
+  --ef-brand-dark: #5c972d;     /* hover */
   --ef-bg: #fcfcfc;
   --ef-text: #333;
+  --ef-meta: #9fa6b4;
+  --ef-border: #eaedf2;
+  --ef-divider: #eee;
+  --ef-stripe: #f8f9fa;
+  --ef-font-body: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --ef-font-head: 'Oswald', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
+
+/* =========================================================================
+   TIPOGRAFIE — Oswald (titluri) + Open Sans (body), ca originalul
+   ========================================================================= */
+body,
+button,
+input,
+select,
+textarea,
+.wp-block-uagb-container,
+.wp-block-uagb-info-box {
+  font-family: var(--ef-font-body);
+  color: var(--ef-text);
+}
+
+h1, h2, h3, h4, h5, h6,
+.uagb-heading-text,
+.wp-block-uagb-advanced-heading .uagb-heading-text,
+.site-title,
+.entry-title,
+.widget-title {
+  font-family: var(--ef-font-head);
+  font-weight: 500;
+  color: var(--ef-text);
+  letter-spacing: 0.01em;
+}
+
+/* Titlurile de secțiune în stil original: majuscule, condensat */
+.ef-section-title {
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* =========================================================================
+   CULORI BRAND — linkuri, butoane, accente
+   ========================================================================= */
+a { color: var(--ef-brand); }
+a:hover, a:focus { color: var(--ef-text); }
+
+.ast-button,
+.button,
+.wp-block-button__link,
+.wp-block-uagb-buttons-child .uagb-buttons-repeater,
+.woocommerce a.button,
+.woocommerce button.button,
+.woocommerce .button.alt,
+.single_add_to_cart_button {
+  background-color: var(--ef-brand) !important;
+  border-color: var(--ef-brand) !important;
+  color: #fff !important;
+  border-radius: 2px;
+  font-family: var(--ef-font-head);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.ast-button:hover,
+.button:hover,
+.wp-block-button__link:hover,
+.woocommerce a.button:hover,
+.woocommerce button.button:hover,
+.single_add_to_cart_button:hover {
+  background-color: var(--ef-brand-dark) !important;
+  border-color: var(--ef-brand-dark) !important;
+  color: #fff !important;
+}
+
+/* Preț „From £X +VAT" în stil original */
+.ef-from-price { color: var(--ef-text); font-weight: 700; }
+.ef-from-price .amount { color: var(--ef-brand); }
+
+/* Card grilă produs — chenar subtil ca originalul */
+.ef-product-card {
+  border: 1px solid var(--ef-border);
+  background: #fff;
+  transition: box-shadow .2s ease;
+}
+.ef-product-card:hover { box-shadow: 0 6px 18px rgba(0,0,0,.08); }
+
+/* Alternanță secțiuni (fundal gri deschis) */
+.ef-section-alt { background: var(--ef-stripe); }

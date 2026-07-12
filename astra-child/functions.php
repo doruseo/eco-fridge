@@ -17,6 +17,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Fonturi Google 1:1 cu originalul: Oswald (titluri) + Open Sans (body).
+ */
+add_action( 'wp_enqueue_scripts', function () {
+	wp_enqueue_style(
+		'eco-fridge-fonts',
+		'https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Oswald:wght@400;500;600;700&display=swap',
+		array(),
+		null
+	);
+}, 5 );
+
+/**
  * Încarcă stilul temei copil după al părintelui Astra.
  */
 add_action( 'wp_enqueue_scripts', function () {
