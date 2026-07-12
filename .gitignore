@@ -4,6 +4,9 @@ source-dump/db/
 *.sql
 *.sql.gz
 
+# Artefacte generate de scripturile de migrare (hărți ID, scripturi rulate temporar)
+source-dump/_*
+
 # Media / uploads sincronizate din site
 uploads/
 wp-content/uploads/
