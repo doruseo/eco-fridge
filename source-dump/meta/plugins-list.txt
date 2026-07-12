@@ -1,0 +1,58 @@
+name	status	version	update	update_version
+akismet	inactive	5.7	none	
+all-in-one-wp-migration	inactive	7.46	available	7.106
+all-in-one-seo-pack	inactive	4.3.8	available	4.9.10
+astra-addon	active	4.13.5	none	
+better-search-replace	inactive	1.3.2	unavailable	1.4.11
+woocommerce-jetpack	inactive	4.8.0	available	8.0.2
+wp-custom-taxonomy-image	inactive	1.0.0	none	
+woo-checkout-field-editor-pro	inactive	1.4.3	available	2.1.9
+classic-editor	inactive	1.4	available	1.7.0
+contact-form-7	inactive	4.7	available	6.1.6
+essential-blocks	active	6.3.0	none	
+health-check	inactive	1.4.2	available	1.7.1
+hello	inactive	1.7.2	none	
+better-wp-security	inactive	7.2.0	available	10.0.2
+litespeed-cache	active	7.8.1	none	
+logos-showcase	inactive	1.7.9	none	
+magic-liquidizer-responsive-table	inactive	2.0.3	available	2.0.4
+matomo	inactive	5.1.4	available	5.11.1
+menu-image	inactive	2.9.1	available	3.13
+migrate-guru	active	5.65	available	6.28
+woo-multistep-checkout	inactive	1.1.0	available	2.3.4
+order-import-export-for-woocommerce	inactive	1.5.4	available	2.7.5
+post-types-order	inactive	1.9.3.9	available	2.4.8
+post-type-switcher	inactive	3.1.0	unavailable	4.0.1
+woo-product-feed-pro	inactive	12.0.4	available	13.5.6
+regenerate-thumbnails	inactive	3.1.0	available	3.1.6
+relevanssi	inactive	4.1.2	available	4.27.1
+remove-category-url	inactive	1.1.2	available	1.2.3
+show-hidecollapse-expand	inactive	1.2.5	available	1.3.0
+simple-301-redirects	inactive	1.07	available	2.1.0
+simple-301-redirects-addon-bulk-uploader	inactive	1.2.4	none	
+simple-banner	inactive	2.4.3	available	3.3.0
+google-site-kit	inactive	1.125.0	available	1.182.0
+sliderpro	inactive	4.1.1	available	4.8.14
+ultimate-addons-for-gutenberg	active	2.19.29	none	
+tablepress	inactive	1.9.1	available	3.3.3
+tinymce-advanced	inactive	5.3.0	available	5.9.2
+types	inactive	3.2.5	none	
+userfeedback-lite	inactive	1.0.5	available	1.11.2
+webp-converter-for-media	inactive	1.1.2	available	6.6.1
+woocommerce	inactive	3.5.10	available	10.9.4
+woocommerce-google-analytics-pro	inactive	1.6.6	none	
+woocommerce-product-feeds	inactive	7.8.4	none	
+woocommerce_lloydscardnetcw	inactive	2.0.245	none	
+woocommerce-menu-bar-cart	inactive	2.7.4	available	3.0.0
+woocommerce-upsells-shortcode	inactive	1.0.0	none	
+woo-product-images-slider	inactive	1.3.0	none	
+wp-showhide	inactive	1.04	available	1.06
+wpforms-lite	inactive	1.8.1.3	available	1.10.2.1
+simple-taxonomy-ordering	inactive	1.2.7	available	2.3.4
+yith-woocommerce-product-add-ons	inactive	1.5.17.1	available	4.31.0
+wpseo-woocommerce	inactive	9.7	none	
+wordpress-seo-premium	inactive	9.7	none	
+hostinger-h5g-plugin	must-use	1.0.1		
+hostinger-preview-domain	must-use	1.3.4		
+maintenance.php	dropin			
+object-cache.php	dropin			

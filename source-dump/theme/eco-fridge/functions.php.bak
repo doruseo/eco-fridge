@@ -1,0 +1,387 @@
+<?php
+/*
+Author: Eddie Machado
+URL: htp://themble.com/bones/
+
+This is where you can drop your custom functions or
+just edit things like thumbnail sizes, header images,
+sidebars, comments, etc.
+*/
+
+// LOAD BONES CORE (if you remove this, the theme will break)
+require_once( 'library/bones.php' );
+
+// USE THIS TEMPLATE TO CREATE CUSTOM POST TYPES EASILY
+// require_once( 'library/custom-post-type.php' );
+
+// CUSTOMIZE THE WORDPRESS ADMIN (off by default)
+// require_once( 'library/admin.php' );
+
+/************* LAUNCH BONES *************/
+
+function bones_ahoy() {
+
+  //Allow editor style.
+  add_editor_style();
+
+  // let's get language support going, if you need it
+  load_theme_textdomain( 'bonestheme', get_template_directory() . '/library/translation' );
+
+  // launching operation cleanup
+  add_action( 'init', 'bones_head_cleanup' );
+  // A better title
+  add_filter( 'wp_title', 'rw_title', 10, 3 );
+  // remove WP version from RSS
+  add_filter( 'the_generator', 'bones_rss_version' );
+  // remove pesky injected css for recent comments widget
+  add_filter( 'wp_head', 'bones_remove_wp_widget_recent_comments_style', 1 );
+  // clean up comment styles in the head
+  add_action( 'wp_head', 'bones_remove_recent_comments_style', 1 );
+  // clean up gallery output in wp
+  add_filter( 'gallery_style', 'bones_gallery_style' );
+
+  // enqueue base scripts and styles
+  add_action( 'wp_enqueue_scripts', 'bones_scripts_and_styles', 999 );
+  // ie conditional wrapper
+
+  // launching this stuff after theme setup
+  bones_theme_support();
+
+  // adding sidebars to Wordpress (these are created in functions.php)
+  add_action( 'widgets_init', 'bones_register_sidebars' );
+
+  // cleaning up random code around images
+  add_filter( 'the_content', 'bones_filter_ptags_on_images' );
+  // cleaning up excerpt
+  add_filter( 'excerpt_more', 'bones_excerpt_more' );
+
+} /* end bones ahoy */
+
+add_action( 'after_setup_theme', 'bones_ahoy' );
+
+
+/************* DISABLE POST FORMATS *************/
+
+add_action('after_setup_theme', 'remove_post_formats', 11);
+function remove_post_formats() {
+    remove_theme_support('post-formats');
+}
+
+
+/************* OEMBED SIZE OPTIONS *************/
+
+if ( ! isset( $content_width ) ) {
+	$content_width = 640;
+}
+
+
+/************* THUMBNAIL SIZE OPTIONS *************/
+
+// Add thumbnail sizes
+add_image_size( 'thumb-50x50', 50, 50 );
+
+// Add thumbnail sizes to menu in media manager
+add_filter( 'image_size_names_choose', 'bones_custom_image_sizes' );
+
+function bones_custom_image_sizes( $sizes ) {
+    return array_merge( $sizes, array(
+        'thumb-50x50' => __('Tiny'),
+    ) );
+}
+
+
+/************* ACTIVE SIDEBARS *************/
+
+// Sidebars & Widgetizes Areas
+function bones_register_sidebars() {
+	register_sidebar(array(
+		'id' => 'sidebar1',
+		'name' => __( 'Sidebar 1', 'bonestheme' ),
+		'description' => __( 'The first (primary) sidebar.', 'bonestheme' ),
+		'before_widget' => '<div id="%1$s" class="widget %2$s">',
+		'after_widget' => '</div>',
+		'before_title' => '<h4 class="widgettitle">',
+		'after_title' => '</h4>',
+	));
+
+	/*
+	to add more sidebars or widgetized areas, just copy
+	and edit the above sidebar code. In order to call
+	your new sidebar just use the following code:
+
+	Just change the name to whatever your new
+	sidebar's id is, for example:
+
+	register_sidebar(array(
+		'id' => 'sidebar2',
+		'name' => __( 'Sidebar 2', 'bonestheme' ),
+		'description' => __( 'The second (secondary) sidebar.', 'bonestheme' ),
+		'before_widget' => '<div id="%1$s" class="widget %2$s">',
+		'after_widget' => '</div>',
+		'before_title' => '<h4 class="widgettitle">',
+		'after_title' => '</h4>',
+	));
+
+	To call the sidebar in your template, you can just copy
+	the sidebar.php file and rename it to your sidebar's name.
+	So using the above example, it would be:
+	sidebar-sidebar2.php
+
+	*/
+} // don't remove this bracket!
+
+
+/************* COMMENT LAYOUT *********************/
+
+// Comment Layout
+function bones_comments( $comment, $args, $depth ) {
+   $GLOBALS['comment'] = $comment; ?>
+  <div id="comment-<?php comment_ID(); ?>" <?php comment_class('cf'); ?>>
+    <article  class="cf">
+      <header class="comment-author vcard">
+        <?php
+        /*
+          this is the new responsive optimized comment image. It used the new HTML5 data-attribute to display comment gravatars on larger screens only. What this means is that on larger posts, mobile sites don't have a ton of requests for comment images. This makes load time incredibly fast! If you'd like to change it back, just replace it with the regular wordpress gravatar call:
+          echo get_avatar($comment,$size='32',$default='<path_to_url>' );
+        */
+        ?>
+        <?php // custom gravatar call ?>
+        <?php
+          // create variable
+          $bgauthemail = get_comment_author_email();
+        ?>
+        <img data-gravatar="http://www.gravatar.com/avatar/<?php echo md5( $bgauthemail ); ?>?s=40" class="load-gravatar avatar avatar-48 photo" height="40" width="40" src="<?php echo get_template_directory_uri(); ?>/library/images/nothing.gif" />
+        <?php // end custom gravatar call ?>
+        <?php printf(__( '<cite class="fn">%1$s</cite> %2$s', 'bonestheme' ), get_comment_author_link(), edit_comment_link(__( '(Edit)', 'bonestheme' ),'  ','') ) ?>
+        <time datetime="<?php echo comment_time('Y-m-j'); ?>"><a href="<?php echo htmlspecialchars( get_comment_link( $comment->comment_ID ) ) ?>"><?php comment_time(__( 'F jS, Y', 'bonestheme' )); ?> </a></time>
+
+      </header>
+      <?php if ($comment->comment_approved == '0') : ?>
+        <div class="alert alert-info">
+          <p><?php _e( 'Your comment is awaiting moderation.', 'bonestheme' ) ?></p>
+        </div>
+      <?php endif; ?>
+      <section class="comment_content cf">
+        <?php comment_text() ?>
+      </section>
+      <?php comment_reply_link(array_merge( $args, array('depth' => $depth, 'max_depth' => $args['max_depth']))) ?>
+    </article>
+  <?php // </li> is added by WordPress automatically ?>
+<?php
+} // don't remove this bracket!
+
+
+
+
+// ADD WEBFONTS
+function add_webfonts() {
+  wp_register_style('googleFonts', 'https://fonts.googleapis.com/css?family=Open+Sans:400,700');
+  wp_enqueue_style( 'googleFonts');
+  wp_register_style('googleArimo', 'https://fonts.googleapis.com/css?family=Arimo:400,700');
+  wp_enqueue_style( 'googleArimo');
+  wp_register_style('googleOswald', 'https://fonts.googleapis.com/css?family=Oswald:400,700');
+  wp_enqueue_style( 'googleOswald');
+}
+add_action('wp_print_styles', 'add_webfonts');
+
+
+
+
+// REMOVE WORDPRESS UPDATE NOTIFICATIONs FOR ALL USERS EXCEPT ADMIN
+
+function wp_hide_update() {
+    remove_action( 'admin_notices', 'update_nag', 3 );
+}
+ 
+add_action('admin_menu','wp_hide_update');   
+   
+  
+   
+   
+// REMOVE MENUS FROM DASHBOARD
+ 
+function remove_menus () {
+global $menu;
+if( !current_user_can('install_themes') ) { $restricted = array(__(‘Links’)); } // Check if admin and hide these for admins
+	$restricted = array(__('Links'), __('Profile'));
+	end ($menu);
+	while (prev($menu)){
+		$value = explode(' ',$menu[key($menu)][0]);
+		if(in_array($value[0] != NULL?$value[0]:"" , $restricted)){unset($menu[key($menu)]);}
+	}
+}
+add_action('admin_menu', 'remove_menus');
+
+
+
+
+// PERMALINKS
+ 
+// Flush the permalinks
+
+add_action('admin_init', 'flush_rewrite_rules');
+
+
+
+
+// ADD MENU HIGHLIGHTING TO CUSTOM POST TYPE
+
+function remove_parent_classes($class)
+{
+  // check for current page classes, return false if they exist.
+	return ($class == 'current_page_item' || $class == 'current_page_parent' || $class == 'current_page_ancestor'  || $class == 'current-menu-item') ? FALSE : TRUE;
+}
+
+function add_class_to_wp_nav_menu($classes)
+{
+     switch (get_post_type())
+     {
+     	case 'custom_case_studies':
+     		// we're viewing a custom post type, so remove the 'current_page_xxx and current-menu-item' from all menu items.
+     		$classes = array_filter($classes, "remove_parent_classes");
+
+     		// add the current page class to a specific menu item (replace ###).
+     		if (in_array('menu-item-773', $classes))
+     		{
+     		   $classes[] = 'current_page_parent';
+         }
+     		break;
+     		
+     	case 'custom_team':
+     		// we're viewing a custom post type, so remove the 'current_page_xxx and current-menu-item' from all menu items.
+     		$classes = array_filter($classes, "remove_parent_classes");
+
+     		// add the current page class to a specific menu item (replace ###).
+     		if (in_array('menu-item-775', $classes))
+     		{
+     		   $classes[] = 'current_page_parent';
+         }
+     		break;     		
+
+      // add more cases if necessary and/or a default
+     }
+	return $classes;
+}
+add_filter('nav_menu_css_class', 'add_class_to_wp_nav_menu');
+
+
+
+
+// ADD STYLE DROPDOWN MENU TO SECOND ROW OF VISUAL EDITOR BUTTONS
+
+function my_mce_buttons_2($buttons)
+{
+	array_unshift($buttons, 'styleselect');
+	return $buttons;
+}
+add_filter('mce_buttons_2', 'my_mce_buttons_2');
+
+function my_mce_before_init_insert_formats( $init_array ) {  
+
+// Define the style_formats array
+
+	$style_formats = array(  
+		// Each array child is a format with it's own settings
+		array(  
+			'title' => 'Highlight',  
+			'block' => 'span',  
+			'classes' => 'highlight',
+			'wrapper' => true,
+			
+		),
+	);  
+	// Insert the array, JSON ENCODED, into 'style_formats'
+	$init_array['style_formats'] = json_encode( $style_formats );  
+	
+	return $init_array;  
+  
+} 
+// Attach callback to 'tiny_mce_before_init' 
+add_filter( 'tiny_mce_before_init', 'my_mce_before_init_insert_formats' );
+
+add_editor_style('library/css/editor-style.css');
+	// OR
+add_editor_style('library/css/custom-editor-style.css');
+
+
+
+// ADD TAXONOMY FILTERS TO POSTS LIST
+
+function pippin_add_taxonomy_filters() {
+	global $typenow;
+ 
+	// an array of all the taxonomyies you want to display. Use the taxonomy name or slug
+	$taxonomies = array('range');
+ 
+	// must set this to the post type you want the filter(s) displayed on
+	if( $typenow == 'product' ){
+ 
+		foreach ($taxonomies as $tax_slug) {
+			$tax_obj = get_taxonomy($tax_slug);
+			$tax_name = $tax_obj->labels->name;
+			$terms = get_terms($tax_slug);
+			if(count($terms) > 0) {
+				echo "<select name='$tax_slug' id='$tax_slug' class='postform'>";
+				echo "<option value=''>Show All $tax_name</option>";
+				foreach ($terms as $term) { 
+					echo '<option value='. $term->slug, $_GET[$tax_slug] == $term->slug ? ' selected="selected"' : '','>' . $term->name .' (' . $term->count .')</option>'; 
+				}
+				echo "</select>";
+			}
+		}
+	}
+}
+add_action( 'restrict_manage_posts', 'pippin_add_taxonomy_filters' );
+
+
+
+// Search SQL filter for matching against post title only.
+function __search_by_title_only( $search, $wp_query )
+{
+global $wpdb;
+
+if ( empty( $search ) )
+return $search; // skip processing - no search term in query
+
+$q = $wp_query->query_vars;
+$n = ! empty( $q['exact'] ) ? '' : '%';
+
+$search =
+$searchand = '';
+
+foreach ( (array) $q['search_terms'] as $term ) {
+$term = esc_sql( like_escape( $term ) );
+
+$search .= "{$searchand}($wpdb->posts.post_title REGEXP '[[:<:]]{$term}[[:>:]]') OR ($wpdb->posts.post_content REGEXP '[[:<:]]{$term}[[:>:]]')";
+
+$searchand = ' AND ';
+}
+
+if ( ! empty( $search ) ) {
+$search = " AND ({$search}) ";
+if ( ! is_user_logged_in() )
+$search .= " AND ($wpdb->posts.post_password = '') ";
+}
+
+return $search;
+}
+
+add_filter( 'posts_search', '__search_by_title_only', 1000, 2 );
+
+
+
+
+// Custom checkout T&Cs text 
+//add_filter( 'woocommerce_get_terms_and_conditions_checkbox_text', 'custom_terms_text' );
+//
+//function custom_terms_text( $text ) {
+//
+//    $url = 'https://www.eco-fridge.co.uk/terms-conditions/';
+//
+//    $url2 = 'https://www.eco-fridge.co.uk/wp-content/uploads/Manual.pdf';
+//
+//    return 'I have read and agree to the website <a href="' . esc_url( $url ) . '" target="_blank">terms and conditions</a> and <a href="' . esc_url( $url2 ) . '" target="_blank">user manual</a>.';
+//}
+
+
+/* DON'T DELETE THIS CLOSING TAG */ ?>

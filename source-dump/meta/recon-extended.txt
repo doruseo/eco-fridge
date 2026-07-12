@@ -1,0 +1,116 @@
+=== WP VERSION / DB VERSION ===
+WordPress version: 7.0
+Database revision: 61833
+TinyMCE version:   4.9110 (49110-20250317)
+Package language:  en_US
+=== POST TYPE COUNTS ===
+post: 109
+page: 25
+attachment: 987
+revision: 2842
+nav_menu_item: 95
+custom_css: 0
+customize_changeset: 0
+oembed_cache: 3
+user_request: 0
+wp_block: 0
+wp_template: 0
+wp_template_part: 0
+wp_global_styles: 0
+wp_navigation: 0
+wp_font_family: 0
+wp_font_face: 0
+spectra-popup: 0
+astra-advanced-hook: 0
+=== TAXONOMIES ===
+name	object_type
+category	post
+post_tag	post
+nav_menu	nav_menu_item
+post_format	post
+wp_theme	wp_template, wp_template_part, wp_global_styles
+wp_template_part_area	wp_template_part
+wp_pattern_category	wp_block
+=== USERS ===
+ID	user_login	roles
+3	Distinctly	
+2	ECO-Fridge	
+4	Eco-fridge-shop	
+6	Lockouts	
+7	manager	
+=== SIDEBARS/WIDGETS AREAS ===
+array (
+  'wp_inactive_widgets' => 
+  array (
+  ),
+  'sidebar-1' => 
+  array (
+    0 => 'block-2',
+    1 => 'block-3',
+    2 => 'block-4',
+    3 => 'block-5',
+    4 => 'block-6',
+  ),
+  'footer-widget-1' => 
+  array (
+  ),
+  'footer-widget-2' => 
+  array (
+  ),
+  'advanced-footer-widget-1' => 
+  array (
+  ),
+  'advanced-footer-widget-2' => 
+  array (
+  ),
+  'advanced-footer-widget-3' => 
+  array (
+=== PERMALINK STRUCTURE ===
+/%postname%/
+=== HOME/SITEURL ===
+http://eco-fridge.o2dev.de
+http://eco-fridge.o2dev.de
+=== ACTIVE PLUGINS (option) ===
+["astra-addon\/astra-addon.php","essential-blocks\/essential-blocks.php","litespeed-cache\/litespeed-cache.php","migrate-guru\/migrateguru.php","ultimate-addons-for-gutenberg\/ultimate-addons-for-gutenberg.php"]
+=== POSTMETA KEY SAMPLE (ACF vs Types detect) ===
+_billing_add	17850
+_shipping_ad	17793
+_cart_discou	11864
+_order_shipp	11864
+_customer_us	11862
+_shipping_co	11862
+_payment_met	11862
+_wc_google_a	8161
+_order_tax	5932
+_order_total	5932
+_order_versi	5932
+_order_curre	5932
+_prices_incl	5932
+_paid_date	5931
+_shipping_ci	5931
+_customer_ip	5931
+_billing_pho	5931
+_billing_cit	5931
+_cart_hash	5931
+_shipping_st	5931
+_created_via	5931
+_shipping_fi	5931
+_order_key	5931
+_billing_sta	5931
+_billing_fir	5931
+_shipping_po	5931
+_date_comple	5931
+_shipping_la	5931
+_billing_pos	5931
+_billing_las	5931
+_completed_d	5931
+_billing_cou	5931
+_billing_com	5931
+_date_paid	5931
+_transaction	5931
+_billing_ema	5931
+check_doors	4353
+_yoast_wpseo	4340
+_recorded_co	4065
+_recorded_sa	4044
+

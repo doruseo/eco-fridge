@@ -1,0 +1,84 @@
+// Stylesheet: Button Styles
+
+// %btn is a placeholder selector for common styles
+
+%btn {
+	cursor: pointer;
+  display: inline-block;
+  position: relative;
+  height: 40px;
+  text-decoration: none;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 4px;
+  line-height: 40px;
+  color: $white;
+  font-weight: normal;
+  @include transition(background-color 0.14s ease-in-out);
+
+  // define hover styles
+  &:hover, &:focus {
+    color: $white;
+    text-decoration: none;
+  }
+  
+  // define click styles
+  &:active {
+    top: 1px; // adds a tiny hop to the click
+  }
+
+} /* end .button */
+
+.btn-go {
+	@extend %btn; // load the button defaults
+	
+	@include linear-gradient(#FFF,#DDD);
+	
+	background-color: #EEE;
+	color: $text-color;
+  
+	&:hover, &:focus {
+	  color: $brand-color;
+	}
+	
+	&:active {
+	  color: $brand-color;
+	}
+
+}
+
+
+@mixin btn-grey {
+	@extend %btn; // load the button defaults
+	
+	background-color: $text-color !important;
+	color: $white;
+  
+	&:hover, &:focus {
+		background-color: darken($text-color,10%);
+		color: $white;
+	}
+	
+	&:active {
+		background-color: darken($text-color,10%);
+		color: $white;
+	}
+
+}
+
+
+// Example button
+.blue-btn {
+  @extend %btn; // load the button defaults
+  background-color: $brand-color;
+
+  &:hover,
+  &:focus {
+    background-color: darken($brand-color, 4%);
+  }
+
+  &:active {
+    background-color: darken($brand-color, 5%);
+  }
+
+}

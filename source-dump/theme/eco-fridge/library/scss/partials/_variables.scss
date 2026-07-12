@@ -1,0 +1,43 @@
+// Stylesheet: Variables
+
+
+// -------------------GRID-------------------
+
+$vgrid:						1.4em;
+$col:						5%;
+$gutter:					3.333333333333%;
+$gutter-base: 				15px;
+$wrap: $col * 12 + $gutter * 12;
+
+
+// -------------------COLORS-------------------
+
+$brand-color-lime:			#70b036;
+$brand-color:				$brand-color-lime; // #2a854d;
+$background-color:			#fcfcfc;
+$text-color:					#333;
+$from:						lighten($brand-color,10%);
+$to:						$brand-color;
+
+$link-color:					$brand-color;
+$link-hover:					$text-color; // darken($link-color, 20%);
+
+$meta:						#9fa6b4;
+$content-borders:			#eaedf2;
+$input-background:			$background-color;
+
+$black:						#333;
+$white:						#fff;
+
+$alert-yellow:				#ebe16f;
+$alert-red:					#cc0000;
+$alert-green:				#009933;
+$alert-blue:					#0066cc;
+
+$content-divider:			#eee;
+$table-stripe:				#f8f9fa;
+$content-tag-background:	#f8f9fa;
+$content-pre-background:	#f8f9fa;
+
+$disabled:					#cfcfcf;
+

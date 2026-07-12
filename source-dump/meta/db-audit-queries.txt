@@ -1,0 +1,159 @@
+x
+=== POST TYPES (toate statusurile) ===
+post_type	post_status	c
+amp_validated_url	publish	1
+attachment	inherit	987
+brochure	publish	6
+elementor_library	publish	1
+lshowcase	publish	15
+nav_menu_item	publish	95
+oembed_cache	publish	3
+page	publish	25
+post	publish	107
+post	auto-draft	2
+post	draft	2
+product	publish	131
+product	draft	8
+product	private	4
+revision	inherit	2842
+shop_order	wc-cancelled	1899
+shop_order	wc-on-hold	1723
+shop_order	wc-processing	1539
+shop_order	wc-completed	661
+shop_order	wc-pending	108
+shop_order	wc-refunded	1
+shop_order_refund	wc-completed	1
+tablepress_table	publish	186
+video	publish	8
+wp-types-group	publish	5
+wp-types-group	draft	2
+wp-types-term-group	publish	1
+wpcf7_contact_form	publish	2
+x
+=== TYPES FIELD GROUPS (wp-types-group) ===
+ID	post_title	post_status	post_name
+7469	2nd description	draft	2nd-description
+7479	bottom content	draft	bottom-content
+65	Extra product info	publish	extra-product-info
+544	Brochure info	publish	brochure-info
+558	Video info	publish	video-info
+567	Additional content	publish	additional-content
+653	Graded unit info	publish	graded-unit-info
+x
+=== TYPES CPT/TAX GROUPS (post types & taxonomies definite in Types) ===
+ID	post_type	post_title	post_status
+711	wp-types-term-group	Additional Content	publish
+option_name
+wpcf-custom-taxonomies
+wpcf-custom-types
+wpcf-fields
+x
+=== ACF CHECK (asteptat 0) ===
+x
+=== PAGINI PUBLICATE: id, slug, template, lungime content, parent ===
+ID	post_name	tmpl	clen	post_parent	menu_order
+7	https-eco-fridge-co-uk	default	8068	0	0
+17	about-us	default	11571	0	0
+19	markets	default	0	0	0
+33	support	default	3938	0	0
+35	contact-us	default	374	0	0
+598	privacy-cookies-policy	default	5650	0	0
+612	eco-fridge	default	213	0	0
+636	graded-units	default	183	0	0
+2496	shop	default	0	0	0
+2497	cart	default	18	0	0
+2498	checkout	default	22	0	0
+2499	my-account	default	24	0	0
+2808	terms-conditions	default	4981	0	0
+2858	woo_lloydscardnetcw	default	29	0	0
+3675	cookie-policy-uk	default	43	0	0
+7136	we-are-open-for-business	default	953	0	0
+10921	returns	default	213	0	0
+21	coffee-shops	default	715	19	0
+23	sports-clubs	default	711	19	0
+25	restaurants	default	790	19	0
+27	airports	default	0	19	0
+31	forecourts	default	625	19	0
+628	convenience-stores	default	462	19	0
+2505	delis-and-butchers	default	465	19	0
+2668	display-freezers	default	587	19	0
+x
+=== TOATE meta_key wpcf-* : total + non-goale ===
+meta_key	total	nonnull
+wpcf-features	141	141
+wpcf-from-price	141	141
+wpcf-model-dimensions	135	135
+wpcf-spec-table	102	102
+wpcf-spec-table-2	51	51
+wpcf-graded-unit-temperature	9	9
+wpcf-graded-unit-weight	9	9
+wpcf-content-2	9	9
+wpcf-graded-unit-damage	9	9
+wpcf-graded-unit-dimensions	9	9
+wpcf-graded-unit-model	9	9
+wpcf-graded-unit-price	9	9
+wpcf-graded-unit-shelves	9	9
+wpcf-youtube-id-number	8	8
+wpcf-brochure-link	7	7
+wpcf-graded-unit-original-price	6	6
+x
+=== check_doors + alte meta custom non-woo (top) ===
+meta_key	c
+check_doors	4353
+x
+=== WOO: produse pe tip (product_type term) ===
+product_type	c
+simple	143
+x
+=== WOO: order status counts ===
+post_status	c
+wc-cancelled	1899
+wc-on-hold	1723
+wc-processing	1539
+wc-completed	661
+wc-pending	108
+wc-refunded	1
+x
+=== TAXONOMII (nume + count termeni) ===
+taxonomy	terms
+yst_prominent_words	3497
+product_tag	164
+pa_model	86
+amp_validation_error	82
+post_tag	57
+range	44
+product_cat	27
+product_visibility	9
+market	8
+ranges	5
+product_type	4
+nav_menu	3
+monsterinsights_note_category	3
+pa_warranty	2
+category	2
+pa_removal-disposal	2
+pa_castors	2
+condition	2
+x
+=== NAV MENUS ===
+menu	items
+Display Cabinets	6
+Main	83
+Storage Cabinets	6
+x
+=== OPTIONS cheie (theme + woo) ===
+option_name	val
+blogdescription	Display and Catering Commercial Refrigeration Equipment
+blogname	ECO-Fridge Ltd
+page_for_posts	0
+page_on_front	7
+show_on_front	page
+stylesheet	eco-fridge
+template	eco-fridge
+woocommerce_cart_page_id	2497
+woocommerce_checkout_page_id	2498
+woocommerce_currency	GBP
+woocommerce_default_country	GB
+woocommerce_myaccount_page_id	2499
+woocommerce_shop_page_id	2496
+

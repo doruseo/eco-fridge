@@ -1,0 +1,17 @@
+/*
+Theme Name: Eco-Fridge Child
+Theme URI: https://eco-fridge.co.uk
+Description: Temă copil Astra pentru ECO-Fridge Ltd. Găzduiește logica custom migrată din tema originală: preț „from-price"/£POA, note livrare + T&C globale pe produs, înlocuiri string WooCommerce. Design 1:1 cu eco-fridge.co.uk.
+Author: Migrare eco-fridge
+Template: astra
+Version: 0.1.0
+Text Domain: eco-fridge-child
+*/
+
+/* Stilurile se moștenesc din Astra (părinte). Adăugări custom mai jos, pe măsură ce reconstruim design-ul. */
+
+:root {
+  --ef-brand: #70b036;   /* verde brand */
+  --ef-bg: #fcfcfc;
+  --ef-text: #333;
+}

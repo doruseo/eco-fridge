@@ -1,0 +1,32 @@
+# === Date mari / media / secrete — NU în Git ===
+# Dump DB original (162MB) și orice SQL brut
+source-dump/db/
+*.sql
+*.sql.gz
+
+# Media / uploads sincronizate din site
+uploads/
+wp-content/uploads/
+
+# Secrete și config cu credențiale
+*.redacted.php
+wp-config.php
+.env
+.env.*
+*.key
+*.pem
+id_ed25519*
+
+# Arhive plugin/temă premium (mari, redistribuire licențiată)
+*.zip
+*.tar.gz
+
+# Dependențe node & runtime wp-env
+node_modules/
+.wp-env.override.json
+
+# OS / editor
+Thumbs.db
+.DS_Store
+.idea/
+.vscode/

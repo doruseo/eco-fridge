@@ -1,0 +1,20 @@
+// Stylesheet: Fixed grid styles for IE8 and below
+
+
+	@for $i from 2 through 12 {
+	   .col#{$i} {
+	      width: $col * $i + $gutter * $i -$gutter;
+	      float: left;
+	      margin: 0 $gutter/2 $vgrid $gutter/2;
+	   }
+	}
+	
+	.wrap {
+	   width: 930px;
+	   margin: 0 auto;
+	   background-color: $white;
+	}
+	.colr {
+	   float: right;
+	   margin: 0 $gutter/2;
+	}

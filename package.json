@@ -1,0 +1,16 @@
+{
+  "name": "eco-fridge-migration",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Migrare eco-fridge: Toolset Types -> Gutenberg (Astra Pro + Spectra + Essential Blocks), local wp-env PHP 8.3",
+  "scripts": {
+    "start": "wp-env start",
+    "stop": "wp-env stop",
+    "destroy": "wp-env destroy",
+    "cli": "wp-env run cli wp",
+    "logs": "wp-env logs"
+  },
+  "devDependencies": {
+    "@wordpress/env": "^10.0.0"
+  }
+}

@@ -1,0 +1,50 @@
+// Stylesheet: Grid
+
+
+// ------------------- MOBILE -------------------
+
+@media (max-width: 767px) {
+
+	.wrap {
+		width: 100%;
+		margin: 0 auto;
+	}
+	.col12, .col11, .col10, .col9, .col8, .col7, .col6, .col5, .col4, .col3 {
+		width: 92%;
+		margin: 0 4% 20px 4%;
+	}
+	.col6 {
+		width: 42%;
+		float: left;
+		margin: 0 4% 20px 4%;
+	}
+
+}
+
+
+// ------------------- PORTRAIT TABLET TO LANDSCAPE TABLET -------------------
+
+@media (min-width: 768px) {
+	
+	@for $i from 2 through 12 {
+	   .col#{$i} {
+	      width: $col * $i + $gutter * $i -$gutter;
+	      float: left;
+	      margin: 0 $gutter/2 $vgrid $gutter/2;
+	   }
+	}
+	
+	.wrap {
+	   width: $wrap;
+	   max-width: 1280px;
+	   margin: 0 auto;
+	   background-color: $white;
+	   @media (max-width: 1280px) {
+	   	max-width: 96.5%;
+	   }
+	}
+	.colr {
+	   float: right;
+	}
+
+}

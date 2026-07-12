@@ -1,0 +1,20 @@
+// Stylesheet: Typography
+
+
+// define font stacks
+$sans-serif:        "Helvetica Neue", Helvetica, Arial, sans-serif;
+$serif:             "Georgia", Cambria, Times New Roman, Times, serif;
+$default-font:      'Open Sans', $sans-serif;
+$headline-font:     'Oswald', $sans-serif;
+
+/*p {
+	// clean up ragged lines and breaks
+	// 250914 - still not working in IE (-ms-hyphens)
+	-webkit-hyphens: auto;
+	-moz-hyphens: auto;
+	hyphens: auto;
+	
+	// set minimum number of characters before and after the hyphen
+	-webkit-hyphenate-limit-after: 3;
+	-webkit-hyphenate-limit-before: 3;
+}*/
