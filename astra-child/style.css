@@ -104,3 +104,83 @@ a:hover, a:focus { color: var(--ef-text); }
 
 /* Alternanță secțiuni (fundal gri deschis) */
 .ef-section-alt { background: var(--ef-stripe); }
+
+/* =========================================================================
+   BANNER „Call us today" (pagini interne)
+   ========================================================================= */
+.ef-call-banner {
+  background: var(--ef-brand);
+  color: #fff;
+  text-align: center;
+  padding: 14px 20px;
+}
+.ef-call-inner { max-width: 1200px; margin: 0 auto; }
+.ef-call-text {
+  font-family: var(--ef-font-head);
+  font-size: 1.35rem;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  display: block;
+}
+.ef-call-text a { color: #fff; text-decoration: none; }
+.ef-call-sub { font-size: .85rem; opacity: .92; }
+
+/* =========================================================================
+   FOOTER branded (ascunde footer-ul builder Astra implicit)
+   ========================================================================= */
+.site-footer .ast-builder-grid-row-container,
+.site-footer .site-primary-footer-wrap,
+.site-footer .site-below-footer-wrap { display: none !important; }
+
+.ef-footer {
+  background: #2b2f36;
+  color: #d6dae0;
+  padding: 48px 20px 0;
+  font-family: var(--ef-font-body);
+}
+.ef-footer-grid {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+@media (max-width: 768px) { .ef-footer-grid { grid-template-columns: 1fr; gap: 28px; } }
+.ef-footer-title {
+  font-family: var(--ef-font-head);
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  color: #fff;
+  font-size: 1.1rem;
+  margin: 0 0 14px;
+}
+.ef-footer-col p { line-height: 1.7; margin: 0; }
+.ef-footer-col a { color: var(--ef-brand); text-decoration: none; }
+.ef-footer-col a:hover { color: #fff; }
+.ef-footer-links { list-style: none; margin: 0; padding: 0; }
+.ef-footer-links li { margin: 0 0 8px; }
+.ef-footer-bottom {
+  max-width: 1200px;
+  margin: 40px auto 0;
+  padding: 18px 0;
+  border-top: 1px solid rgba(255,255,255,.12);
+  font-size: .85rem;
+  color: #9aa0a8;
+}
+
+/* =========================================================================
+   SEARCH FiboSearch — accente brand
+   ========================================================================= */
+.dgwt-wcas-search-wrapp .dgwt-wcas-sf-wrapp input[type="search"] { border-radius: 3px; }
+.dgwt-wcas-search-submit,
+.dgwt-wcas-search-icon { background-color: var(--ef-brand) !important; }
+.dgwt-wcas-suggestion-product .dgwt-wcas-st-title { font-family: var(--ef-font-body); }
+
+/* Strip search sub header */
+.ef-search-strip {
+  background: #fff;
+  border-bottom: 1px solid var(--ef-border);
+  padding: 12px 20px;
+}
+.ef-search-inner { max-width: 760px; margin: 0 auto; }
+.ef-search-inner .dgwt-wcas-search-wrapp { max-width: 100%; }
