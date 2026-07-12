@@ -28,6 +28,15 @@ add_action( 'wp_enqueue_scripts', function () {
 	);
 }, 15 );
 
+/**
+ * Afișează numărul original al comenzii (din site-ul vechi) în loc de ID-ul nou.
+ * Comenzile migrate păstrează ID-ul legacy în meta `_ef_legacy_order_id`.
+ */
+add_filter( 'woocommerce_order_number', function ( $number, $order ) {
+	$legacy = is_a( $order, 'WC_Order' ) ? $order->get_meta( '_ef_legacy_order_id' ) : '';
+	return $legacy ? $legacy : $number;
+}, 10, 2 );
+
 /* -------------------------------------------------------------------------
  * TODO Faza 2 — de completat după importul datelor:
  *  [ ] from-price / £POA:  meta produs `_ef_from_price` + afișare în arhive/single
