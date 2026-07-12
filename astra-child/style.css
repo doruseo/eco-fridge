@@ -214,3 +214,44 @@ a:hover, a:focus { color: var(--ef-text); }
   transition: all .2s ease;
 }
 .ef-markets-grid a:hover { background: var(--ef-brand); color: #fff; border-color: var(--ef-brand); }
+
+/* =========================================================================
+   PAGINA DE PRODUS SINGLE
+   ========================================================================= */
+.ef-price { font-family: var(--ef-font-head); }
+.ef-price .ef-vat { font-size: .6em; color: var(--ef-meta); text-transform: uppercase; letter-spacing: .04em; }
+.ef-price--poa { color: var(--ef-brand); font-weight: 700; }
+
+.ef-back-link { max-width: 1200px; margin: 0 auto 10px; padding: 8px 0; }
+.ef-back-link a {
+  font-family: var(--ef-font-head); text-transform: uppercase; letter-spacing: .02em;
+  font-size: .85rem; color: var(--ef-meta); text-decoration: none;
+}
+.ef-back-link a:hover { color: var(--ef-brand); }
+
+.ef-product-notes {
+  clear: both; margin: 24px 0; padding: 20px 24px;
+  background: var(--ef-stripe); border: 1px solid var(--ef-border); border-radius: 4px;
+}
+.ef-product-notes ul { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 28px; }
+.ef-product-notes li { position: relative; padding-left: 22px; }
+.ef-product-notes li::before { content: "\2713"; position: absolute; left: 0; color: var(--ef-brand); font-weight: 700; }
+.ef-tc-note { font-size: .82rem; color: var(--ef-meta); margin: 0; }
+
+/* Add-on-uri */
+.ef-addons { margin: 14px 0 18px; }
+.ef-addon {
+  display: flex; align-items: flex-start; gap: 10px; cursor: pointer;
+  padding: 12px 14px; border: 1px solid var(--ef-border); border-radius: 4px;
+  margin-bottom: 8px; background: #fff; line-height: 1.4;
+}
+.ef-addon input { margin-top: 3px; }
+.ef-addon em { color: var(--ef-brand); font-style: normal; font-weight: 700; }
+.ef-addon-toggle summary {
+  cursor: pointer; font-family: var(--ef-font-head); text-transform: uppercase;
+  letter-spacing: .02em; font-size: .85rem; color: var(--ef-brand); padding: 6px 0;
+  list-style: none;
+}
+.ef-addon-toggle summary::-webkit-details-marker { display: none; }
+.ef-addon-toggle summary::before { content: "\25B8 "; }
+.ef-addon-toggle[open] summary::before { content: "\25BE "; }

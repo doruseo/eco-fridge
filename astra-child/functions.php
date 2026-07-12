@@ -16,6 +16,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// Logica paginii de produs single + add-on-uri (preț +VAT/POA, note, garanție, removal).
+require_once get_stylesheet_directory() . '/inc/woo-single.php';
+
 /**
  * Fonturi Google 1:1 cu originalul: Oswald (titluri) + Open Sans (body).
  */
