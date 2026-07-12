@@ -116,6 +116,53 @@ add_action( 'astra_footer_before', function () {
 	<?php
 }, 5 );
 
+/**
+ * Preț „From £X +VAT" — normalizare din meta _ef_from_price (migrat din Types),
+ * cu fallback pe prețul Woo. Reutilizat în grile + single product.
+ */
+function ef_from_price_html( $product_id ) {
+	$raw = get_post_meta( $product_id, '_ef_from_price', true );
+	$raw = trim( (string) $raw );
+	if ( '' !== $raw ) {
+		// valorile migrate conțin deja £ și/sau +VAT în forme variate — le păstrăm 1:1
+		$label = ( stripos( $raw, 'from' ) === 0 ) ? $raw : 'From ' . $raw;
+		return '<div class="ef-from-price">' . wp_kses_post( $label ) . '</div>';
+	}
+	$product = wc_get_product( $product_id );
+	if ( $product ) {
+		$price = $product->get_regular_price();
+		if ( '' !== $price && is_numeric( $price ) ) {
+			return '<div class="ef-from-price">From <span class="amount">&pound;' . number_format( (float) $price, 0 ) . '</span> +VAT</div>';
+		}
+	}
+	return '';
+}
+
+/**
+ * Afișează „From £X +VAT" sub titlul fiecărui produs din grilele Spectra Post Grid.
+ * Post-procesăm HTML-ul blocului (robust, independent de interne Spectra): după
+ * fiecare titlu de produs injectăm prețul, identificând produsul din permalink.
+ */
+add_filter( 'render_block', function ( $content, $block ) {
+	if ( empty( $block['blockName'] ) || 'uagb/post-grid' !== $block['blockName'] ) {
+		return $content;
+	}
+	if ( strpos( $content, 'uagb-post__title' ) === false ) {
+		return $content;
+	}
+	return preg_replace_callback(
+		'/(<(h[1-6])[^>]*class="[^"]*uagb-post__title[^"]*"[^>]*>.*?href="([^"]+)".*?<\/\2>)/is',
+		function ( $m ) {
+			$pid = url_to_postid( $m[3] );
+			if ( $pid && 'product' === get_post_type( $pid ) ) {
+				return $m[1] . ef_from_price_html( $pid );
+			}
+			return $m[1];
+		},
+		$content
+	);
+}, 10, 2 );
+
 /* -------------------------------------------------------------------------
  * TODO Faza 2 — de completat după importul datelor:
  *  [ ] from-price / £POA:  meta produs `_ef_from_price` + afișare în arhive/single
