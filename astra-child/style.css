@@ -4,7 +4,7 @@ Theme URI: https://eco-fridge.co.uk
 Description: Temă copil Astra pentru ECO-Fridge Ltd. Header/footer/mega-meniu = NATIVE Astra Pro (Header/Footer Builder + Nav Menu mega). Aici rămân doar: tokens de design, accente brand peste componentele native, preț „from-price"/£POA, add-on-uri produs, hero-slider, tile-uri sub-categorii, blog. Design apropiat de eco-fridge.co.uk (Oswald/Open Sans, brand #228B22).
 Author: Migrare eco-fridge
 Template: astra
-Version: 0.4.5
+Version: 0.4.6
 Text Domain: eco-fridge-child
 */
 
@@ -150,10 +150,10 @@ a:hover, a:focus { color: var(--ef-text); }
     margin: 0;
     border: 1px solid var(--ef-brand-light);
     border-radius: 6px;
-    padding: 3px 14px 3px 7px;
+    padding: 3px 12px 3px 6px;
     background: #fff;
     cursor: pointer;
-    font-size: .52rem;
+    font-size: .45rem;
     font-weight: 600;
     line-height: 1.2;
     letter-spacing: 0;
