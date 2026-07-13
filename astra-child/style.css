@@ -4,7 +4,7 @@ Theme URI: https://eco-fridge.co.uk
 Description: Temă copil Astra pentru ECO-Fridge Ltd. Header/footer/mega-meniu = NATIVE Astra Pro (Header/Footer Builder + Nav Menu mega). Aici rămân doar: tokens de design, accente brand peste componentele native, preț „from-price"/£POA, add-on-uri produs, hero-slider, tile-uri sub-categorii, blog. Design apropiat de eco-fridge.co.uk (Oswald/Open Sans, brand #228B22).
 Author: Migrare eco-fridge
 Template: astra
-Version: 0.3.4
+Version: 0.3.6
 Text Domain: eco-fridge-child
 */
 
@@ -300,7 +300,7 @@ a:hover, a:focus { color: var(--ef-text); }
    (conținutul = elemente HTML în Footer Builder, editabile din Customizer)
    ========================================================================= */
 /* rândul principal (3 coloane): fundal verde deschis, text negru, linkuri verde închis */
-.site-primary-footer-wrap { background: #e4f3e4; }
+.site-primary-footer-wrap { background: #d3ecd0; }
 .site-footer .ast-builder-html-element,
 .site-footer .ast-builder-html-element p { color: #111; line-height: 1.7; }
 .site-footer .ast-builder-html-element h3 {
@@ -316,12 +316,26 @@ a:hover, a:focus { color: var(--ef-text); }
 .site-footer .ast-builder-html-element ul { list-style: none; margin: 0; padding: 0; }
 .site-footer .ast-builder-html-element li { margin: 0 0 8px; }
 
-/* rândul de jos (copyright): fundal negru, text alb */
+/* coloana „Information" = widget Navigation Menu (același stil ca celelalte coloane) */
+.site-footer .footer-widget-area .widget-title {
+  font-family: var(--ef-font-head);
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  color: #111;
+  font-size: 1.1rem;
+  margin: 0 0 14px;
+}
+.site-footer .footer-widget-area ul { list-style: none; margin: 0; padding: 0; }
+.site-footer .footer-widget-area li { margin: 0 0 8px; }
+.site-footer .footer-widget-area a { color: var(--ef-brand-dark); text-decoration: none; font-weight: 600; }
+.site-footer .footer-widget-area a:hover { color: #000; text-decoration: underline; }
+
+/* rândul de jos (copyright): fundal negru, text alb, linkuri verzi */
 .site-below-footer-wrap { background: #000; color: #fff; }
 .site-below-footer-wrap p { margin: 0; }
-.site-below-footer-wrap a { color: #fff; text-decoration: underline; }
-.site-below-footer-wrap a:hover { color: var(--ef-brand-light); }
-.ef-footer-credit { font-size: .82rem; opacity: .85; margin-top: 4px !important; }
+.site-below-footer-wrap a { color: var(--ef-brand-light); text-decoration: underline; }
+.site-below-footer-wrap a:hover { color: #fff; }
+.ef-footer-credit { font-size: .82rem; opacity: .9; margin-top: 4px !important; }
 
 /* =========================================================================
    SEARCH FiboSearch — dreptunghiular cu colțuri rotunjite, FĂRĂ lupă
