@@ -505,3 +505,45 @@ div.wpforms-container .wpforms-submit:hover {
 .ef-addon-toggle summary::-webkit-details-marker { display: none; }
 .ef-addon-toggle summary::before { content: "\25B8 "; }
 .ef-addon-toggle[open] summary::before { content: "\25BE "; }
+
+/* =========================================================================
+   HOMEPAGE — ritm/spațiere + conținut SEO long-form (responsive)
+   ========================================================================= */
+/* imaginile din blocurile wp:html / Spectra nu depășesc niciodată containerul */
+.wp-block-uagb-container img,
+.ast-container .wp-block-html img,
+.ef-seo-content img { max-width: 100%; height: auto; }
+
+/* pe mobil reducem padding-ul vertical al secțiunilor homepage (Spectra pune 55px) */
+@media (max-width: 600px) {
+  .wp-block-uagb-container.uagb-is-root-container { padding-top: 34px !important; padding-bottom: 34px !important; }
+}
+
+/* conținut SEO long-form: lățime lizibilă + tipografie curată */
+.ef-seo-content {
+  max-width: 1000px;
+  margin: 0 auto;
+  line-height: 1.75;
+  color: var(--ef-text);
+}
+.ef-seo-content h2,
+.ef-seo-content h3 {
+  font-family: var(--ef-font-head);
+  margin: 1.5em 0 .5em;
+  color: #2b2f36;
+}
+.ef-seo-content h2 { font-size: 1.5rem; }
+.ef-seo-content h3 { font-size: 1.2rem; }
+.ef-seo-content p { margin: 0 0 1.1em; }
+.ef-seo-content ul,
+.ef-seo-content ol { margin: 0 0 1.1em 1.3em; }
+.ef-seo-content li { margin: 0 0 .4em; }
+.ef-seo-content a { color: var(--ef-brand); }
+/* tabele din conținutul legacy: nu ies din ecran (scroll orizontal propriu) */
+.ef-seo-content table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; margin: 1.2em 0; }
+.ef-seo-content td,
+.ef-seo-content th { border: 1px solid var(--ef-border); padding: 8px 10px; }
+@media (max-width: 600px) {
+  .ef-seo-content h2 { font-size: 1.3rem; }
+  .ef-seo-content h3 { font-size: 1.1rem; }
+}
