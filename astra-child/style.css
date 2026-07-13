@@ -4,7 +4,7 @@ Theme URI: https://eco-fridge.co.uk
 Description: Temă copil Astra pentru ECO-Fridge Ltd. Header/footer/mega-meniu = NATIVE Astra Pro (Header/Footer Builder + Nav Menu mega). Aici rămân doar: tokens de design, accente brand peste componentele native, preț „from-price"/£POA, add-on-uri produs, hero-slider, tile-uri sub-categorii, blog. Design apropiat de eco-fridge.co.uk (Oswald/Open Sans, brand #228B22).
 Author: Migrare eco-fridge
 Template: astra
-Version: 0.3.1
+Version: 0.3.2
 Text Domain: eco-fridge-child
 */
 
@@ -209,31 +209,30 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-mega-tile-img img { max-height: 80px; max-width: 100%; width: auto; object-fit: contain; }
 .ef-mega-tile-name { font-family: var(--ef-font-head); font-size: .78rem; line-height: 1.28; color: #000; }
 
-/* —— mega COMPACT grupat (Commercial Fridge / Freezer) — ancorat, aliniat dreapta —— */
+/* —— mega COMPACT grupat (Commercial Fridge / Freezer) — mai lat, ancorat dreapta —— */
 .ef-cat-nav .ef-menu > li.ef-mega-compact { position: relative; }
-.ef-mega-compact > .ef-mega { right: 0; width: max-content; min-width: 340px; max-width: min(860px, 94vw); padding: 20px 24px; }
-.ef-mega-groups { display: flex; flex-wrap: wrap; gap: 30px; align-items: flex-start; }
-.ef-mega-col { display: flex; flex-direction: column; min-width: 180px; }
-/* tier-2 header: iconiță + label */
+.ef-mega-compact > .ef-mega { right: 0; width: max-content; min-width: 560px; max-width: min(1040px, 96vw); padding: 22px 28px; }
+.ef-mega-groups { display: flex; flex-wrap: wrap; gap: 38px; align-items: flex-start; }
+.ef-mega-col { display: flex; flex-direction: column; min-width: 250px; }
+/* tier-2 header: FĂRĂ iconiță, text mai mare */
 .ef-mega-head {
-  display: flex; align-items: center; gap: 10px; text-decoration: none;
-  padding-bottom: 9px; margin-bottom: 8px; border-bottom: 2px solid var(--ef-border);
+  display: flex; align-items: center; text-decoration: none;
+  padding-bottom: 10px; margin-bottom: 9px; border-bottom: 2px solid var(--ef-border);
 }
-.ef-mega-head-img { flex: 0 0 42px; height: 42px; display: flex; align-items: center; justify-content: center; }
-.ef-mega-head-img img { max-height: 42px; max-width: 42px; object-fit: contain; }
+.ef-mega-head-img { display: none; } /* iconița tier-2 ștearsă */
 .ef-mega-head-txt {
   font-family: var(--ef-font-head); text-transform: uppercase; letter-spacing: .02em;
-  font-size: .84rem; color: var(--ef-brand);
+  font-size: 1.05rem; color: var(--ef-brand);
 }
-/* tier-3 pe COLOANĂ (tile rând, iconiță mică), tier-4 = sub-linkuri indentate */
+/* tier-3: text stânga, iconiță în DREAPTA (centrată vertical); tier-4 = sub-linkuri */
 .ef-mega-col-items { display: flex; flex-direction: column; gap: 1px; }
-.ef-mega-compact .ef-mega-tile { flex-direction: row; align-items: center; text-align: left; padding: 6px 8px; gap: 8px; border-radius: 8px; }
-.ef-mega-compact .ef-mega-tile-img { display: flex; height: 26px; width: 26px; margin: 0; flex: 0 0 26px; }
-.ef-mega-compact .ef-mega-tile-img img { max-height: 26px; max-width: 26px; }
-.ef-mega-compact .ef-mega-tile-name { font-family: var(--ef-font-body); font-size: .8rem; white-space: nowrap; color: #000; }
-.ef-mega-subitems { display: flex; flex-direction: column; margin: 0 0 4px 34px; }
+.ef-mega-compact .ef-mega-tile { flex-direction: row; align-items: center; text-align: left; padding: 7px 10px; gap: 10px; border-radius: 8px; }
+.ef-mega-compact .ef-mega-tile-name { order: 1; font-family: var(--ef-font-body); font-size: .86rem; color: #000; }
+.ef-mega-compact .ef-mega-tile-img { order: 2; margin-left: auto; display: flex; align-items: center; justify-content: center; height: 30px; width: 30px; flex: 0 0 30px; }
+.ef-mega-compact .ef-mega-tile-img img { max-height: 30px; max-width: 30px; object-fit: contain; }
+.ef-mega-subitems { display: flex; flex-direction: column; margin: 0 0 4px 14px; }
 .ef-mega-subitem {
-  font-family: var(--ef-font-body); font-size: .76rem; color: #555 !important;
+  font-family: var(--ef-font-body); font-size: .78rem; color: #555 !important;
   padding: 3px 6px; text-decoration: none; white-space: nowrap; text-transform: none; letter-spacing: 0;
 }
 .ef-mega-subitem:hover { color: var(--ef-brand) !important; }
@@ -242,9 +241,9 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-header-search { width: 250px; max-width: 38vw; }
 .ef-header-search .dgwt-wcas-search-wrapp { max-width: 100%; margin: 0; }
 
-/* coș */
-.ef-cart { display: inline-flex; align-items: center; gap: 8px; color: #fff; text-decoration: none; font-family: var(--ef-font-head); font-size: .85rem; }
-.ef-cart:hover { color: #fff; opacity: .92; }
+/* coș — contur cu colțuri rotunjite */
+.ef-cart { display: inline-flex; align-items: center; gap: 8px; color: #fff; text-decoration: none; font-family: var(--ef-font-head); font-size: .85rem; border: 1px solid rgba(255,255,255,.7); border-radius: 8px; padding: 6px 12px; transition: background .15s ease; }
+.ef-cart:hover { color: #fff; background: rgba(255,255,255,.14); opacity: 1; }
 .ef-cart-ico::before { content: "\1F6D2"; font-size: 1.05rem; }
 .ef-cart-count { text-transform: uppercase; letter-spacing: .02em; }
 .ef-cart-total { font-weight: 700; }
@@ -320,11 +319,21 @@ a:hover, a:focus { color: var(--ef-text); }
 .site-below-footer-wrap a { color: var(--ef-brand); }
 
 /* =========================================================================
-   SEARCH FiboSearch — accente brand
+   SEARCH FiboSearch — dreptunghiular cu colțuri rotunjite, FĂRĂ lupă
    ========================================================================= */
-.dgwt-wcas-search-wrapp .dgwt-wcas-sf-wrapp input[type="search"] { border-radius: 3px; }
-.dgwt-wcas-search-submit,
-.dgwt-wcas-search-icon { background-color: var(--ef-brand) !important; }
+/* ascunde complet lupa / butonul de submit + iconițele */
+.ef-header-search .dgwt-wcas-search-submit,
+.ef-header-search .dgwt-wcas-search-icon,
+.ef-header-search .dgwt-wcas-ico-magnifier,
+.ef-header-search .dgwt-wcas-ico-magnifier-handler,
+.ef-header-search .dgwt-wcas-voice-search { display: none !important; }
+/* input dreptunghiular cu colțuri rotunjite (fără spațiu rezervat pt. lupă) */
+.ef-header-search input[type="search"],
+.ef-header-search .dgwt-wcas-sf-wrapp input[type="search"] {
+  border: 1px solid var(--ef-border) !important;
+  border-radius: 8px !important;
+  padding-right: 14px !important;
+}
 .dgwt-wcas-suggestion-product .dgwt-wcas-st-title { font-family: var(--ef-font-body); }
 
 /* =========================================================================
