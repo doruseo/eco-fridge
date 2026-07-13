@@ -165,6 +165,49 @@ a:hover, a:focus { color: var(--ef-text); }
 }
 /* dropdown-uri aproape de marginea dreaptă se deschid spre stânga */
 .ef-cat-nav .ef-menu > li:nth-last-child(-n+3) .sub-menu { left: auto; right: 0; }
+
+/* —— MEGA-MENIURI (rând 2) —— */
+.ef-header-row2 .ef-header-inner { position: relative; }
+.ef-cat-nav .ef-menu > li { position: static; } /* mega ocupă lățimea containerului */
+.ef-mega {
+  position: absolute; left: 0; right: 0; top: 100%;
+  background: #fff; border-top: 3px solid var(--ef-brand);
+  box-shadow: 0 16px 32px rgba(0,0,0,.16);
+  padding: 22px 26px; z-index: 70;
+  max-height: 80vh; overflow-y: auto;
+  opacity: 0; visibility: hidden; transform: translateY(6px);
+  transition: opacity .18s ease, transform .18s ease, visibility .18s;
+}
+.ef-cat-nav .ef-menu > li:hover > .ef-mega { opacity: 1; visibility: visible; transform: translateY(0); }
+
+/* grilă plată 5 coloane (Display / Storage Cabinets) */
+.ef-mega-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+
+/* coloane grupate (Commercial Fridge / Freezer) */
+.ef-mega-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 20px 26px; align-items: start; }
+.ef-mega-head {
+  display: block; font-family: var(--ef-font-head);
+  text-transform: uppercase; letter-spacing: .02em; font-size: .9rem;
+  color: var(--ef-brand) !important; text-decoration: none;
+  padding-bottom: 8px; margin-bottom: 6px; border-bottom: 2px solid var(--ef-border);
+}
+
+/* tile mega (iconiță + nume) — implicit pe coloană (grilă) */
+.ef-mega-tile {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  text-decoration: none; color: var(--ef-text);
+  padding: 8px; border-radius: 6px; transition: background .15s ease;
+}
+.ef-mega-tile:hover { background: var(--ef-stripe); color: var(--ef-brand); }
+.ef-mega-tile-img { display: flex; align-items: center; justify-content: center; height: 80px; width: 100%; margin-bottom: 8px; }
+.ef-mega-tile-img img { max-height: 80px; max-width: 100%; width: auto; object-fit: contain; }
+.ef-mega-tile-name { font-family: var(--ef-font-head); font-size: .78rem; line-height: 1.28; }
+
+/* în grupuri: tile pe rând (iconiță mică stânga + nume) */
+.ef-mega-col .ef-mega-tile { flex-direction: row; align-items: center; text-align: left; gap: 10px; padding: 6px 4px; }
+.ef-mega-col .ef-mega-tile-img { height: 42px; width: 42px; flex: 0 0 42px; margin: 0; }
+.ef-mega-col .ef-mega-tile-img img { max-height: 42px; }
+.ef-mega-col .ef-mega-tile-name { font-size: .82rem; font-family: var(--ef-font-body); }
 .ef-menu li:hover > .sub-menu { opacity: 1; visibility: visible; transform: translateY(0); }
 .ef-menu .sub-menu a {
   color: var(--ef-text) !important; text-transform: none; letter-spacing: 0;
@@ -205,6 +248,7 @@ a:hover, a:focus { color: var(--ef-text); }
   .ef-cat-nav .ef-menu { flex-wrap: nowrap; }
   .ef-cat-nav .ef-menu a { white-space: nowrap; }
   .ef-menu .sub-menu { position: static; opacity: 1; visibility: visible; transform: none; box-shadow: none; min-width: 0; padding-left: 12px; }
+  .ef-mega { display: none !important; } /* pe mobil: link-ul duce la pagina categoriei */
 }
 
 /* =========================================================================

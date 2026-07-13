@@ -83,6 +83,112 @@ add_filter( 'woocommerce_add_to_cart_fragments', function ( $fragments ) {
 	return $fragments;
 } );
 
+/**
+ * Categoria de produs țintă a unui URL /product-category/.../<slug>/ (ultimul segment).
+ */
+function ef_term_from_url( $url ) {
+	$path = trim( (string) wp_parse_url( $url, PHP_URL_PATH ), '/' );
+	if ( '' === $path || false === strpos( $path, 'product-category' ) ) { return null; }
+	$parts = explode( '/', $path );
+	$slug  = end( $parts );
+	$t = get_term_by( 'slug', $slug, 'product_cat' );
+	return $t && ! is_wp_error( $t ) ? $t : null;
+}
+
+/** Un tile de sub-categorie (iconiță + nume) pentru mega-meniu. */
+function ef_mega_tile( $term ) {
+	$img  = ef_term_image_url( $term->term_id );
+	$link = get_term_link( $term );
+	if ( is_wp_error( $link ) ) { return ''; }
+	return '<a class="ef-mega-tile" href="' . esc_url( $link ) . '">'
+		. '<span class="ef-mega-tile-img">' . ( $img ? '<img src="' . esc_url( $img ) . '" alt="' . esc_attr( $term->name ) . '" loading="lazy" />' : '' ) . '</span>'
+		. '<span class="ef-mega-tile-name">' . esc_html( $term->name ) . '</span></a>';
+}
+
+/** true dacă vreo sub-categorie a termenului are la rândul ei sub-categorii (grupat). */
+function ef_term_has_grandchildren( $term_id ) {
+	$subs = get_terms( array( 'taxonomy' => 'product_cat', 'parent' => $term_id, 'hide_empty' => true ) );
+	if ( is_wp_error( $subs ) ) { return false; }
+	foreach ( $subs as $s ) {
+		$g = get_terms( array( 'taxonomy' => 'product_cat', 'parent' => $s->term_id, 'hide_empty' => true, 'number' => 1, 'fields' => 'ids' ) );
+		if ( ! is_wp_error( $g ) && $g ) { return true; }
+	}
+	return false;
+}
+
+/**
+ * Construiește panoul mega pentru o categorie top-level de header.
+ *   - sub-categorii plate  → grilă 5 coloane cu iconițe (Display / Storage Cabinets)
+ *   - structură pe grupuri → coloane grupate (Commercial Fridge/Freezer):
+ *       fiecare grup = un nivel intermediar (din taxonomie sau din meniu), cu tile-urile lui.
+ */
+function ef_build_mega( $term, $menu_items, $menu_item_id ) {
+	// grupuri = array( array('label','link','items'=>[terms]) )
+	$groups = array();
+
+	if ( $term ) {
+		$subs = get_terms( array( 'taxonomy' => 'product_cat', 'parent' => $term->term_id, 'hide_empty' => true, 'orderby' => 'name' ) );
+		if ( ! is_wp_error( $subs ) && $subs ) {
+			if ( ! ef_term_has_grandchildren( $term->term_id ) ) {
+				// plat → grilă 5 coloane
+				$tiles = '';
+				foreach ( $subs as $s ) { $tiles .= ef_mega_tile( $s ); }
+				if ( '' === $tiles ) { return ''; }
+				return '<div class="ef-mega ef-mega-grid">' . $tiles . '</div>';
+			}
+			// grupat pe sub-categorii
+			foreach ( $subs as $s ) {
+				$kids = get_terms( array( 'taxonomy' => 'product_cat', 'parent' => $s->term_id, 'hide_empty' => true, 'orderby' => 'name' ) );
+				$groups[] = array( 'label' => $s->name, 'link' => get_term_link( $s ), 'items' => ( is_wp_error( $kids ) ? array() : $kids ) );
+			}
+		}
+	}
+
+	// fără sub-categorii în taxonomie → folosește copiii din meniu ca grupuri (Commercial Fridge/Freezer)
+	if ( empty( $groups ) ) {
+		foreach ( (array) $menu_items as $mi ) {
+			if ( (int) $mi->menu_item_parent === (int) $menu_item_id ) {
+				$gt = ef_term_from_url( $mi->url );
+				$kids = $gt ? get_terms( array( 'taxonomy' => 'product_cat', 'parent' => $gt->term_id, 'hide_empty' => true, 'orderby' => 'name' ) ) : array();
+				$groups[] = array( 'label' => $mi->title, 'link' => $mi->url, 'items' => ( is_wp_error( $kids ) ? array() : $kids ) );
+			}
+		}
+	}
+
+	if ( empty( $groups ) ) { return ''; }
+
+	$out = '<div class="ef-mega ef-mega-groups">';
+	foreach ( $groups as $g ) {
+		$out .= '<div class="ef-mega-col">';
+		$out .= '<a class="ef-mega-head" href="' . esc_url( is_wp_error( $g['link'] ) ? '#' : $g['link'] ) . '">' . esc_html( $g['label'] ) . '</a>';
+		foreach ( $g['items'] as $t ) { $out .= ef_mega_tile( $t ); }
+		$out .= '</div>';
+	}
+	$out .= '</div>';
+	return $out;
+}
+
+/** Randează nav-ul de categorii (rând 2) cu mega-meniuri. */
+function ef_render_cat_nav() {
+	$loc = get_nav_menu_locations();
+	$mid = isset( $loc['ef_header_categories'] ) ? (int) $loc['ef_header_categories'] : 0;
+	$items = $mid ? wp_get_nav_menu_items( $mid ) : array();
+	if ( ! $items ) { return; }
+
+	echo '<nav class="ef-cat-nav"><ul class="ef-menu">';
+	foreach ( $items as $it ) {
+		if ( ! empty( $it->menu_item_parent ) && '0' !== $it->menu_item_parent ) { continue; }
+		$term = ef_term_from_url( $it->url );
+		$mega = ef_build_mega( $term, $items, $it->ID );
+		$cls  = $mega ? ' class="ef-has-mega menu-item-has-children"' : '';
+		echo '<li' . $cls . '>';
+		echo '<a href="' . esc_url( $it->url ) . '">' . esc_html( $it->title ) . '</a>';
+		echo $mega; // deja escapat în ef_build_mega
+		echo '</li>';
+	}
+	echo '</ul></nav>';
+}
+
 // Randare header custom, înainte de header-ul Astra (ascuns prin CSS).
 add_action( 'astra_header_before', function () {
 	$home = esc_url( home_url( '/' ) );
@@ -108,10 +214,10 @@ add_action( 'astra_header_before', function () {
 	}
 	echo '</div></div></div>';
 
-	// —— rând 2: nav categorii | coș ——
+	// —— rând 2: nav categorii (cu mega-meniuri) | coș ——
 	echo '<div class="ef-header-row ef-header-row2"><div class="ef-header-inner">';
 	if ( has_nav_menu( 'ef_header_categories' ) ) {
-		wp_nav_menu( array( 'theme_location' => 'ef_header_categories', 'container' => 'nav', 'container_class' => 'ef-cat-nav', 'menu_class' => 'ef-menu', 'fallback_cb' => false, 'depth' => 2 ) );
+		ef_render_cat_nav();
 	}
 	echo '<div class="ef-header-cart">' . ef_cart_link() . '</div>';
 	echo '</div></div>';
