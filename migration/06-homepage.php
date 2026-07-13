@@ -160,11 +160,16 @@ $parts[] = $container(
 	'', true
 );
 
-// 4. DISPLAY CABINETS grid
-$parts[] = $container( $heading( 'Display Cabinets' ) . $grid( 44, 6 ) );
+// —— helper: bloc shortcode sub-categorii (tile-uri cu iconițe) ——
+$subcats = function ( $parent, $cols = 5 ) {
+	return '<!-- wp:shortcode -->' . "\n" . '[ef_subcats parent="' . (int) $parent . '" cols="' . (int) $cols . '"]' . "\n" . '<!-- /wp:shortcode -->';
+};
 
-// 5. STORAGE CABINETS grid (alt bg)
-$parts[] = $container( $heading( 'Storage Cabinets' ) . $grid( 45, 6 ), '#f8f9fa', true );
+// 4. DISPLAY CABINETS — tile-uri sub-categorii (iconițe, 5 coloane) ca originalul
+$parts[] = $container( $heading( 'Display Cabinets' ) . $subcats( 44, 5 ) );
+
+// 5. STORAGE CABINETS — tile-uri sub-categorii (alt bg)
+$parts[] = $container( $heading( 'Storage Cabinets' ) . $subcats( 45, 5 ), '#f8f9fa', true );
 
 // 6. GRADED UNITS
 $parts[] = $container(

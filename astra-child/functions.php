@@ -178,6 +178,63 @@ add_action( 'astra_single_post_banner_after', function () {
 }, 10 );
 
 /**
+ * Imaginea unei categorii de produs: thumbnail-ul categoriei, cu fallback pe
+ * imaginea principală a primului produs din categorie.
+ */
+function ef_term_image_url( $term_id, $size = 'woocommerce_thumbnail' ) {
+	$tid = get_term_meta( $term_id, 'thumbnail_id', true );
+	if ( $tid ) {
+		$u = wp_get_attachment_image_url( (int) $tid, $size );
+		if ( $u ) { return $u; }
+	}
+	$q = get_posts( array(
+		'post_type'   => 'product',
+		'numberposts' => 1,
+		'fields'      => 'ids',
+		'tax_query'   => array( array( 'taxonomy' => 'product_cat', 'field' => 'term_id', 'terms' => $term_id ) ),
+		'meta_key'    => '_thumbnail_id',
+	) );
+	if ( $q ) {
+		$u = get_the_post_thumbnail_url( $q[0], $size );
+		if ( $u ) { return $u; }
+	}
+	return '';
+}
+
+/**
+ * Shortcode [ef_subcats parent="44" cols="5"] — grilă de tile-uri cu sub-categoriile
+ * unei categorii (iconiță + nume + link), ca pe homepage-ul original (Display /
+ * Storage Cabinets). Sare peste sub-categoriile fără produse.
+ */
+function ef_subcats_shortcode( $atts ) {
+	$a = shortcode_atts( array( 'parent' => 0, 'cols' => 5 ), $atts, 'ef_subcats' );
+	$parent = (int) $a['parent'];
+	if ( ! $parent ) { return ''; }
+
+	$terms = get_terms( array(
+		'taxonomy'   => 'product_cat',
+		'parent'     => $parent,
+		'hide_empty' => true,
+		'orderby'    => 'name',
+	) );
+	if ( is_wp_error( $terms ) || empty( $terms ) ) { return ''; }
+
+	$out = '<div class="ef-subcat-grid" style="--ef-cols:' . (int) $a['cols'] . '">';
+	foreach ( $terms as $t ) {
+		$img  = ef_term_image_url( $t->term_id );
+		$link = get_term_link( $t );
+		if ( is_wp_error( $link ) ) { continue; }
+		$out .= '<a class="ef-subcat-tile" href="' . esc_url( $link ) . '">'
+			. '<span class="ef-subcat-img">' . ( $img ? '<img src="' . esc_url( $img ) . '" alt="' . esc_attr( $t->name ) . '" loading="lazy" />' : '' ) . '</span>'
+			. '<span class="ef-subcat-name">' . esc_html( $t->name ) . '</span>'
+			. '</a>';
+	}
+	$out .= '</div>';
+	return $out;
+}
+add_shortcode( 'ef_subcats', 'ef_subcats_shortcode' );
+
+/**
  * Preț „From £X +VAT" — normalizare din meta _ef_from_price (migrat din Types),
  * cu fallback pe prețul Woo. Reutilizat în grile + single product.
  */
