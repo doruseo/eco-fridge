@@ -120,6 +120,22 @@ add_action( 'astra_footer_before', function () {
 }, 5 );
 
 /**
+ * Featured image pe articolele de blog (single post), afișată DUPĂ titlu +
+ * detaliile meta, înainte de conținut. Astra modern nu o randează implicit
+ * în structura `ast-dynamic-single-post-structure` (doar title+meta), iar
+ * varianta nativă „single-image" o pune ca fundal — de aceea o randăm noi
+ * aici, la `astra_single_post_banner_after` (fix după title+meta, în header).
+ */
+add_action( 'astra_single_post_banner_after', function () {
+	if ( ! is_singular( 'post' ) || ! has_post_thumbnail() ) {
+		return;
+	}
+	echo '<div class="ef-single-featured">'
+		. get_the_post_thumbnail( get_the_ID(), 'large', array( 'loading' => 'eager' ) )
+		. '</div>';
+}, 10 );
+
+/**
  * Preț „From £X +VAT" — normalizare din meta _ef_from_price (migrat din Types),
  * cu fallback pe prețul Woo. Reutilizat în grile + single product.
  */

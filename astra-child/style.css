@@ -216,6 +216,25 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-markets-grid a:hover { background: var(--ef-brand); color: #fff; border-color: var(--ef-brand); }
 
 /* =========================================================================
+   ARTICOLE BLOG (single post) — lățime 1000px + featured image sub titlu
+   ========================================================================= */
+/* Containerul de conținut al articolelor limitat la 1000px (default Astra 1200) */
+.single-post .site-content > .ast-container {
+  max-width: 1000px;
+}
+
+/* Featured image afișată după titlu + meta, înainte de conținut */
+.ef-single-featured {
+  margin: 22px 0 8px;
+}
+.ef-single-featured img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+/* =========================================================================
    PAGINA DE PRODUS SINGLE
    ========================================================================= */
 .ef-price { font-family: var(--ef-font-head); }
