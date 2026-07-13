@@ -65,6 +65,16 @@ add_action( 'woocommerce_after_single_product_summary', function () {
 }, 25 );
 
 /* =========================================================================
+ * 3b. Breadcrumbs WooCommerce: 🏢 în loc de „Home", separator „>>"
+ *     (linkurile verzi se stilizează în style.css)
+ * ========================================================================= */
+add_filter( 'woocommerce_breadcrumb_defaults', function ( $args ) {
+	$args['home']      = '🏢';
+	$args['delimiter'] = ' <span class="ef-crumb-sep">&gt;&gt;</span> ';
+	return $args;
+} );
+
+/* =========================================================================
  * 4. ADD-ON-URI produs: garanție extra (+15%) + Removal & Disposal (+£150)
  * ========================================================================= */
 
