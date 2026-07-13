@@ -79,3 +79,36 @@ class EF_Subcat_Filter_Widget extends WP_Widget {
 add_action( 'widgets_init', function () {
 	register_widget( 'EF_Subcat_Filter_Widget' );
 } );
+
+/**
+ * Pe mobil/tabletă: filtrele din sidebar devin butoane-dropdown inline (vezi CSS).
+ * JS-ul face doar toggle-ul panourilor; se încarcă doar pe arhivele de magazin.
+ */
+add_action( 'wp_footer', function () {
+	if ( ! function_exists( 'is_product_category' ) ) { return; }
+	if ( ! ( is_product_category() || is_shop() || is_product_taxonomy() ) ) { return; }
+	?>
+<script>
+(function(){
+	function isMobile(){ return window.matchMedia('(max-width: 992px)').matches; }
+	var titles = document.querySelectorAll('#secondary .widget-title, #secondary .widgettitle');
+	if(!titles.length){ return; }
+	function closeAll(){ document.querySelectorAll('#secondary .widget.ef-open').forEach(function(o){ o.classList.remove('ef-open'); }); }
+	titles.forEach(function(t){
+		t.addEventListener('click', function(e){
+			if(!isMobile()){ return; }
+			var w = t.closest('.widget'); if(!w){ return; }
+			var open = w.classList.contains('ef-open');
+			closeAll();
+			if(!open){ w.classList.add('ef-open'); window.dispatchEvent(new Event('resize')); }
+			e.stopPropagation();
+		});
+	});
+	document.addEventListener('click', function(ev){
+		if(ev.target.closest('#secondary .widget')){ return; }
+		closeAll();
+	});
+})();
+</script>
+	<?php
+}, 25 );
