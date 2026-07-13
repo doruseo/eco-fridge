@@ -91,16 +91,35 @@ add_action( 'wp_footer', function () {
 <script>
 (function(){
 	function isMobile(){ return window.matchMedia('(max-width: 921px)').matches; }
-	var titles = document.querySelectorAll('#secondary .widget-title, #secondary .widgettitle');
-	if(!titles.length){ return; }
+	var sec = document.getElementById('secondary');
+	var primary = document.getElementById('primary');
+	if(!sec || !primary){ return; }
+
+	// Pe mobil: mută bara de filtre chiar ÎNAINTE de grila de produse (după descriere).
+	// Pe desktop: o repune în poziția de sidebar (înainte de #primary).
+	function place(){
+		// ancoră = chiar după descrierea categoriei (result-count) sau, dacă lipsește, grila
+		var anchor = primary.querySelector('.woocommerce-result-count')
+			|| primary.querySelector('.woocommerce-ordering')
+			|| primary.querySelector('ul.products');
+		if(isMobile()){
+			if(anchor && sec.parentNode !== anchor.parentNode){ anchor.parentNode.insertBefore(sec, anchor); }
+		} else if(sec.nextElementSibling !== primary){
+			primary.parentNode.insertBefore(sec, primary);
+		}
+	}
+	place();
+	var rt; window.addEventListener('resize', function(){ clearTimeout(rt); rt = setTimeout(place, 150); });
+
+	// Toggle dropdown pe mobil.
 	function closeAll(){ document.querySelectorAll('#secondary .widget.ef-open').forEach(function(o){ o.classList.remove('ef-open'); }); }
-	titles.forEach(function(t){
+	document.querySelectorAll('#secondary .widget-title, #secondary .widgettitle').forEach(function(t){
 		t.addEventListener('click', function(e){
 			if(!isMobile()){ return; }
 			var w = t.closest('.widget'); if(!w){ return; }
 			var open = w.classList.contains('ef-open');
 			closeAll();
-			if(!open){ w.classList.add('ef-open'); window.dispatchEvent(new Event('resize')); }
+			if(!open){ w.classList.add('ef-open'); }
 			e.stopPropagation();
 		});
 	});

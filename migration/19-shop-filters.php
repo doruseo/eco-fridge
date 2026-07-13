@@ -123,7 +123,7 @@ update_option( 'astra-settings', $s );
 
 // instanțe widget
 $pf = get_option( 'widget_woocommerce_price_filter', array() );
-$pf[2] = array( 'title' => 'Filter by price' );
+$pf[2] = array( 'title' => 'Price' );
 $pf['_multiwidget'] = 1;
 update_option( 'widget_woocommerce_price_filter', $pf );
 
