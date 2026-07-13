@@ -13,12 +13,14 @@ Text Domain: eco-fridge-child
    (library/scss/partials/_variables.scss)
    ========================================================================= */
 :root {
-  --ef-brand: #70b036;          /* verde lime brand */
-  --ef-brand-dark: #5c972d;     /* hover */
-  --ef-bg: #fcfcfc;
-  --ef-text: #333;
+  /* Legate de paleta globală Astra (editabilă din Customizer → Global → Colors);
+     fallback = paleta originală eco-fridge dacă Astra nu e încărcat. */
+  --ef-brand: var(--ast-global-color-0, #70b036);      /* verde lime brand */
+  --ef-brand-dark: var(--ast-global-color-1, #5c972d); /* hover */
+  --ef-bg: var(--ast-global-color-5, #fcfcfc);
+  --ef-text: var(--ast-global-color-3, #333);
   --ef-meta: #9fa6b4;
-  --ef-border: #eaedf2;
+  --ef-border: var(--ast-global-color-7, #eaedf2);
   --ef-divider: #eee;
   --ef-stripe: #f8f9fa;
   --ef-font-body: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
