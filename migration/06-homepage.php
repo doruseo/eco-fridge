@@ -64,6 +64,40 @@ $button = function ( $label, $url, $center = true ) {
 		. '</div><!-- /wp:buttons -->';
 };
 
+// —— helper: HERO slider 4 slide-uri (1:1 audit) — full-bleed wp:html ——
+$hero_slider = function () {
+	// eyebrow, titlu, descriere, label CTA, slug categorie, imagine reprezentativă
+	$slides = array(
+		array( 'Premium Range', 'Mirrored Stainless Steel Shutter Multidecks', 'Lockable roller-shutter multidecks with a premium mirrored stainless steel finish — secure overnight, striking on the shop floor.', 'Shop Shutter Multidecks', 'premium-mirrored-stainless-steel-shutter-multidecks', 'SD75120SH-Newweb-724x1024.jpg' ),
+		array( 'Slimline', 'Slimline Patisserie Display Fridges', 'Space-saving double-glazed patisserie cabinets that show off cakes, desserts &amp; chilled treats.', 'Shop Slimline Patisseries', 'standard-patisserie-slimline-display-fridges', 'ECO-P60120B-web-984x1024.jpg' ),
+		array( 'Slimline', 'Slimline Multideck Display Fridges', 'Black steel slimline multidecks — a big open display in a small footprint, ideal for grab &amp; go.', 'Shop Slimline Multidecks', 'black-steel-slimline-multideck-display-fridge', 'BD60150-web-874x1024.png' ),
+		array( 'Bakery', 'Bakery Retarder Provers', 'Stainless steel upright bakery cabinets — retarder provers, fridges &amp; freezers built for the bakery.', 'Shop Bakery Cabinets', 'stainless-steel-upright-bakery-cabinets', 'BK600RP-web-scaled-556x1024.jpg' ),
+	);
+	$slides_html = '';
+	$dots_html    = '';
+	foreach ( $slides as $n => $s ) {
+		list( $eyebrow, $title, $desc, $cta, $slug, $img ) = $s;
+		$active = 0 === $n ? ' is-active' : '';
+		$slides_html .= '<div class="ef-hero-slide' . $active . '"><div class="ef-hero-inner">'
+			. '<div class="ef-hero-text">'
+			. '<span class="ef-hero-eyebrow">' . esc_html( $eyebrow ) . '</span>'
+			. '<h2 class="ef-hero-title">' . esc_html( $title ) . '</h2>'
+			. '<p class="ef-hero-desc">' . $desc . '</p>'
+			. '<a class="ef-hero-btn" href="/product-category/' . esc_attr( $slug ) . '/">' . esc_html( $cta ) . '</a>'
+			. '</div>'
+			. '<div class="ef-hero-media"><img src="/wp-content/uploads/' . esc_attr( $img ) . '" alt="' . esc_attr( $title ) . '" loading="eager" /></div>'
+			. '</div></div>';
+		$dots_html .= '<button class="ef-hero-dot' . $active . '" data-i="' . $n . '" aria-label="' . esc_attr( 'Slide ' . ( $n + 1 ) ) . '"></button>';
+	}
+	$html = '<div class="ef-hero" data-autoplay="6000">'
+		. '<div class="ef-hero-track">' . $slides_html . '</div>'
+		. '<button class="ef-hero-nav ef-hero-prev" aria-label="Previous slide">&lsaquo;</button>'
+		. '<button class="ef-hero-nav ef-hero-next" aria-label="Next slide">&rsaquo;</button>'
+		. '<div class="ef-hero-dots">' . $dots_html . '</div>'
+		. '</div>';
+	return '<!-- wp:html -->' . "\n" . $html . "\n" . '<!-- /wp:html -->';
+};
+
 // —— helper: bandă logo-uri clienți (1:1 cu originalul, pagina 7) ——
 $clients = function () use ( $heading ) {
 	// nume brand (alt) => fișier logo, în ordinea din originalul
@@ -106,16 +140,8 @@ $grid = function ( $cat_id, $count = 6 ) use ( $bid ) {
 /* ---------------- construcție pagină ---------------- */
 $parts = array();
 
-// 1. HERO
-$parts[] = $container(
-	$heading( 'ECO-Fridge UK — Commercial Refrigeration Manufacturer', 'h1' )
-	. $para( 'Display and Catering Commercial Refrigeration Equipment. Market-leading, energy efficient and sustainable commercial fridges &amp; freezers — buy online with trade prices and free delivery.' )
-	. '<!-- wp:buttons {"layout":{"type":"flex","justifyContent":"center"}} --><div class="wp-block-buttons">'
-	. '<!-- wp:button --><div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="/product-category/display-cabinets/">Shop Display Cabinets</a></div><!-- /wp:button -->'
-	. '<!-- wp:button {"className":"is-style-outline"} --><div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="/product-category/graded-units/">Used / Graded Units</a></div><!-- /wp:button -->'
-	. '</div><!-- /wp:buttons -->',
-	'#eef4e7'
-);
+// 1. HERO SLIDER (4 slide-uri, full-bleed)
+$parts[] = $hero_slider();
 
 // 2. BRAND INTRO
 $parts[] = $container(

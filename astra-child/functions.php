@@ -120,6 +120,48 @@ add_action( 'astra_footer_before', function () {
 }, 5 );
 
 /**
+ * Hero slider homepage — logica de rotație (crossfade, autoplay, dots, arrows,
+ * pauză la hover). Markup + CSS sunt în homepage (wp:html) + tema copil;
+ * scriptul e injectat inline doar pe front page ca să nu fie filtrat de kses.
+ */
+add_action( 'wp_footer', function () {
+	if ( ! is_front_page() ) {
+		return;
+	}
+	?>
+<script>
+(function(){
+	var hero = document.querySelector('.ef-hero');
+	if(!hero){ return; }
+	var slides = hero.querySelectorAll('.ef-hero-slide');
+	var dots   = hero.querySelectorAll('.ef-hero-dot');
+	var n = slides.length, i = 0, timer = null;
+	var delay = parseInt(hero.getAttribute('data-autoplay'), 10) || 6000;
+	if(n < 2){ return; }
+	function go(k){
+		slides[i].classList.remove('is-active');
+		if(dots[i]){ dots[i].classList.remove('is-active'); }
+		i = (k + n) % n;
+		slides[i].classList.add('is-active');
+		if(dots[i]){ dots[i].classList.add('is-active'); }
+	}
+	function next(){ go(i + 1); }
+	function prev(){ go(i - 1); }
+	function start(){ stop(); timer = setInterval(next, delay); }
+	function stop(){ if(timer){ clearInterval(timer); timer = null; } }
+	var nx = hero.querySelector('.ef-hero-next'), pv = hero.querySelector('.ef-hero-prev');
+	if(nx){ nx.addEventListener('click', function(){ next(); start(); }); }
+	if(pv){ pv.addEventListener('click', function(){ prev(); start(); }); }
+	Array.prototype.forEach.call(dots, function(d, k){ d.addEventListener('click', function(){ go(k); start(); }); });
+	hero.addEventListener('mouseenter', stop);
+	hero.addEventListener('mouseleave', start);
+	start();
+})();
+</script>
+	<?php
+}, 20 );
+
+/**
  * Featured image pe articolele de blog (single post), afișată DUPĂ titlu +
  * detaliile meta, înainte de conținut. Astra modern nu o randează implicit
  * în structura `ast-dynamic-single-post-structure` (doar title+meta), iar
