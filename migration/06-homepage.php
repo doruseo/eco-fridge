@@ -64,6 +64,40 @@ $button = function ( $label, $url, $center = true ) {
 		. '</div><!-- /wp:buttons -->';
 };
 
+// —— helper: bandă logo-uri clienți (1:1 cu originalul, pagina 7) ——
+$clients = function () use ( $heading ) {
+	// nume brand (alt) => fișier logo, în ordinea din originalul
+	$logos = array(
+		'Paul'                    => 'Paul-UK-web.jpg',
+		'Costa Coffee'            => 'Costa-Coffee-web.jpg',
+		"Wenzel's"                => 'logo-wenzels-web.jpg',
+		'Caff&egrave; Nero'       => 'Caffe-Nero-web.jpg',
+		'Coffee#1'                => 'Coffee1-web.jpg',
+		'Moto'                    => 'Moto-web.jpg',
+		'West Cornwall Pasty Co'  => 'West-Cornwall-web.jpg',
+		'Hotel Chocolat'          => 'hotel-chocolat-logo-web.jpg',
+		'Beyond Bread'            => 'Beyond-Bread.jpg',
+		'Welcome Break'           => 'Welcome-Break.jpg',
+		'Chopd'                   => 'Chopd.jpg',
+		'Brains'                  => 'Brains.jpg',
+		'Holiday Inn'             => 'Holiday-Inn.jpg',
+		'Odeon'                   => 'Odeon.jpg',
+		'Harris + Hoole'          => 'Harris-Hoole-web.jpg',
+		'Esquires Coffee'         => 'ESQUIRES-OCC-primary-logo-solid-_color.jpg',
+		'Bewiched Coffee'         => 'Bewiched-Coffee.jpg',
+		'Bagel Factory'           => 'Bagel-Factory.jpg',
+	);
+	$items = '';
+	foreach ( $logos as $brand => $file ) {
+		$items .= '<div class="ef-client-logo"><img src="/wp-content/uploads/' . esc_attr( $file ) . '" alt="' . esc_attr( html_entity_decode( $brand ) ) . '" loading="lazy" /></div>';
+	}
+	return $heading( 'Some of Our Clients' )
+		. '<!-- wp:html -->' . "\n"
+		. '<p class="ef-clients-intro">As a manufacturer, we&rsquo;re always focused on our customers&rsquo; needs &mdash; and that&rsquo;s why some of the world&rsquo;s most recognisable brands trust ECO-Fridge.</p>'
+		. '<div class="ef-clients-grid">' . $items . '</div>' . "\n"
+		. '<!-- /wp:html -->';
+};
+
 // —— helper: grilă produse Spectra Post Grid ——
 $grid = function ( $cat_id, $count = 6 ) use ( $bid ) {
 	return '<!-- wp:uagb/post-grid {"block_id":"' . $bid() . '","postType":"product","postsToShow":' . $count . ',"columns":3,"tcolumns":2,"mcolumns":1,"taxonomyType":"product_cat","categories":"' . $cat_id . '","displayPostExcerpt":false,"displayPostAuthor":false,"displayPostComment":false,"displayPostDate":false,"displayPostTaxonomy":false,"imgSize":"woocommerce_thumbnail","paginationMarkup":"empty"} /-->';
@@ -89,6 +123,9 @@ $parts[] = $container(
 	. $para( 'ECO-Fridge Ltd has become one of the best commercial refrigeration equipment manufacturers and providers in the UK. An outstanding range of commercial fridge and freezer categories is available to buy online. With over 30 years of experience, we provide a variety of multideck, patisserie, serve-over, upright and storage models — built to be energy efficient and reliable.' )
 	. $button( 'Read more about ECO-Fridge', '/about-us/' )
 );
+
+// 2b. CLIENT LOGOS („Some of Our Clients") — bandă cu fundal gri deschis, ca originalul
+$parts[] = $container( $clients(), '#f8f9fa', true );
 
 // 3. PRODUCT OVERVIEW
 $parts[] = $container(
