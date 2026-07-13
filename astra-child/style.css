@@ -4,7 +4,7 @@ Theme URI: https://eco-fridge.co.uk
 Description: Temă copil Astra pentru ECO-Fridge Ltd. Header/footer/mega-meniu = NATIVE Astra Pro (Header/Footer Builder + Nav Menu mega). Aici rămân doar: tokens de design, accente brand peste componentele native, preț „from-price"/£POA, add-on-uri produs, hero-slider, tile-uri sub-categorii, blog. Design apropiat de eco-fridge.co.uk (Oswald/Open Sans, brand #228B22).
 Author: Migrare eco-fridge
 Template: astra
-Version: 0.4.2
+Version: 0.4.3
 Text Domain: eco-fridge-child
 */
 
@@ -129,28 +129,31 @@ a:hover, a:focus { color: var(--ef-text); }
 #secondary .chosen a { font-weight: 700; }
 
 /* —— MOBIL/TABLETĂ: filtrele = bară inline sus, cu dropdown-uri (nu sidebar) —— */
-@media (max-width: 992px) {
+@media (max-width: 921px) {
+  /* filtrele ÎNAINTEA grilei de produse (Astra pune column-reverse implicit) */
+  .ast-left-sidebar #content > .ast-container { flex-direction: column !important; }
+
   #secondary {
     width: 100% !important;
     display: flex !important;
     flex-wrap: wrap;
     align-items: flex-start;
-    gap: 8px;
-    margin: 0 0 18px !important;
+    gap: 6px;
+    margin: 0 0 16px !important;
     padding: 0 !important;
     position: static;
   }
   #secondary .widget { margin: 0 !important; padding: 0 !important; position: relative; flex: 0 0 auto; width: auto; border: 0; }
-  /* titlul widget-ului = buton de dropdown */
+  /* titlul widget-ului = buton de dropdown (scris mai mic) */
   #secondary .widget-title,
   #secondary .widgettitle {
     margin: 0;
     border: 1.5px solid var(--ef-brand-light);
     border-radius: 8px;
-    padding: 9px 34px 9px 14px;
+    padding: 7px 26px 7px 11px;
     background: #fff;
     cursor: pointer;
-    font-size: .82rem;
+    font-size: .7rem;
     white-space: nowrap;
     position: relative;
     user-select: none;
@@ -158,19 +161,22 @@ a:hover, a:focus { color: var(--ef-text); }
   #secondary .widget-title::after,
   #secondary .widgettitle::after {
     content: "\25BE"; /* ▾ */
-    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-    color: var(--ef-brand); font-size: .8em; pointer-events: none;
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    color: var(--ef-brand); font-size: .72em; pointer-events: none;
   }
   #secondary .widget.ef-open .widget-title::after,
   #secondary .widget.ef-open .widgettitle::after { content: "\25B4"; /* ▴ */ }
   /* panoul de opțiuni = dropdown ascuns (visibility ca slider-ul de preț să-și ia lățimea) */
   #secondary .widget > *:not(.widget-title):not(.widgettitle) {
     position: absolute; top: calc(100% + 5px); left: 0; z-index: 60;
-    min-width: 250px; max-width: 84vw; max-height: 64vh; overflow: auto;
+    min-width: 220px; max-width: 84vw; max-height: 64vh; overflow: auto;
     background: #fff; border: 1px solid var(--ef-border); border-radius: 10px;
-    box-shadow: 0 12px 28px rgba(0,0,0,.16); padding: 14px; margin: 0;
+    box-shadow: 0 12px 28px rgba(0,0,0,.16); padding: 12px; margin: 0;
+    font-size: .78rem;
     visibility: hidden; opacity: 0; pointer-events: none; transition: opacity .15s ease;
   }
+  #secondary .ef-filter-cats a,
+  #secondary .woocommerce-widget-layered-nav-list a { font-size: .78rem; }
   #secondary .widget.ef-open > *:not(.widget-title):not(.widgettitle) {
     visibility: visible; opacity: 1; pointer-events: auto;
   }

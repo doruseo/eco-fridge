@@ -90,7 +90,7 @@ add_action( 'wp_footer', function () {
 	?>
 <script>
 (function(){
-	function isMobile(){ return window.matchMedia('(max-width: 992px)').matches; }
+	function isMobile(){ return window.matchMedia('(max-width: 921px)').matches; }
 	var titles = document.querySelectorAll('#secondary .widget-title, #secondary .widgettitle');
 	if(!titles.length){ return; }
 	function closeAll(){ document.querySelectorAll('#secondary .widget.ef-open').forEach(function(o){ o.classList.remove('ef-open'); }); }
