@@ -179,8 +179,9 @@ function ef_build_mega( $term, $menu_items, $menu_item_id ) {
 		$icon = ! empty( $g['term_id'] ) ? ef_term_image_url( $g['term_id'] ) : '';
 		$out .= '<div class="ef-mega-col">';
 		$out .= '<a class="ef-mega-head" href="' . esc_url( is_wp_error( $g['link'] ) ? '#' : $g['link'] ) . '">';
+		$out .= '<span class="ef-mega-head-txt">' . esc_html( $g['label'] ) . '</span>';
 		if ( $icon ) { $out .= '<span class="ef-mega-head-img"><img src="' . esc_url( $icon ) . '" alt="" loading="lazy" /></span>'; }
-		$out .= '<span class="ef-mega-head-txt">' . esc_html( $g['label'] ) . '</span></a>';
+		$out .= '</a>';
 		$out .= '<div class="ef-mega-col-items">';
 		foreach ( $g['items'] as $t ) { $out .= ef_mega_tile( $t ); }
 		$out .= '</div></div>';
