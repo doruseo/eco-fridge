@@ -49,16 +49,69 @@ $primary = ef_build_menu( 'Header Primary', 'ef_header_primary', array(
 	array( 'Contact Us', '/contact-us/' ),
 ) );
 
-$cats = ef_build_menu( 'Header Categories', 'ef_header_categories', array(
-	array( 'Display Cabinets',         '/product-category/display-cabinets/' ),
-	array( 'Storage Cabinets',         '/product-category/storage-cabinets/' ),
-	array( 'Bakery & Ovens',           '/product-category/bakery-cabinets/' ),
-	array( 'Medical',                  '/product-category/medical/' ),
-	array( 'Low Temperature Freezers', '/product-category/low-temperature-chest-freezers/' ),
-	array( 'Used / Graded Units',      '/product-category/graded-units/' ),
-	array( 'Commercial Fridge',        '/product-category/commercial-fridge/' ),
-	array( 'Commercial Freezer',       '/product-category/commercial-freezer/' ),
-) );
+/**
+ * Clonează în meniul $dst_name ramurile de categorii de produse din meniul sursă
+ * $src_menu_id (top-level cu URL /product-category/ + toate sub-itemele lor),
+ * păstrând ierarhia → dropdowns în header rând 2. Idempotent.
+ */
+function ef_clone_category_branches( $src_menu_id, $dst_name, $location ) {
+	$src = wp_get_nav_menu_items( $src_menu_id );
+	if ( ! $src ) { return 0; }
 
-WP_CLI::log( "Header Primary menu = $primary, Header Categories menu = $cats" );
+	$menu = wp_get_nav_menu_object( $dst_name );
+	$menu_id = $menu ? (int) $menu->term_id : (int) wp_create_nav_menu( $dst_name );
+	foreach ( (array) wp_get_nav_menu_items( $menu_id ) as $it ) {
+		wp_delete_post( $it->ID, true );
+	}
+
+	// top-level de păstrat = cele cu /product-category/ în URL, în ordinea din sursă
+	$keep_top = array();
+	foreach ( $src as $it ) {
+		if ( ( empty( $it->menu_item_parent ) || '0' === $it->menu_item_parent )
+			&& false !== strpos( (string) $it->url, '/product-category/' ) ) {
+			$keep_top[] = $it->ID;
+		}
+	}
+
+	// recreează recursiv (old ID -> new ID) pentru top + descendenți
+	$id_map = array();
+	$create = function ( $old_id, $new_parent ) use ( &$create, &$id_map, $src, $menu_id ) {
+		$item = null;
+		foreach ( $src as $s ) { if ( (int) $s->ID === (int) $old_id ) { $item = $s; break; } }
+		if ( ! $item ) { return; }
+		$new_id = wp_update_nav_menu_item( $menu_id, 0, array(
+			'menu-item-title'     => $item->title,
+			'menu-item-url'       => $item->url,
+			'menu-item-type'      => 'custom',
+			'menu-item-status'    => 'publish',
+			'menu-item-parent-id' => (int) $new_parent,
+		) );
+		$id_map[ $old_id ] = $new_id;
+		// copii
+		foreach ( $src as $c ) {
+			if ( (int) $c->menu_item_parent === (int) $old_id ) {
+				$create( $c->ID, $new_id );
+			}
+		}
+	};
+	foreach ( $keep_top as $tid ) { $create( $tid, 0 ); }
+
+	$locations = get_theme_mod( 'nav_menu_locations', array() );
+	$locations[ $location ] = $menu_id;
+	set_theme_mod( 'nav_menu_locations', $locations );
+
+	return $menu_id;
+}
+
+// Sursa = meniul principal complet (52 iteme, cu sub-categoriile).
+$src_locations = get_nav_menu_locations();
+$src_menu_id = isset( $src_locations['primary'] ) ? (int) $src_locations['primary'] : 0;
+if ( ! $src_menu_id ) {
+	$m = wp_get_nav_menu_object( 'Primary Menu' );
+	$src_menu_id = $m ? (int) $m->term_id : 0;
+}
+
+$cats = $src_menu_id ? ef_clone_category_branches( $src_menu_id, 'Header Categories', 'ef_header_categories' ) : 0;
+
+WP_CLI::log( "Header Primary menu = $primary, Header Categories menu = $cats (sursa $src_menu_id)" );
 WP_CLI::success( 'Meniuri header custom create + asignate.' );

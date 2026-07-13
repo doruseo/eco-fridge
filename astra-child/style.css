@@ -156,12 +156,15 @@ a:hover, a:focus { color: var(--ef-text); }
 
 /* dropdowns (dacă meniul are sub-iteme) */
 .ef-menu .sub-menu {
-  position: absolute; top: 100%; left: 0; min-width: 240px;
+  position: absolute; top: 100%; left: 0; min-width: 260px; max-width: 340px;
+  max-height: 74vh; overflow-y: auto;
   background: #fff; box-shadow: 0 10px 26px rgba(0,0,0,.15);
   list-style: none; margin: 0; padding: 6px 0; z-index: 60;
   opacity: 0; visibility: hidden; transform: translateY(6px);
   transition: opacity .18s ease, transform .18s ease, visibility .18s;
 }
+/* dropdown-uri aproape de marginea dreaptă se deschid spre stânga */
+.ef-cat-nav .ef-menu > li:nth-last-child(-n+3) .sub-menu { left: auto; right: 0; }
 .ef-menu li:hover > .sub-menu { opacity: 1; visibility: visible; transform: translateY(0); }
 .ef-menu .sub-menu a {
   color: var(--ef-text) !important; text-transform: none; letter-spacing: 0;
