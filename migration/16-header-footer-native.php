@@ -95,7 +95,8 @@ $s['footer-html-3'] = '<h3>Information</h3><ul>'
 	. '<li><a href="/contact-us/">Contact Us</a></li>'
 	. '</ul>';
 
-$s['footer-copyright-editor'] = '<p>&copy; [current_year] ' . $c['company'] . '. All rights reserved.</p>';
+$s['footer-copyright-editor'] = '<p>&copy; [current_year] <a href="/">' . $c['company'] . '</a>. All rights reserved.</p>'
+	. '<p class="ef-footer-credit">Designed by <a href="https://seo2agency.com/" rel="nofollow noopener" target="_blank">O2 Digital</a></p>';
 
 update_option( 'astra-settings', $s );
 WP_CLI::log( 'Astra Header/Footer Builder configurat (logo|menu|search|cart; footer 3 coloane + copyright).' );
