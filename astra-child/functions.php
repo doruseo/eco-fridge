@@ -27,6 +27,9 @@ require_once get_stylesheet_directory() . '/inc/woo-single.php';
 // condus 100% din meniul WP autoritar (Primary Menu #342). Footer/banner rămân native.
 require_once get_stylesheet_directory() . '/inc/header.php';
 
+// Widget custom pentru filtrul de sub-categorii (contextual) din sidebar-ul de shop.
+require_once get_stylesheet_directory() . '/inc/shop-filters.php';
+
 /**
  * Fonturi Google 1:1 cu originalul: Oswald (titluri) + Open Sans (body).
  */

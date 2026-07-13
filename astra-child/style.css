@@ -4,7 +4,7 @@ Theme URI: https://eco-fridge.co.uk
 Description: Temă copil Astra pentru ECO-Fridge Ltd. Header/footer/mega-meniu = NATIVE Astra Pro (Header/Footer Builder + Nav Menu mega). Aici rămân doar: tokens de design, accente brand peste componentele native, preț „from-price"/£POA, add-on-uri produs, hero-slider, tile-uri sub-categorii, blog. Design apropiat de eco-fridge.co.uk (Oswald/Open Sans, brand #228B22).
 Author: Migrare eco-fridge
 Template: astra
-Version: 0.4.0
+Version: 0.4.1
 Text Domain: eco-fridge-child
 */
 
@@ -100,6 +100,33 @@ a:hover, a:focus { color: var(--ef-text); }
 .woocommerce-breadcrumb a { color: var(--ef-brand); text-decoration: none; }
 .woocommerce-breadcrumb a:hover { color: var(--ef-brand-dark); text-decoration: underline; }
 .woocommerce-breadcrumb .ef-crumb-sep { color: var(--ef-meta); font-weight: 700; }
+
+/* =========================================================================
+   SIDEBAR DE FILTRE pe arhivele de categorii (stânga)
+   ========================================================================= */
+#secondary .widget,
+.astra-woo-shop-sidebar .widget { margin-bottom: 28px; }
+#secondary .widget-title,
+#secondary .widgettitle {
+  font-family: var(--ef-font-head);
+  text-transform: uppercase;
+  letter-spacing: .02em;
+  font-size: 1rem;
+  color: var(--ef-text);
+  border-bottom: 2px solid var(--ef-border);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+/* filtrul de sub-categorii (contextual) */
+.ef-filter-cats { list-style: none; margin: 0; padding: 0; }
+.ef-filter-cats li { margin: 0 0 7px; line-height: 1.35; }
+.ef-filter-cats a { color: var(--ef-text); text-decoration: none; }
+.ef-filter-cats a:hover { color: var(--ef-brand); }
+.ef-filter-cats li.ef-current > a { color: var(--ef-brand); font-weight: 700; }
+.ef-filter-cats .ef-count { color: var(--ef-meta); font-size: .82em; }
+/* buton „resetează" activ pe layered nav */
+#secondary .woocommerce-widget-layered-nav-list__item--chosen a,
+#secondary .chosen a { font-weight: 700; }
 
 /* Card grilă produs — chenar subtil ca originalul */
 .ef-product-card {
