@@ -206,24 +206,29 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-mega-tile-name { font-family: var(--ef-font-head); font-size: .78rem; line-height: 1.28; color: #000; }
 
 /* —— mega COMPACT grupat (Commercial Fridge / Freezer) —— */
-/* ancorat la item (nu full-width), mai mic */
+/* ancorat la item, aliniat la DREAPTA ca să nu iasă din ecran */
 .ef-cat-nav .ef-menu > li.ef-mega-compact { position: relative; }
-.ef-mega-compact > .ef-mega { left: 0; right: auto; width: max-content; min-width: 340px; max-width: min(720px, 92vw); padding: 16px 20px; }
-/* grupurile pe RÂNDURI: label stânga + itemele orizontal la dreapta */
-.ef-mega-groups { display: flex; flex-direction: column; gap: 2px; }
-.ef-mega-col { display: flex; align-items: center; gap: 14px; padding: 9px 0; border-bottom: 1px solid var(--ef-border); }
-.ef-mega-col:last-child { border-bottom: none; }
+.ef-mega-compact > .ef-mega { left: auto; right: 0; width: max-content; min-width: 320px; max-width: min(760px, 94vw); padding: 20px 24px; }
+/* tier-2 pe ORIZONTALĂ: coloane una lângă alta */
+.ef-mega-groups { display: flex; flex-wrap: wrap; gap: 30px; align-items: flex-start; }
+.ef-mega-col { display: flex; flex-direction: column; min-width: 160px; }
+/* tier-2 header: iconiță + label */
 .ef-mega-head {
-  flex: 0 0 128px; margin: 0; padding: 0; text-decoration: none;
-  font-family: var(--ef-font-head); text-transform: uppercase; letter-spacing: .02em;
-  font-size: .82rem; color: var(--ef-brand) !important;
+  display: flex; align-items: center; gap: 10px; text-decoration: none;
+  padding-bottom: 9px; margin-bottom: 8px; border-bottom: 2px solid var(--ef-border);
 }
-.ef-mega-col-items { display: flex; flex-wrap: wrap; gap: 6px; flex: 1 1 auto; }
-/* itemele = chip-uri text mici (fără iconiță), orizontal */
-.ef-mega-compact .ef-mega-tile { flex-direction: row; padding: 5px 12px; border: 1px solid var(--ef-border); border-radius: 16px; }
-.ef-mega-compact .ef-mega-tile:hover { border-color: var(--ef-brand-light); background: #fff; }
+.ef-mega-head-img { flex: 0 0 42px; height: 42px; display: flex; align-items: center; justify-content: center; }
+.ef-mega-head-img img { max-height: 42px; max-width: 42px; object-fit: contain; }
+.ef-mega-head-txt {
+  font-family: var(--ef-font-head); text-transform: uppercase; letter-spacing: .02em;
+  font-size: .84rem; color: var(--ef-brand);
+}
+/* tier-3 pe COLOANĂ (vertical), text negru, hover chenar verde deschis */
+.ef-mega-col-items { display: flex; flex-direction: column; gap: 1px; }
+.ef-mega-compact .ef-mega-tile { flex-direction: row; align-items: center; text-align: left; padding: 6px 10px; border: 1px solid transparent; border-radius: 8px; }
+.ef-mega-compact .ef-mega-tile:hover { border-color: var(--ef-brand-light); }
 .ef-mega-compact .ef-mega-tile-img { display: none; }
-.ef-mega-compact .ef-mega-tile-name { font-size: .76rem; font-family: var(--ef-font-body); white-space: nowrap; }
+.ef-mega-compact .ef-mega-tile-name { font-family: var(--ef-font-body); font-size: .8rem; white-space: nowrap; color: #000; }
 .ef-menu li:hover > .sub-menu { opacity: 1; visibility: visible; transform: translateY(0); }
 .ef-menu .sub-menu a {
   color: var(--ef-text) !important; text-transform: none; letter-spacing: 0;

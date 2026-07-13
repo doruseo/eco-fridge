@@ -154,7 +154,7 @@ function ef_build_mega( $term, $menu_items, $menu_item_id ) {
 			foreach ( $subs as $s ) {
 				$kids = get_terms( array( 'taxonomy' => 'product_cat', 'parent' => $s->term_id, 'hide_empty' => true ) );
 				$kids = is_wp_error( $kids ) ? array() : ef_sort_terms_by_order( $kids );
-				$groups[] = array( 'label' => $s->name, 'link' => get_term_link( $s ), 'items' => $kids );
+				$groups[] = array( 'label' => $s->name, 'link' => get_term_link( $s ), 'term_id' => $s->term_id, 'items' => $kids );
 			}
 		}
 	}
@@ -166,18 +166,21 @@ function ef_build_mega( $term, $menu_items, $menu_item_id ) {
 				$gt = ef_term_from_url( $mi->url );
 				$kids = $gt ? get_terms( array( 'taxonomy' => 'product_cat', 'parent' => $gt->term_id, 'hide_empty' => true ) ) : array();
 				$kids = is_wp_error( $kids ) ? array() : ef_sort_terms_by_order( $kids );
-				$groups[] = array( 'label' => $mi->title, 'link' => $mi->url, 'items' => $kids );
+				$groups[] = array( 'label' => $mi->title, 'link' => $mi->url, 'term_id' => ( $gt ? $gt->term_id : 0 ), 'items' => $kids );
 			}
 		}
 	}
 
 	if ( empty( $groups ) ) { return ''; }
 
-	// mega grupat: fiecare grup = un RÂND (label stânga + itemele lui orizontal la dreapta)
+	// mega grupat: tier-2 pe orizontală (coloane cu iconiță), tier-3 vertical sub fiecare
 	$out = '<div class="ef-mega ef-mega-groups">';
 	foreach ( $groups as $g ) {
+		$icon = ! empty( $g['term_id'] ) ? ef_term_image_url( $g['term_id'] ) : '';
 		$out .= '<div class="ef-mega-col">';
-		$out .= '<a class="ef-mega-head" href="' . esc_url( is_wp_error( $g['link'] ) ? '#' : $g['link'] ) . '">' . esc_html( $g['label'] ) . '</a>';
+		$out .= '<a class="ef-mega-head" href="' . esc_url( is_wp_error( $g['link'] ) ? '#' : $g['link'] ) . '">';
+		if ( $icon ) { $out .= '<span class="ef-mega-head-img"><img src="' . esc_url( $icon ) . '" alt="" loading="lazy" /></span>'; }
+		$out .= '<span class="ef-mega-head-txt">' . esc_html( $g['label'] ) . '</span></a>';
 		$out .= '<div class="ef-mega-col-items">';
 		foreach ( $g['items'] as $t ) { $out .= ef_mega_tile( $t ); }
 		$out .= '</div></div>';
