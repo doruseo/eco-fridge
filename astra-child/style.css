@@ -4,7 +4,7 @@ Theme URI: https://eco-fridge.co.uk
 Description: Temă copil Astra pentru ECO-Fridge Ltd. Header/footer/mega-meniu = NATIVE Astra Pro (Header/Footer Builder + Nav Menu mega). Aici rămân doar: tokens de design, accente brand peste componentele native, preț „from-price"/£POA, add-on-uri produs, hero-slider, tile-uri sub-categorii, blog. Design apropiat de eco-fridge.co.uk (Oswald/Open Sans, brand #228B22).
 Author: Migrare eco-fridge
 Template: astra
-Version: 0.4.6
+Version: 0.4.7
 Text Domain: eco-fridge-child
 */
 
@@ -131,19 +131,20 @@ a:hover, a:focus { color: var(--ef-text); }
 /* —— MOBIL/TABLETĂ (≤921px): filtrele = bară ORIZONTALĂ mică, mutată (prin JS)
    după descrierea categoriei, chiar înainte de grila de produse. —— */
 @media (max-width: 921px) {
-  #secondary {
-    width: 100% !important;
+  #secondary,
+  #secondary .sidebar-main { width: 100% !important; display: block; position: static; }
+  /* containerul REAL al widget-urilor de filtre (Astra le pune în .ast-filter-wrap) */
+  #secondary .ast-filter-wrap {
     display: flex !important;
-    flex-wrap: nowrap;                 /* o singură linie orizontală */
+    flex-wrap: nowrap;                 /* toate titlurile pe o singură linie orizontală */
     align-items: center;
     gap: 5px;
-    margin: 2px 0 14px !important;
-    padding: 0 0 4px !important;
+    margin: 2px 0 14px;
+    padding: 0 0 4px;
     overflow-x: auto;                  /* scroll orizontal dacă nu încap */
     -webkit-overflow-scrolling: touch;
-    position: static;
   }
-  #secondary .widget { margin: 0 !important; padding: 0 !important; position: relative; flex: 0 0 auto; width: auto; border: 0; }
+  #secondary .ast-filter-wrap > .widget { margin: 0 !important; padding: 0 !important; position: relative; flex: 0 0 auto; width: auto; border: 0; }
   /* TITLUL (butonul) = foarte mic, ca să încapă toate pe orizontală */
   #secondary .widget-title,
   #secondary .widgettitle {
