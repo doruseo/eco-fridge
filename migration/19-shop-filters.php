@@ -118,6 +118,7 @@ $s = get_option( 'astra-settings', array() );
 if ( ! is_array( $s ) ) { $s = array(); }
 $s['archive-product-sidebar-layout'] = 'left-sidebar'; // arhive produse (categorii) = sidebar stânga
 $s['woocommerce-sidebar-layout']     = 'left-sidebar'; // fallback global shop
+$s['site-sidebar-width']             = 20;             // sidebar mai îngust (implicit Astra = 30%)
 update_option( 'astra-settings', $s );
 
 // instanțe widget
