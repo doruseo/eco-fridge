@@ -52,14 +52,88 @@ add_filter( 'woocommerce_order_number', function ( $number, $order ) {
 	return $legacy ? $legacy : $number;
 }, 10, 2 );
 
-/**
- * Bară de căutare AJAX (FiboSearch) — strip dedicat produse+categorii sub header,
- * ca în originalul. Live results, interactiv.
- */
-add_action( 'astra_header_after', function () {
-	if ( ! shortcode_exists( 'fibosearch' ) ) { return; }
-	echo '<div class="ef-search-strip"><div class="ef-search-inner">' . do_shortcode( '[fibosearch]' ) . '</div></div>';
+/* -------------------------------------------------------------------------
+ * HEADER STICKY PE 2 RÂNDURI (custom, înlocuiește header-ul Astra)
+ *   Rând 1: logo (stânga) | nav principal (Home/Blog/About/Contact) + search (dreapta)
+ *   Rând 2: nav categorii de produse (stânga) | coș (dreapta)
+ * Astra-ul nativ e ascuns prin CSS; nav-urile vin din meniuri (editabile).
+ * ------------------------------------------------------------------------- */
+
+// Locații de meniu pentru header-ul custom (editabile din Appearance → Menus).
+add_action( 'after_setup_theme', function () {
+	register_nav_menus( array(
+		'ef_header_primary'    => 'Header — rând 1 (Home/Blog/About/Contact)',
+		'ef_header_categories' => 'Header — rând 2 (categorii de produse)',
+	) );
+} );
+
+// Link coș (server-side; se actualizează prin fragmente AJAX la add-to-cart).
+function ef_cart_link() {
+	if ( ! function_exists( 'WC' ) || ! WC()->cart ) { return ''; }
+	$count = WC()->cart->get_cart_contents_count();
+	$total = WC()->cart->get_cart_total();
+	return '<a class="ef-cart" href="' . esc_url( wc_get_cart_url() ) . '">'
+		. '<span class="ef-cart-ico" aria-hidden="true"></span>'
+		. '<span class="ef-cart-txt"><span class="ef-cart-count">' . (int) $count . ' items</span> <span class="ef-cart-total">' . wp_kses_post( $total ) . '</span></span>'
+		. '</a>';
+}
+// Actualizare coș fără reload (fragmente WooCommerce).
+add_filter( 'woocommerce_add_to_cart_fragments', function ( $fragments ) {
+	$fragments['a.ef-cart'] = ef_cart_link();
+	return $fragments;
+} );
+
+// Randare header custom, înainte de header-ul Astra (ascuns prin CSS).
+add_action( 'astra_header_before', function () {
+	$home = esc_url( home_url( '/' ) );
+	echo '<div class="ef-header" id="ef-header">';
+
+	// —— rând 1: logo | nav principal + search ——
+	echo '<div class="ef-header-row ef-header-row1"><div class="ef-header-inner">';
+	echo '<a class="ef-logo" href="' . $home . '" rel="home">';
+	if ( has_custom_logo() ) {
+		$lid = get_theme_mod( 'custom_logo' );
+		echo wp_get_attachment_image( $lid, 'full', false, array( 'class' => 'ef-logo-img', 'alt' => get_bloginfo( 'name' ) ) );
+	} else {
+		echo esc_html( get_bloginfo( 'name' ) );
+	}
+	echo '</a>';
+	echo '<button class="ef-menu-toggle" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>';
+	echo '<div class="ef-row1-right">';
+	if ( has_nav_menu( 'ef_header_primary' ) ) {
+		wp_nav_menu( array( 'theme_location' => 'ef_header_primary', 'container' => 'nav', 'container_class' => 'ef-primary-nav', 'menu_class' => 'ef-menu', 'fallback_cb' => false, 'depth' => 2 ) );
+	}
+	if ( shortcode_exists( 'fibosearch' ) ) {
+		echo '<div class="ef-header-search">' . do_shortcode( '[fibosearch]' ) . '</div>';
+	}
+	echo '</div></div></div>';
+
+	// —— rând 2: nav categorii | coș ——
+	echo '<div class="ef-header-row ef-header-row2"><div class="ef-header-inner">';
+	if ( has_nav_menu( 'ef_header_categories' ) ) {
+		wp_nav_menu( array( 'theme_location' => 'ef_header_categories', 'container' => 'nav', 'container_class' => 'ef-cat-nav', 'menu_class' => 'ef-menu', 'fallback_cb' => false, 'depth' => 2 ) );
+	}
+	echo '<div class="ef-header-cart">' . ef_cart_link() . '</div>';
+	echo '</div></div>';
+
+	echo '</div>'; // .ef-header
 }, 5 );
+
+// Toggle meniu mobil pentru header-ul custom.
+add_action( 'wp_footer', function () {
+	?>
+<script>
+(function(){
+	var t = document.querySelector('.ef-menu-toggle'), h = document.getElementById('ef-header');
+	if(!t || !h){ return; }
+	t.addEventListener('click', function(){
+		var open = h.classList.toggle('ef-nav-open');
+		t.setAttribute('aria-expanded', open ? 'true' : 'false');
+	});
+})();
+</script>
+	<?php
+}, 20 );
 
 /**
  * Date de contact ECO-Fridge (1:1 cu originalul) — folosite în footer + banner.
