@@ -23,6 +23,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Logica paginii de produs single + add-on-uri (preț +VAT/POA, note, garanție, removal).
 require_once get_stylesheet_directory() . '/inc/woo-single.php';
 
+// Header custom pe 2 rânduri (logo/utilitar/search + categorii mega/iconițe/coș),
+// condus 100% din meniul WP autoritar (Primary Menu #342). Footer/banner rămân native.
+require_once get_stylesheet_directory() . '/inc/header.php';
+
 /**
  * Fonturi Google 1:1 cu originalul: Oswald (titluri) + Open Sans (body).
  */
