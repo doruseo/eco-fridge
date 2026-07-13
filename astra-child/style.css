@@ -195,6 +195,32 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-page-content table td, .ef-page-content table th { border: 1px solid var(--ef-border); padding: 8px 10px; }
 .ef-video { position: relative; margin: 1.5em 0; }
 
+/* Formular de contact WPForms — accente brand 1:1 */
+.ef-contact-form { max-width: 720px; margin: 8px 0 0; }
+.ef-contact-form .wpforms-field-label { font-family: var(--ef-font-head); font-weight: 600; color: var(--ef-text); }
+.ef-contact-form .wpforms-submit,
+div.wpforms-container .wpforms-submit {
+  background: var(--ef-brand) !important;
+  border-color: var(--ef-brand) !important;
+  color: #fff !important;
+  font-family: var(--ef-font-head);
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  border-radius: 3px;
+  padding: 12px 30px;
+}
+.ef-contact-form .wpforms-submit:hover,
+div.wpforms-container .wpforms-submit:hover {
+  background: var(--ef-brand-dark) !important;
+  border-color: var(--ef-brand-dark) !important;
+}
+.ef-contact-form input[type="text"],
+.ef-contact-form input[type="email"],
+.ef-contact-form textarea {
+  border: 1px solid var(--ef-border);
+  border-radius: 3px;
+}
+
 /* Contact */
 .ef-contact-details {
   margin-top: 1.5em; padding: 24px; background: var(--ef-stripe);
