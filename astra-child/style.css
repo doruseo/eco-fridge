@@ -4,7 +4,7 @@ Theme URI: https://eco-fridge.co.uk
 Description: Temă copil Astra pentru ECO-Fridge Ltd. Header/footer/mega-meniu = NATIVE Astra Pro (Header/Footer Builder + Nav Menu mega). Aici rămân doar: tokens de design, accente brand peste componentele native, preț „from-price"/£POA, add-on-uri produs, hero-slider, tile-uri sub-categorii, blog. Design apropiat de eco-fridge.co.uk (Oswald/Open Sans, brand #228B22).
 Author: Migrare eco-fridge
 Template: astra
-Version: 0.3.2
+Version: 0.3.3
 Text Domain: eco-fridge-child
 */
 
@@ -224,12 +224,11 @@ a:hover, a:focus { color: var(--ef-text); }
   font-family: var(--ef-font-head); text-transform: uppercase; letter-spacing: .02em;
   font-size: 1.05rem; color: var(--ef-brand);
 }
-/* tier-3: text stânga, iconiță în DREAPTA (centrată vertical); tier-4 = sub-linkuri */
+/* tier-3: doar text (fără iconițe); tier-4 = sub-linkuri */
 .ef-mega-col-items { display: flex; flex-direction: column; gap: 1px; }
-.ef-mega-compact .ef-mega-tile { flex-direction: row; align-items: center; text-align: left; padding: 7px 10px; gap: 10px; border-radius: 8px; }
-.ef-mega-compact .ef-mega-tile-name { order: 1; font-family: var(--ef-font-body); font-size: .86rem; color: #000; }
-.ef-mega-compact .ef-mega-tile-img { order: 2; margin-left: auto; display: flex; align-items: center; justify-content: center; height: 30px; width: 30px; flex: 0 0 30px; }
-.ef-mega-compact .ef-mega-tile-img img { max-height: 30px; max-width: 30px; object-fit: contain; }
+.ef-mega-compact .ef-mega-tile { flex-direction: row; align-items: center; text-align: left; padding: 7px 10px; border-radius: 8px; }
+.ef-mega-compact .ef-mega-tile-name { font-family: var(--ef-font-body); font-size: .86rem; color: #000; }
+.ef-mega-compact .ef-mega-tile-img { display: none; } /* iconițe tier-3 șterse (Commercial) */
 .ef-mega-subitems { display: flex; flex-direction: column; margin: 0 0 4px 14px; }
 .ef-mega-subitem {
   font-family: var(--ef-font-body); font-size: .78rem; color: #555 !important;
@@ -241,9 +240,9 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-header-search { width: 250px; max-width: 38vw; }
 .ef-header-search .dgwt-wcas-search-wrapp { max-width: 100%; margin: 0; }
 
-/* coș — contur cu colțuri rotunjite */
-.ef-cart { display: inline-flex; align-items: center; gap: 8px; color: #fff; text-decoration: none; font-family: var(--ef-font-head); font-size: .85rem; border: 1px solid rgba(255,255,255,.7); border-radius: 8px; padding: 6px 12px; transition: background .15s ease; }
-.ef-cart:hover { color: #fff; background: rgba(255,255,255,.14); opacity: 1; }
+/* coș — fără chenar */
+.ef-cart { display: inline-flex; align-items: center; gap: 8px; color: #fff; text-decoration: none; font-family: var(--ef-font-head); font-size: .85rem; }
+.ef-cart:hover { color: #fff; opacity: .92; }
 .ef-cart-ico::before { content: "\1F6D2"; font-size: 1.05rem; }
 .ef-cart-count { text-transform: uppercase; letter-spacing: .02em; }
 .ef-cart-total { font-weight: 700; }
