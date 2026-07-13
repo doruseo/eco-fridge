@@ -101,44 +101,18 @@ $s['footer-copyright-editor'] = '<p>&copy; [current_year] <a href="/">' . $c['co
 update_option( 'astra-settings', $s );
 WP_CLI::log( 'Astra Header/Footer Builder configurat (logo|menu|search|cart; footer 3 coloane + copyright).' );
 
-/* ------------------------------------------------------------------ BANNER (Custom Layout) */
-
-$banner_slug    = 'ef-call-banner';
-$banner_content = '<!-- wp:html --><div class="ef-call-banner"><div class="ef-call-inner">'
-	. '<span class="ef-call-text">Call us today <a href="tel:' . $c['tel'] . '">' . $c['phone'] . '</a></span>'
-	. '<span class="ef-call-sub">Trade prices &bull; Free delivery &bull; Manufacturer direct</span>'
-	. '</div></div><!-- /wp:html -->';
-
-$existing = get_posts( array(
+/* ------------------------------------------------------------------ BANNER — ȘTERS */
+// Banner-ul „Call us today" a fost eliminat de pe tot site-ul (la cererea userului).
+// Ștergem definitiv Custom Layout-ul dacă mai există (idempotent).
+$old_banners = get_posts( array(
 	'post_type'   => 'astra-advanced-hook',
-	'name'        => $banner_slug,
+	'name'        => 'ef-call-banner',
 	'post_status' => 'any',
-	'numberposts' => 1,
+	'numberposts' => -1,
 ) );
-$banner_id = $existing ? (int) $existing[0]->ID : 0;
-
-$banner_args = array(
-	'ID'           => $banner_id,
-	'post_type'    => 'astra-advanced-hook',
-	'post_title'   => 'Call us today banner',
-	'post_name'    => $banner_slug,
-	'post_status'  => 'publish',
-	'post_content' => $banner_content,
-);
-$banner_id = wp_insert_post( $banner_args );
-
-if ( $banner_id && ! is_wp_error( $banner_id ) ) {
-	update_post_meta( $banner_id, 'ast-advanced-hook-layout', 'hooks' );
-	update_post_meta( $banner_id, 'ast-advanced-hook-action', 'astra_content_before' );
-	update_post_meta( $banner_id, 'ast-advanced-hook-priority', '10' );
-	update_post_meta( $banner_id, 'ast-advanced-hook-enabled', 'enabled' );
-	// afișare: tot site-ul, EXCEPTÂND homepage
-	update_post_meta( $banner_id, 'ast-advanced-hook-location', array( 'rule' => array( 'basic-global' ) ) );
-	update_post_meta( $banner_id, 'ast-advanced-hook-exclusion', array( 'rule' => array( 'special-front' ) ) );
-	update_post_meta( $banner_id, 'ast-advanced-hook-users', array( 'all' ) );
-	WP_CLI::log( 'Banner „Call us today" = Astra Custom Layout #' . $banner_id . ' (astra_content_before, tot site-ul mai puțin homepage).' );
-} else {
-	WP_CLI::warning( 'Nu s-a putut crea Custom Layout-ul pentru banner.' );
+foreach ( $old_banners as $b ) {
+	wp_delete_post( $b->ID, true );
+	WP_CLI::log( 'Banner „Call us today" (Custom Layout #' . $b->ID . ') șters.' );
 }
 
-WP_CLI::success( 'Header / Footer / Banner native Astra finalizate.' );
+WP_CLI::success( 'Header / Footer native Astra finalizate (fără banner).' );

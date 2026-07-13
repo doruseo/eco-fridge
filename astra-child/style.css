@@ -4,7 +4,7 @@ Theme URI: https://eco-fridge.co.uk
 Description: Temă copil Astra pentru ECO-Fridge Ltd. Header/footer/mega-meniu = NATIVE Astra Pro (Header/Footer Builder + Nav Menu mega). Aici rămân doar: tokens de design, accente brand peste componentele native, preț „from-price"/£POA, add-on-uri produs, hero-slider, tile-uri sub-categorii, blog. Design apropiat de eco-fridge.co.uk (Oswald/Open Sans, brand #228B22).
 Author: Migrare eco-fridge
 Template: astra
-Version: 0.3.8
+Version: 0.3.9
 Text Domain: eco-fridge-child
 */
 
@@ -283,28 +283,6 @@ a:hover, a:focus { color: var(--ef-text); }
   .ef-cat-nav .ef-menu > li > a { white-space: nowrap; }
   .ef-mega { display: none !important; } /* pe mobil: link-ul duce la pagina categoriei */
 }
-
-/* =========================================================================
-   BANNER „Call us today" (pagini interne) — conținut = Astra Custom Layout,
-   stil aici. Se afișează pe tot site-ul mai puțin homepage (regula din Astra).
-   ========================================================================= */
-.ef-call-banner {
-  background: var(--ef-brand);
-  color: #fff;
-  text-align: center;
-  padding: 14px 20px;
-}
-.ef-call-inner { max-width: 1200px; margin: 0 auto; }
-.ef-call-text {
-  font-family: var(--ef-font-head);
-  font-size: 1.35rem;
-  text-transform: uppercase;
-  letter-spacing: .03em;
-  display: block;
-}
-.ef-call-text a { color: #fff; text-decoration: none; }
-.ef-call-sub { font-size: .85rem; opacity: .92; }
-@media (max-width: 600px) { .ef-call-text { font-size: 1.1rem; } }
 
 /* =========================================================================
    FOOTER NATIV Astra — stil brand (fundal închis, ca originalul)
