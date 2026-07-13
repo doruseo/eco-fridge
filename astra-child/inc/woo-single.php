@@ -96,32 +96,45 @@ add_filter( 'woocommerce_add_cart_item_data', function ( $data, $product_id ) {
 	return $data;
 }, 10, 2 );
 
-// 4c. ajustează prețul în coș (garanție = 15% din prețul de bază + removal fix)
-add_action( 'woocommerce_before_calculate_totals', function ( $cart ) {
+// 4c. add-on-urile ca TAXE (fee-uri) SEPARATE în coș — linii distincte, cu TVA aplicat.
+//     Prețul produsului rămâne neatins (fără TVA); Removal & Disposal și Warranty apar
+//     ca rânduri proprii, iar TVA se calculează peste tot (produs + fee-uri).
+add_action( 'woocommerce_cart_calculate_fees', function ( $cart ) {
 	if ( is_admin() && ! defined( 'DOING_AJAX' ) ) { return; }
+	$removal_total  = 0.0;
+	$warranty_total = 0.0;
 	foreach ( $cart->get_cart() as $item ) {
-		if ( empty( $item['ef_removal'] ) && empty( $item['ef_warranty'] ) ) { continue; }
-		$base  = (float) $item['data']->get_regular_price();
-		$extra = 0;
-		if ( ! empty( $item['ef_warranty'] ) ) { $extra += $base * EF_WARRANTY_RATE; }
-		if ( ! empty( $item['ef_removal'] ) ) { $extra += EF_REMOVAL_FEE; }
-		if ( $extra > 0 ) { $item['data']->set_price( $base + $extra ); }
+		$qty = max( 1, (int) $item['quantity'] );
+		if ( ! empty( $item['ef_removal'] ) ) {
+			$removal_total += EF_REMOVAL_FEE * $qty;
+		}
+		if ( ! empty( $item['ef_warranty'] ) ) {
+			$base            = (float) $item['data']->get_regular_price();
+			$warranty_total += $base * EF_WARRANTY_RATE * $qty;
+		}
+	}
+	// add_fee( nume, sumă, taxabil=true, clasă_taxă='' → Standard 20% )
+	if ( $removal_total > 0 ) {
+		$cart->add_fee( __( 'Removal & Disposal', 'eco-fridge-child' ), $removal_total, true, '' );
+	}
+	if ( $warranty_total > 0 ) {
+		$cart->add_fee( __( 'Extended warranty (12 months)', 'eco-fridge-child' ), $warranty_total, true, '' );
 	}
 }, 20 );
 
-// 4d. afișează opțiunile în coș/checkout
+// 4d. marchează pe linia de produs ce add-on-uri au fost alese (fără preț — suma e pe linia de fee)
 add_filter( 'woocommerce_get_item_data', function ( $items, $cart_item ) {
 	if ( ! empty( $cart_item['ef_removal'] ) ) {
-		$items[] = array( 'key' => 'Removal &amp; Disposal', 'value' => '+&pound;' . EF_REMOVAL_FEE );
+		$items[] = array( 'key' => 'Removal &amp; Disposal', 'value' => 'Added' );
 	}
 	if ( ! empty( $cart_item['ef_warranty'] ) ) {
-		$items[] = array( 'key' => 'Extended warranty', 'value' => '12 months (+15%)' );
+		$items[] = array( 'key' => 'Extended warranty', 'value' => '12 months' );
 	}
 	return $items;
 }, 10, 2 );
 
-// 4e. salvează opțiunile ca meta pe linia de comandă
+// 4e. salvează selecția ca meta pe linia de comandă (suma rămâne pe fee-urile comenzii)
 add_action( 'woocommerce_checkout_create_order_line_item', function ( $item, $key, $values ) {
-	if ( ! empty( $values['ef_removal'] ) ) { $item->add_meta_data( 'Removal & Disposal', '+£' . EF_REMOVAL_FEE, true ); }
-	if ( ! empty( $values['ef_warranty'] ) ) { $item->add_meta_data( 'Extended warranty', '12 months (+15%)', true ); }
+	if ( ! empty( $values['ef_removal'] ) ) { $item->add_meta_data( 'Removal & Disposal', 'Added', true ); }
+	if ( ! empty( $values['ef_warranty'] ) ) { $item->add_meta_data( 'Extended warranty', '12 months', true ); }
 }, 10, 3 );
