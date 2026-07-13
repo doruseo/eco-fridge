@@ -9,8 +9,10 @@
  * @package Eco-Fridge-Migration
  */
 if(!defined('ABSPATH'))exit;
-// 0:link/brand 1:hover 2:heading 3:text 4:bg 5:bg2 6:dark 7:border 8:dark
-$colors = array('#70b036','#5c972d','#333333','#333333','#ffffff','#fcfcfc','#111111','#eaedf2','#111111');
+// 0:link/brand 1:hover 2:heading 3:text 4:bg 5:bg2(alb) 6:dark 7:border 8:dark
+// Verde forest #228B22 (cu alb/negru pe el după contrast). Fundal alb peste tot
+// ca imaginile de produs (fundal alb) să se îmbine natural.
+$colors = array('#228B22','#1b6f1b','#222222','#333333','#ffffff','#ffffff','#111111','#e5e7eb','#111111');
 
 // 1) paletă „flat" care generează --ast-global-color-N
 $s = get_option('astra-settings', array());

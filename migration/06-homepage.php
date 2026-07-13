@@ -150,8 +150,8 @@ $parts[] = $container(
 	. $button( 'Read more about ECO-Fridge', '/about-us/' )
 );
 
-// 2b. CLIENT LOGOS („Some of Our Clients") — bandă cu fundal gri deschis, ca originalul
-$parts[] = $container( $clients(), '#f8f9fa', true );
+// 2b. CLIENT LOGOS („Some of Our Clients") — fundal alb (conținut curat)
+$parts[] = $container( $clients() );
 
 // 3. PRODUCT OVERVIEW
 $parts[] = $container(
@@ -168,8 +168,8 @@ $subcats = function ( $parent, $cols = 5 ) {
 // 4. DISPLAY CABINETS — tile-uri sub-categorii (iconițe, 5 coloane) ca originalul
 $parts[] = $container( $heading( 'Display Cabinets' ) . $subcats( 44, 5 ) );
 
-// 5. STORAGE CABINETS — tile-uri sub-categorii (alt bg)
-$parts[] = $container( $heading( 'Storage Cabinets' ) . $subcats( 45, 5 ), '#f8f9fa', true );
+// 5. STORAGE CABINETS — tile-uri sub-categorii (fundal alb)
+$parts[] = $container( $heading( 'Storage Cabinets' ) . $subcats( 45, 5 ) );
 
 // 6. GRADED UNITS
 $parts[] = $container(

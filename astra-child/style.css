@@ -15,12 +15,12 @@ Text Domain: eco-fridge-child
 :root {
   /* Legate de paleta globală Astra (editabilă din Customizer → Global → Colors);
      fallback = paleta originală eco-fridge dacă Astra nu e încărcat. */
-  --ef-brand: var(--ast-global-color-0, #70b036);      /* verde lime brand */
-  --ef-brand-dark: var(--ast-global-color-1, #5c972d); /* hover */
-  --ef-bg: var(--ast-global-color-5, #fcfcfc);
+  --ef-brand: var(--ast-global-color-0, #228B22);      /* verde forest brand */
+  --ef-brand-dark: var(--ast-global-color-1, #1b6f1b); /* hover */
+  --ef-bg: var(--ast-global-color-5, #ffffff);
   --ef-text: var(--ast-global-color-3, #333);
   --ef-meta: #9fa6b4;
-  --ef-border: var(--ast-global-color-7, #eaedf2);
+  --ef-border: var(--ast-global-color-7, #e5e7eb);
   --ef-divider: #eee;
   --ef-stripe: #f8f9fa;
   --ef-font-body: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -104,8 +104,17 @@ a:hover, a:focus { color: var(--ef-text); }
 }
 .ef-product-card:hover { box-shadow: 0 6px 18px rgba(0,0,0,.08); }
 
-/* Alternanță secțiuni (fundal gri deschis) */
-.ef-section-alt { background: var(--ef-stripe); }
+/* Secțiuni de conținut — fundal alb (produsele cu fundal alb se îmbină natural) */
+.ef-section-alt { background: #fff; }
+
+/* Zone care afișează produse: fundal alb, fără box/tentă în jurul imaginilor */
+.woocommerce ul.products li.product,
+.woocommerce div.product .woocommerce-product-gallery,
+.ast-woocommerce-container,
+#content .site-content,
+.ef-product-card { background: #fff; }
+.ef-product-card { border-color: transparent; }
+.ef-product-card:hover { border-color: var(--ef-border); }
 
 /* =========================================================================
    HEADER STICKY PE 2 RÂNDURI (custom) — ascunde header-ul Astra nativ
@@ -405,8 +414,8 @@ div.wpforms-container .wpforms-submit:hover {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  background: #fff;
-  border: 1px solid var(--ef-border);
+  background: #fff;               /* alb, ca produsul (fundal alb) să se îmbine */
+  border: 1px solid transparent;  /* fără chenar la repaus → aspect natural */
   border-radius: 6px;
   padding: 16px 10px 14px;
   text-decoration: none;
@@ -414,9 +423,9 @@ div.wpforms-container .wpforms-submit:hover {
   transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
 }
 .ef-subcat-tile:hover {
-  box-shadow: 0 8px 20px rgba(0,0,0,.09);
+  box-shadow: 0 8px 22px rgba(0,0,0,.10);
   transform: translateY(-2px);
-  border-color: var(--ef-brand);
+  border-color: var(--ef-border);
   color: var(--ef-text);
 }
 .ef-subcat-img {
@@ -439,7 +448,8 @@ div.wpforms-container .wpforms-submit:hover {
   position: relative;
   width: 100%;
   min-height: 480px;
-  background: linear-gradient(120deg, #f3f7ee 0%, #e9f1df 55%, #eef4e7 100%);
+  background: #ffffff;                          /* alb — produsele (fundal alb) se îmbină */
+  border-bottom: 1px solid var(--ef-border);
   overflow: hidden;
 }
 .ef-hero-track { position: relative; width: 100%; min-height: 480px; }
