@@ -105,6 +105,19 @@ function ef_mega_tile( $term ) {
 		. '<span class="ef-mega-tile-name">' . esc_html( $term->name ) . '</span></a>';
 }
 
+/** Sortează o listă de termeni după meta `order` (1:1 cu originalul), apoi nume. */
+function ef_sort_terms_by_order( $terms ) {
+	usort( $terms, function ( $a, $b ) {
+		$oa = (int) get_term_meta( $a->term_id, 'order', true );
+		$ob = (int) get_term_meta( $b->term_id, 'order', true );
+		if ( $oa === $ob ) { return strcasecmp( $a->name, $b->name ); }
+		if ( 0 === $oa ) { return 1; }   // fără ordine → la coadă
+		if ( 0 === $ob ) { return -1; }
+		return $oa - $ob;
+	} );
+	return $terms;
+}
+
 /** true dacă vreo sub-categorie a termenului are la rândul ei sub-categorii (grupat). */
 function ef_term_has_grandchildren( $term_id ) {
 	$subs = get_terms( array( 'taxonomy' => 'product_cat', 'parent' => $term_id, 'hide_empty' => true ) );
@@ -127,10 +140,11 @@ function ef_build_mega( $term, $menu_items, $menu_item_id ) {
 	$groups = array();
 
 	if ( $term ) {
-		$subs = get_terms( array( 'taxonomy' => 'product_cat', 'parent' => $term->term_id, 'hide_empty' => true, 'orderby' => 'name' ) );
+		$subs = get_terms( array( 'taxonomy' => 'product_cat', 'parent' => $term->term_id, 'hide_empty' => true ) );
 		if ( ! is_wp_error( $subs ) && $subs ) {
+			$subs = ef_sort_terms_by_order( $subs );
 			if ( ! ef_term_has_grandchildren( $term->term_id ) ) {
-				// plat → grilă 5 coloane
+				// plat → grilă 5 coloane (ordine 1:1 cu originalul)
 				$tiles = '';
 				foreach ( $subs as $s ) { $tiles .= ef_mega_tile( $s ); }
 				if ( '' === $tiles ) { return ''; }
@@ -138,8 +152,9 @@ function ef_build_mega( $term, $menu_items, $menu_item_id ) {
 			}
 			// grupat pe sub-categorii
 			foreach ( $subs as $s ) {
-				$kids = get_terms( array( 'taxonomy' => 'product_cat', 'parent' => $s->term_id, 'hide_empty' => true, 'orderby' => 'name' ) );
-				$groups[] = array( 'label' => $s->name, 'link' => get_term_link( $s ), 'items' => ( is_wp_error( $kids ) ? array() : $kids ) );
+				$kids = get_terms( array( 'taxonomy' => 'product_cat', 'parent' => $s->term_id, 'hide_empty' => true ) );
+				$kids = is_wp_error( $kids ) ? array() : ef_sort_terms_by_order( $kids );
+				$groups[] = array( 'label' => $s->name, 'link' => get_term_link( $s ), 'items' => $kids );
 			}
 		}
 	}
@@ -149,20 +164,23 @@ function ef_build_mega( $term, $menu_items, $menu_item_id ) {
 		foreach ( (array) $menu_items as $mi ) {
 			if ( (int) $mi->menu_item_parent === (int) $menu_item_id ) {
 				$gt = ef_term_from_url( $mi->url );
-				$kids = $gt ? get_terms( array( 'taxonomy' => 'product_cat', 'parent' => $gt->term_id, 'hide_empty' => true, 'orderby' => 'name' ) ) : array();
-				$groups[] = array( 'label' => $mi->title, 'link' => $mi->url, 'items' => ( is_wp_error( $kids ) ? array() : $kids ) );
+				$kids = $gt ? get_terms( array( 'taxonomy' => 'product_cat', 'parent' => $gt->term_id, 'hide_empty' => true ) ) : array();
+				$kids = is_wp_error( $kids ) ? array() : ef_sort_terms_by_order( $kids );
+				$groups[] = array( 'label' => $mi->title, 'link' => $mi->url, 'items' => $kids );
 			}
 		}
 	}
 
 	if ( empty( $groups ) ) { return ''; }
 
+	// mega grupat: fiecare grup = un RÂND (label stânga + itemele lui orizontal la dreapta)
 	$out = '<div class="ef-mega ef-mega-groups">';
 	foreach ( $groups as $g ) {
 		$out .= '<div class="ef-mega-col">';
 		$out .= '<a class="ef-mega-head" href="' . esc_url( is_wp_error( $g['link'] ) ? '#' : $g['link'] ) . '">' . esc_html( $g['label'] ) . '</a>';
+		$out .= '<div class="ef-mega-col-items">';
 		foreach ( $g['items'] as $t ) { $out .= ef_mega_tile( $t ); }
-		$out .= '</div>';
+		$out .= '</div></div>';
 	}
 	$out .= '</div>';
 	return $out;
@@ -180,7 +198,12 @@ function ef_render_cat_nav() {
 		if ( ! empty( $it->menu_item_parent ) && '0' !== $it->menu_item_parent ) { continue; }
 		$term = ef_term_from_url( $it->url );
 		$mega = ef_build_mega( $term, $items, $it->ID );
-		$cls  = $mega ? ' class="ef-has-mega menu-item-has-children"' : '';
+		$cls  = '';
+		if ( $mega ) {
+			// grilă plată → mega full-width; grupat (Commercial) → mega compact (ancorat)
+			$type = ( false !== strpos( $mega, 'ef-mega-groups' ) ) ? 'ef-mega-compact' : 'ef-mega-full';
+			$cls  = ' class="ef-has-mega menu-item-has-children ' . $type . '"';
+		}
 		echo '<li' . $cls . '>';
 		echo '<a href="' . esc_url( $it->url ) . '">' . esc_html( $it->title ) . '</a>';
 		echo $mega; // deja escapat în ef_build_mega
@@ -395,9 +418,9 @@ function ef_subcats_shortcode( $atts ) {
 		'taxonomy'   => 'product_cat',
 		'parent'     => $parent,
 		'hide_empty' => true,
-		'orderby'    => 'name',
 	) );
 	if ( is_wp_error( $terms ) || empty( $terms ) ) { return ''; }
+	$terms = ef_sort_terms_by_order( $terms ); // ordine 1:1 cu originalul
 
 	$out = '<div class="ef-subcat-grid" style="--ef-cols:' . (int) $a['cols'] . '">';
 	foreach ( $terms as $t ) {

@@ -17,6 +17,7 @@ Text Domain: eco-fridge-child
      fallback = paleta originală eco-fridge dacă Astra nu e încărcat. */
   --ef-brand: var(--ast-global-color-0, #228B22);      /* verde forest brand */
   --ef-brand-dark: var(--ast-global-color-1, #1b6f1b); /* hover */
+  --ef-brand-light: #81c784;                            /* verde deschis (chenar hover tile-uri) */
   --ef-bg: var(--ast-global-color-5, #ffffff);
   --ef-text: var(--ast-global-color-3, #333);
   --ef-meta: #9fa6b4;
@@ -192,31 +193,37 @@ a:hover, a:focus { color: var(--ef-text); }
 /* grilă plată 5 coloane (Display / Storage Cabinets) */
 .ef-mega-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
 
-/* coloane grupate (Commercial Fridge / Freezer) */
-.ef-mega-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 20px 26px; align-items: start; }
-.ef-mega-head {
-  display: block; font-family: var(--ef-font-head);
-  text-transform: uppercase; letter-spacing: .02em; font-size: .9rem;
-  color: var(--ef-brand) !important; text-decoration: none;
-  padding-bottom: 8px; margin-bottom: 6px; border-bottom: 2px solid var(--ef-border);
-}
-
 /* tile mega (iconiță + nume) — implicit pe coloană (grilă) */
 .ef-mega-tile {
   display: flex; flex-direction: column; align-items: center; text-align: center;
-  text-decoration: none; color: var(--ef-text);
-  padding: 8px; border-radius: 6px; transition: background .15s ease;
+  text-decoration: none; color: #000;
+  padding: 8px; border: 1px solid transparent; border-radius: 10px;
+  transition: border-color .18s ease;
 }
-.ef-mega-tile:hover { background: var(--ef-stripe); color: var(--ef-brand); }
+.ef-mega-tile:hover { border-color: var(--ef-brand-light); color: #000; } /* chenar verde deschis rotunjit */
 .ef-mega-tile-img { display: flex; align-items: center; justify-content: center; height: 80px; width: 100%; margin-bottom: 8px; }
 .ef-mega-tile-img img { max-height: 80px; max-width: 100%; width: auto; object-fit: contain; }
-.ef-mega-tile-name { font-family: var(--ef-font-head); font-size: .78rem; line-height: 1.28; }
+.ef-mega-tile-name { font-family: var(--ef-font-head); font-size: .78rem; line-height: 1.28; color: #000; }
 
-/* în grupuri: tile pe rând (iconiță mică stânga + nume) */
-.ef-mega-col .ef-mega-tile { flex-direction: row; align-items: center; text-align: left; gap: 10px; padding: 6px 4px; }
-.ef-mega-col .ef-mega-tile-img { height: 42px; width: 42px; flex: 0 0 42px; margin: 0; }
-.ef-mega-col .ef-mega-tile-img img { max-height: 42px; }
-.ef-mega-col .ef-mega-tile-name { font-size: .82rem; font-family: var(--ef-font-body); }
+/* —— mega COMPACT grupat (Commercial Fridge / Freezer) —— */
+/* ancorat la item (nu full-width), mai mic */
+.ef-cat-nav .ef-menu > li.ef-mega-compact { position: relative; }
+.ef-mega-compact > .ef-mega { left: 0; right: auto; width: max-content; min-width: 340px; max-width: min(720px, 92vw); padding: 16px 20px; }
+/* grupurile pe RÂNDURI: label stânga + itemele orizontal la dreapta */
+.ef-mega-groups { display: flex; flex-direction: column; gap: 2px; }
+.ef-mega-col { display: flex; align-items: center; gap: 14px; padding: 9px 0; border-bottom: 1px solid var(--ef-border); }
+.ef-mega-col:last-child { border-bottom: none; }
+.ef-mega-head {
+  flex: 0 0 128px; margin: 0; padding: 0; text-decoration: none;
+  font-family: var(--ef-font-head); text-transform: uppercase; letter-spacing: .02em;
+  font-size: .82rem; color: var(--ef-brand) !important;
+}
+.ef-mega-col-items { display: flex; flex-wrap: wrap; gap: 6px; flex: 1 1 auto; }
+/* itemele = chip-uri text mici (fără iconiță), orizontal */
+.ef-mega-compact .ef-mega-tile { flex-direction: row; padding: 5px 12px; border: 1px solid var(--ef-border); border-radius: 16px; }
+.ef-mega-compact .ef-mega-tile:hover { border-color: var(--ef-brand-light); background: #fff; }
+.ef-mega-compact .ef-mega-tile-img { display: none; }
+.ef-mega-compact .ef-mega-tile-name { font-size: .76rem; font-family: var(--ef-font-body); white-space: nowrap; }
 .ef-menu li:hover > .sub-menu { opacity: 1; visibility: visible; transform: translateY(0); }
 .ef-menu .sub-menu a {
   color: var(--ef-text) !important; text-transform: none; letter-spacing: 0;
@@ -416,17 +423,15 @@ div.wpforms-container .wpforms-submit:hover {
   text-align: center;
   background: #fff;               /* alb, ca produsul (fundal alb) să se îmbine */
   border: 1px solid transparent;  /* fără chenar la repaus → aspect natural */
-  border-radius: 6px;
+  border-radius: 10px;
   padding: 16px 10px 14px;
   text-decoration: none;
-  color: var(--ef-text);
-  transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+  color: #000;
+  transition: border-color .18s ease;
 }
 .ef-subcat-tile:hover {
-  box-shadow: 0 8px 22px rgba(0,0,0,.10);
-  transform: translateY(-2px);
-  border-color: var(--ef-border);
-  color: var(--ef-text);
+  border-color: var(--ef-brand-light); /* chenar verde deschis, colțuri rotunjite */
+  color: #000;
 }
 .ef-subcat-img {
   display: flex; align-items: center; justify-content: center;
@@ -438,8 +443,8 @@ div.wpforms-container .wpforms-submit:hover {
   font-size: .9rem;
   line-height: 1.32;
   font-weight: 500;
+  color: #000;
 }
-.ef-subcat-tile:hover .ef-subcat-name { color: var(--ef-brand); }
 
 /* =========================================================================
    HERO SLIDER homepage (4 slide-uri, crossfade)
