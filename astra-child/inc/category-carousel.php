@@ -145,11 +145,69 @@ add_action( 'woocommerce_archive_description', function () {
 	echo '</section>';
 }, 15 );
 
-/** JS de navigare a carouselului (doar pe cele două arhive). */
+/**
+ * Pagina /shop: carousel cu categoriile top de produse, în ordinea cerută.
+ * Același design ca pe Commercial Fridge/Freezer (carduri cu imagine + titlu),
+ * după descrierea scurtă, înainte de grila de produse. Fără „nori" aici.
+ */
+function ef_shop_carousel_cards() {
+	// slug => etichetă (label-uri furnizate explicit, în ordinea dorită)
+	$wanted = array(
+		'commercial-fridge'               => 'Commercial Fridge',
+		'commercial-freezer'              => 'Commercial Freezer',
+		'bakery-cabinets'                 => 'Bakery Ovens & Retarders',
+		'medical'                         => 'Medical Fridges & Freezers',
+		'low-temperature-chest-freezers'  => 'Low Temperature Freezers',
+		'graded-units'                    => 'Used Refrigeration Cabinets',
+	);
+	$cards = array();
+	foreach ( $wanted as $slug => $label ) {
+		$t = get_term_by( 'slug', $slug, 'product_cat' );
+		if ( ! $t || is_wp_error( $t ) ) { continue; }
+		$link = get_term_link( $t );
+		$cards[] = array(
+			'title' => $label,
+			'link'  => is_wp_error( $link ) ? '#' : $link,
+			'img'   => function_exists( 'ef_term_image_url' ) ? ef_term_image_url( $t->term_id, 'woocommerce_thumbnail' ) : '',
+		);
+	}
+	return $cards;
+}
+
+add_action( 'woocommerce_archive_description', function () {
+	if ( ! ( function_exists( 'is_shop' ) && is_shop() ) ) { return; }
+	if ( function_exists( 'is_product_category' ) && is_product_category() ) { return; }
+
+	$cards = ef_shop_carousel_cards();
+	if ( empty( $cards ) ) { return; }
+
+	echo '<section class="ef-cat-carousel-wrap">';
+	echo '<h2 class="ef-cc-heading">Shop by category</h2>';
+	echo '<div class="ef-cat-carousel">';
+	echo '<button type="button" class="ef-cc-arrow ef-cc-prev" aria-label="Previous">&lsaquo;</button>';
+	echo '<div class="ef-cc-track" role="list">';
+	foreach ( $cards as $c ) {
+		echo '<a class="ef-cc-card" role="listitem" href="' . esc_url( $c['link'] ) . '">';
+		echo '<span class="ef-cc-img">' . ( $c['img'] ? '<img src="' . esc_url( $c['img'] ) . '" alt="' . esc_attr( $c['title'] ) . '" loading="lazy" />' : '' ) . '</span>';
+		echo '<span class="ef-cc-name">' . esc_html( $c['title'] ) . '</span>';
+		echo '</a>';
+	}
+	echo '</div>';
+	echo '<button type="button" class="ef-cc-arrow ef-cc-next" aria-label="Next">&rsaquo;</button>';
+	echo '</div>';
+	echo '</section>';
+}, 15 );
+
+/** JS de navigare a carouselului (cele două arhive comerciale + pagina /shop). */
 add_action( 'wp_footer', function () {
-	if ( ! is_product_category() ) { return; }
-	$term = get_queried_object();
-	if ( ! $term || is_wp_error( $term ) || ! in_array( $term->slug, array( 'commercial-fridge', 'commercial-freezer' ), true ) ) { return; }
+	$ok = false;
+	if ( function_exists( 'is_shop' ) && is_shop() && ! ( function_exists( 'is_product_category' ) && is_product_category() ) ) {
+		$ok = true;
+	} elseif ( function_exists( 'is_product_category' ) && is_product_category() ) {
+		$term = get_queried_object();
+		$ok = ( $term && ! is_wp_error( $term ) && in_array( $term->slug, array( 'commercial-fridge', 'commercial-freezer' ), true ) );
+	}
+	if ( ! $ok ) { return; }
 	?>
 <script>
 (function(){
