@@ -260,3 +260,77 @@ add_action( 'wp_footer', function () {
 </script>
 	<?php
 }, 20 );
+
+/**
+ * Steppere +/− de cantitate în flyout-ul mini-coșului (bara verde).
+ * Coșul nativ WooCommerce nu are controale de cantitate — le injectăm și le
+ * legăm la WooCommerce Store API (`cart/update-item`), apoi reîmprospătăm
+ * fragmentele. Butonul de ștergere (×) rămâne cel nativ (recolorat prin CSS).
+ */
+add_action( 'wp_footer', function () {
+	$rest = esc_url_raw( rest_url() );
+	?>
+<script>
+(function(){
+	var REST = <?php echo wp_json_encode( $rest ); ?>;
+	var storeNonce = null;
+
+	function getNonce(cb){
+		if(storeNonce){ cb(storeNonce); return; }
+		fetch(REST + 'wc/store/v1/cart', { credentials: 'same-origin' })
+			.then(function(r){ storeNonce = r.headers.get('Nonce') || r.headers.get('X-WC-Store-API-Nonce'); cb(storeNonce); })
+			.catch(function(){ cb(null); });
+	}
+
+	function updateQty(key, qty, btns){
+		btns.forEach(function(b){ b.disabled = true; });
+		getNonce(function(nonce){
+			var headers = { 'Content-Type': 'application/json' };
+			if(nonce){ headers['Nonce'] = nonce; }
+			fetch(REST + 'wc/store/v1/cart/update-item', {
+				method: 'POST', credentials: 'same-origin', headers: headers,
+				body: JSON.stringify({ key: key, quantity: qty })
+			}).then(function(r){
+				var n = r.headers.get('Nonce'); if(n){ storeNonce = n; }
+				return r.json();
+			}).then(function(){
+				if(window.jQuery){ jQuery(document.body).trigger('wc_fragment_refresh'); }
+			}).catch(function(){ btns.forEach(function(b){ b.disabled = false; }); });
+		});
+	}
+
+	function inject(){
+		var items = document.querySelectorAll('.ef-header-cart .woocommerce-mini-cart-item');
+		items.forEach(function(li){
+			if(li.querySelector('.ef-mini-qty')){ return; }
+			var rem = li.querySelector('a.remove_from_cart_button');
+			if(!rem){ return; }
+			var key = rem.getAttribute('data-cart_item_key');
+			if(!key){ return; }
+			var qEl = li.querySelector('.quantity');
+			var qty = 1;
+			if(qEl){ var m = qEl.textContent.match(/\d+/); if(m){ qty = parseInt(m[0], 10) || 1; } }
+
+			var wrap  = document.createElement('div'); wrap.className = 'ef-mini-qty';
+			var minus = document.createElement('button'); minus.type = 'button'; minus.textContent = '−'; minus.setAttribute('aria-label', 'Decrease quantity');
+			var val   = document.createElement('span'); val.className = 'ef-mini-qty-val'; val.textContent = qty;
+			var plus  = document.createElement('button'); plus.type = 'button'; plus.textContent = '+'; plus.setAttribute('aria-label', 'Increase quantity');
+			if(qty <= 1){ minus.disabled = true; }
+
+			minus.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); var nq = Math.max(1, qty - 1); if(nq !== qty){ updateQty(key, nq, [minus, plus]); } });
+			plus.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); updateQty(key, qty + 1, [minus, plus]); });
+
+			wrap.appendChild(minus); wrap.appendChild(val); wrap.appendChild(plus);
+			li.appendChild(wrap);
+		});
+	}
+
+	if(document.readyState !== 'loading'){ inject(); }
+	else { document.addEventListener('DOMContentLoaded', inject); }
+	if(window.jQuery){
+		jQuery(document.body).on('wc_fragments_refreshed wc_fragments_loaded added_to_cart removed_from_cart', inject);
+	}
+})();
+</script>
+	<?php
+}, 21 );
