@@ -33,6 +33,9 @@ require_once get_stylesheet_directory() . '/inc/shop-filters.php';
 // Conținutul long-form al categoriilor (sub grila de produse) + editare din dashboard.
 require_once get_stylesheet_directory() . '/inc/category-content.php';
 
+// Carousel de sub-categorii pe Commercial Fridge / Commercial Freezer (din meniul WP).
+require_once get_stylesheet_directory() . '/inc/category-carousel.php';
+
 /**
  * Fonturi Google 1:1 cu originalul: Oswald (titluri) + Open Sans (body).
  */
