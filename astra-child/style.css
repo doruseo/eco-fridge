@@ -5,7 +5,7 @@ Description: Temă copil Astra pentru ECO-Fridge Ltd. Header/footer/mega-meniu =
 Author: O2 Digital
 Author URI: https://seo2agency.com/
 Template: astra
-Version: 0.4.8
+Version: 0.4.9
 Text Domain: eco-fridge-child
 */
 
@@ -764,11 +764,31 @@ div.wpforms-container .wpforms-submit:hover {
 }
 
 /* conținut SEO long-form: lățime lizibilă + tipografie curată */
-.ef-seo-content {
+.ef-seo-content,
+.ef-range-content {
   max-width: 1000px;
   margin: 0 auto;
   line-height: 1.75;
   color: var(--ef-text);
+}
+/* conținutul de categorie apare sub grila de produse, cu separare clară */
+.ef-range-content {
+  clear: both;
+  margin-top: 40px;
+  padding-top: 28px;
+  border-top: 1px solid var(--ef-border);
+}
+.ef-range-content img { max-width: 100%; height: auto; }
+.ef-range-content h2, .ef-range-content h3 { font-family: var(--ef-font-head); color: #2b2f36; margin: 1.4em 0 .5em; }
+.ef-range-content h2 { font-size: 1.5rem; }
+.ef-range-content h3 { font-size: 1.2rem; }
+.ef-range-content p { margin: 0 0 1.1em; }
+.ef-range-content a { color: var(--ef-brand); }
+.ef-range-content table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; margin: 1.2em 0; }
+.ef-range-content td, .ef-range-content th { border: 1px solid var(--ef-border); padding: 8px 10px; }
+@media (max-width: 600px) {
+  .ef-range-content h2 { font-size: 1.3rem; }
+  .ef-range-content h3 { font-size: 1.1rem; }
 }
 .ef-seo-content h2,
 .ef-seo-content h3 {
