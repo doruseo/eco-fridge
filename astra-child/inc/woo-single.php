@@ -49,20 +49,89 @@ add_action( 'woocommerce_before_single_product', function () {
 }, 5 );
 
 /* =========================================================================
- * 3. Note livrare / trade + T&C sub sumarul produsului
+ * 3. Note livrare / trade + T&C — MUTATE la finalul paginii, după
+ *    „Related products" și „Recently Viewed Products".
  * ========================================================================= */
-add_action( 'woocommerce_after_single_product_summary', function () {
+/**
+ * „Recently Viewed Products" — grilă (ca Related Products) din cookie-ul
+ * `woocommerce_recently_viewed` (întreținut de wc_track_product_view). Exclude
+ * produsul curent. Gol la prima vizită → nu randează nimic.
+ */
+function ef_recently_viewed_html() {
+	$raw    = ! empty( $_COOKIE['woocommerce_recently_viewed'] ) ? (array) explode( '|', wp_unslash( $_COOKIE['woocommerce_recently_viewed'] ) ) : array(); // phpcs:ignore
+	$viewed = array_reverse( array_filter( array_map( 'absint', $raw ) ) );
+	global $product;
+	$current = is_a( $product, 'WC_Product' ) ? $product->get_id() : (int) get_the_ID();
+	$viewed  = array_values( array_diff( array_unique( $viewed ), array( $current ) ) );
+	if ( empty( $viewed ) ) { return ''; }
+	$viewed = array_slice( $viewed, 0, 4 );
+
+	$q = new WP_Query( array(
+		'post_type'           => 'product',
+		'post_status'         => 'publish',
+		'post__in'            => $viewed,
+		'orderby'             => 'post__in',
+		'posts_per_page'      => 4,
+		'ignore_sticky_posts' => true,
+	) );
+	if ( ! $q->have_posts() ) { wp_reset_postdata(); return ''; }
+
+	ob_start();
+	echo '<section class="ef-recently-viewed"><h2>Recently Viewed Products</h2>';
+	$orig_cols = function_exists( 'wc_get_loop_prop' ) ? wc_get_loop_prop( 'columns' ) : 4;
+	if ( function_exists( 'wc_set_loop_prop' ) ) { wc_set_loop_prop( 'columns', 4 ); }
+	woocommerce_product_loop_start();
+	while ( $q->have_posts() ) {
+		$q->the_post();
+		wc_get_template_part( 'content', 'product' );
+	}
+	woocommerce_product_loop_end();
+	if ( function_exists( 'wc_set_loop_prop' ) ) { wc_set_loop_prop( 'columns', $orig_cols ); }
+	echo '</section>';
+	wp_reset_postdata();
+	return ob_get_clean();
+}
+
+add_action( 'woocommerce_after_single_product', function () {
+	echo ef_recently_viewed_html(); // phpcs:ignore
 	?>
 	<div class="ef-product-notes">
 		<ul>
 			<li><strong>Trade prices</strong> — shown excluding VAT.</li>
 			<li><strong>Free delivery</strong> to UK mainland.</li>
-			<li><strong>Manufacturer direct</strong> — full warranty included.</li>
+			<li><strong>Manufacturer direct</strong> — B2B prices.</li>
 		</ul>
-		<p class="ef-tc-note">Prices and specifications are subject to change. Delivery is to ground-floor, kerbside UK mainland unless otherwise agreed. Full terms apply — see our <a href="/terms-conditions/">Terms &amp; Conditions</a>.</p>
+		<p class="ef-tc-note">Prices and specifications are subject to change.</p>
+		<ul class="ef-delivery-lines">
+			<li>Trade prices. Free delivery into your store if possible (T&amp;C apply).</li>
+			<li>Bank transfer estimated 5 to 8 working days from cleared payment (T&amp;C apply).</li>
+			<li>Card payments estimated 8 to 10 working days from cleared payment (T&amp;C apply).</li>
+			<li>Delivery times above York, Leeds &amp; Blackpool can take approximately 2 to 4 Weeks (T&amp;C apply).</li>
+		</ul>
+		<p class="ef-tc-note">Full terms apply — see our <a href="/terms-conditions/">Terms &amp; Conditions</a>.</p>
+
+		<div class="ef-trade-notes">
+			<p>All cabinets above come with free delivery into your store if possible (t&amp;c apply). Deliveries above York, Leeds, Blackpool &amp; outside UK mainland will encur an extra charge.</p>
+			<p>Removal &amp; Disposal of old equal size unit = &pound;150 +VAT (t&amp;c apply)</p>
+			<p>Restocking charge of &pound;600 +VAT for cancelled orders</p>
+			<p>Finance Available (Kennet Leasing) - Please call for details</p>
+			<p>1 Year Parts &amp; Labour Warranty available at extra cost - Please call</p>
+			<p>Noise level 68dBA one metre from cabinet</p>
+			<p>All cabinets will become curb side delivery if there are too many steps, barriers or small doors, it will be the customers responsibility from this point onwards</p>
+			<p>In the interest of continual product development we reserve the right to change any of the details and specification without notice</p>
+			<p>We will terminate any Warranty/Guarantee if our staff are subjected to physical or verbal abuse in the course of carrying out their duties</p>
+			<p>Every sale is considered a Business to Business Contract, so a personal purchase will not be covered under the Consumer Rights Act</p>
+			<p>Train Stations, Shopping centres and out of working hour deliveries may incur a charge of &pound;300 +VAT</p>
+			<p>Before purchasing, please check the user manual to ensure the fridge is suitable for your store environment</p>
+		</div>
+
+		<div class="ef-terms">
+			<h3>Terms &amp; Conditions</h3>
+			<p><strong>1. ORDERS:</strong> Buyer and Supplier, no orders submitted by the Buyer shall be deemed to be accepted by the Seller unless and until payment is received in full. The Buyer responsibility to ensure that the equipment will be fit for the purpose for which the Buyer intend to use the equipment. By submitting an order the customer agrees to apply the terms and condition of this agreement in priority over any other agreement. This agreement is the only form of contract between the parties and any customer terms and condition will not apply. Every sale is considered a business to business contract, So a personal purchase will not be covered under the consumer rights act. <strong>2. PRICE:</strong> the Company reserves the right to amend prices at any time consequent upon increased costs of raw materials, labour, transport, market conditions or for any other reason whatsoever. <strong>3. WEEE Directive.</strong> The Buyer will take responsibility for the finance of future collection and disposal of the cabinet, in accordance with the regulations. If the producer retains that responsibility then an extra charge will be incurred. The cost will be negotiated and invoiced separately. <strong>4. DELIVERY/COLLECTION:</strong> dates are given as estimates only and the Company cannot accept liability for any delays howsoever caused. All cabinets are delivered to the front door of ground floor locations only. The delivery person/driver may at his discretion assist with delivering the cabinets to a location within the premises nominated by the customer, at the customer&rsquo;s sole risk. <strong>5. INSTALLATION:</strong> it is the Buyer&rsquo;s responsibility to ensure that the equipment is installed and commissioned by a qualified refrigeration engineer and all costs will be borne by the Buyer. Do not install where maximum room temperature is more than 25&deg;C and humidity over 60%. Install as described in here and the manufacturer manual. The refrigerated cabinet air temperature -1&deg;C to +7&deg;C. Freezer -18&deg;C to -22&deg;C. <strong>6. TERMS OF PAYMENT:</strong> unless otherwise agreed by the Company in writing, payment for goods is strictly on a pro forma basis and the goods will not be reserved until payment is received. <strong>7. TITLE TO GOODS:</strong> The risk in the goods shall however pass to the Buyer at the time of delivery. <strong>8. CHECKING GOODS/CLAIMS FOR DAMAGE IN TRANSIT:</strong> it is the Buyer&rsquo;s responsibility to inspect the goods at the time of taking delivery/collection. Should equipment arrive damaged/missing parts, the delivery/part delivery must be refused. If signed for &ldquo;unexamined/examined&rdquo; the Buyer/Person shall be deemed to have accepted the goods and no claim for damage/missing parts will be entertained by the Seller. Refrigerators noise level 68dBA one metre from cabinet. <strong>9. CANCELLATION/RETURN OF GOODS:</strong> requests for return of goods for whatever reason will not be entertained by the Seller. Defects in quality or dimension of any delivery shall not be grounds for cancellation of the remainder of the contract. <strong>10. WARRANTY:</strong> All goods are sold without Warranty. Different warranty requirements may be negotiated on a market and country basis. We will terminate any Warranty/Guarantee if our staff are subjected to physical or verbal abuse in the course of carrying out their duties. It is the Buyer&rsquo;s legal responsibility to ensure that preventative maintenance is carried out and all electrical and mechanical parts tested every three months by a qualified refrigeration engineer as described in here and the manufacturer manual. Failure to provide satisfactory maintenance will invalidate any Warranty. All goods are sold with NO Warranty. Any Warranty will exclude any glass, light fittings, paintwork/rust, condensation, cosmetic damage or customer mis-use. The Seller shall be under no liability in respect of any defect arising from fair wear and tear: abnormal site conditions or failure to have the equipment serviced as described in here and the manufacturer manual. The Company shall not accept any claim for any loss of profit or economic loss resulting from defective parts. All parts must be paid for in full prior to despatch. Labour and transport costs for replacing faulty parts will be charged at the current rate. Following replacement of a part, the Company cannot guarantee that other parts will not fail in the future. The refrigerated cabinets must be maintained by a qualified refrigeration engineer every three months as described above and the manufacturer manual. Install where maximum room temperature is not over 25&deg;C, and Relative humidity not over 60%. <strong>11. VARIANCE:</strong> All dimensions given are to be regarded as being for guidance only and are not binding on the Company. It is the responsibility of the Buyer to allow sufficient clearance for installation: and to ensure that the ventilation grill panels are kept free for adequate air circulation.: also to ensure that cabinets are positioned away from direct sunlight or source of hot or cold air. Cabinet noise level 68dBA <strong>12. MODIFICATIONS:</strong> if any alterations have been undertaken by the buyer or a contractor the Company shall not be held responsible for any defects or problems which may occur: any such alterations will invalidate the warranty on the equipment. All costs incurred by the Supplier to diagnose problems arising from such modifications will be borne by the Buyer.</p>
+		</div>
 	</div>
 	<?php
-}, 25 );
+}, 5 );
 
 /* =========================================================================
  * 3b. Breadcrumbs WooCommerce: 🏢 în loc de „Home", separator „>>"

@@ -5,7 +5,7 @@ Description: Temă copil Astra pentru ECO-Fridge Ltd. Header/footer/mega-meniu =
 Author: O2 Digital
 Author URI: https://seo2agency.com/
 Template: astra
-Version: 0.5.8
+Version: 0.5.9
 Text Domain: eco-fridge-child
 */
 
@@ -888,6 +888,18 @@ div.wpforms-container .wpforms-submit:hover {
 .ef-product-notes li { position: relative; padding-left: 22px; }
 .ef-product-notes li::before { content: "\2713"; position: absolute; left: 0; color: var(--ef-brand); font-weight: 700; }
 .ef-tc-note { font-size: .82rem; color: var(--ef-meta); margin: 0; }
+
+/* Linii livrare/plată + note trade + T&C (blocul de la finalul paginii de produs) */
+.ef-delivery-lines { list-style: none; margin: 8px 0 12px; padding: 0; }
+.ef-delivery-lines li { position: relative; padding-left: 18px; font-size: .88rem; color: var(--ef-meta); margin: 4px 0; }
+.ef-delivery-lines li::before { content: "\2013"; position: absolute; left: 0; color: var(--ef-brand); font-weight: 700; }
+.ef-trade-notes { margin: 16px 0 0; border-top: 1px solid var(--ef-border); padding-top: 14px; }
+.ef-trade-notes p { font-size: .86rem; color: var(--ef-text); margin: 0 0 8px; line-height: 1.5; }
+.ef-terms { margin: 16px 0 0; border-top: 1px solid var(--ef-border); padding-top: 14px; }
+.ef-terms h3 { font-size: 1rem; margin: 0 0 8px; text-transform: uppercase; letter-spacing: .02em; }
+.ef-terms p { font-size: .78rem; color: var(--ef-meta); line-height: 1.55; margin: 0; text-align: justify; }
+.ef-recently-viewed { clear: both; margin: 32px 0 0; }
+.ef-recently-viewed > h2 { margin: 0 0 16px; }
 
 /* Add-on-uri */
 .ef-addons { margin: 14px 0 18px; }
