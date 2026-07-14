@@ -92,8 +92,11 @@ function ef_recently_viewed_html() {
 	return ob_get_clean();
 }
 
-add_action( 'woocommerce_after_single_product', function () {
-	echo ef_recently_viewed_html(); // phpcs:ignore
+/**
+ * Caseta de note trade + politici de livrare/plată + Terms & Conditions.
+ * Reutilizată la finalul paginii de produs ȘI la finalul arhivelor de categorie.
+ */
+function ef_trade_terms_box() {
 	?>
 	<div class="ef-product-notes">
 		<ul>
@@ -131,7 +134,22 @@ add_action( 'woocommerce_after_single_product', function () {
 		</div>
 	</div>
 	<?php
+}
+
+// Pe pagina de produs: după „Related products" + „Recently Viewed Products".
+add_action( 'woocommerce_after_single_product', function () {
+	echo ef_recently_viewed_html(); // phpcs:ignore
+	ef_trade_terms_box();
 }, 5 );
+
+// Pe arhivele de categorie de produse: la finalul paginii, după grila de produse
+// și după conținutul long-form al categoriei (care e pe after_shop_loop prio 20).
+add_action( 'woocommerce_after_shop_loop', function () {
+	if ( ! is_product_category() ) { return; }
+	$term = get_queried_object();
+	if ( ! $term || is_wp_error( $term ) ) { return; }
+	ef_trade_terms_box();
+}, 30 );
 
 /* =========================================================================
  * 3b. Breadcrumbs WooCommerce: 🏢 în loc de „Home", separator „>>"
