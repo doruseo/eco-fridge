@@ -25,8 +25,18 @@ function ef_hdr_menu( $which = 'landing' ) {
 	if ( isset( $cache[ $which ] ) ) { return $cache[ $which ]; }
 
 	if ( 'commercial' === $which ) {
-		$m   = wp_get_nav_menu_object( 'Commercial Menu' );
-		$mid = $m ? (int) $m->term_id : 0;
+		// rândul 2 = meniul asignat pe locația `secondary_menu` (Astra „Secondary Menu",
+		// prezentă și în Header Builder) → editabil la nevoie; fallback `ast-hf-menu-2`,
+		// apoi după nume. Aspectul icon-mega se construiește din ierarhia meniului.
+		$loc = get_nav_menu_locations();
+		$mid = 0;
+		foreach ( array( 'secondary_menu', 'ast-hf-menu-2' ) as $l ) {
+			if ( ! empty( $loc[ $l ] ) ) { $mid = (int) $loc[ $l ]; break; }
+		}
+		if ( ! $mid ) {
+			$m   = wp_get_nav_menu_object( 'Commercial Menu' );
+			$mid = $m ? (int) $m->term_id : 0;
+		}
 	} else {
 		$loc = get_nav_menu_locations();
 		$mid = isset( $loc['primary'] ) ? (int) $loc['primary'] : 0;
