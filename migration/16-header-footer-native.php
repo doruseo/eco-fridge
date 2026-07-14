@@ -55,8 +55,12 @@ $s['header-mobile-items'] = array(
 	'below'   => array( 'below_left' => array(), 'below_center' => array(), 'below_right' => array() ),
 );
 
-// Sticky pe rândul principal de header.
-$s['header-main-stick'] = true;
+// Sticky nativ Astra DEZACTIVAT: header-ul e custom (bara verde) și sticky-ul lui
+// e controlat de theme_mod `ef_greenbar_sticky` (CSS position:sticky, fără shrink).
+// Modulul nativ Astra adăuga un efect de „shrink" la scroll — nedorit — deci off.
+$s['header-main-stick']  = false;
+$s['header-below-stick'] = false;
+$s['header-above-stick'] = false;
 // Aliniere meniu inline (default), lățime header „content".
 $s['hb-header-main-menu-align'] = 'inline';
 
