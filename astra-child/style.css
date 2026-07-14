@@ -5,7 +5,7 @@ Description: Temă copil Astra pentru ECO-Fridge Ltd. Header/footer/mega-meniu =
 Author: O2 Digital
 Author URI: https://seo2agency.com/
 Template: astra
-Version: 0.5.6
+Version: 0.5.7
 Text Domain: eco-fridge-child
 */
 
@@ -345,34 +345,79 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-header-search { width: 250px; max-width: 38vw; }
 .ef-header-search .dgwt-wcas-search-wrapp { max-width: 100%; margin: 0; }
 
-/* coș NATIV Astra pe bara verde — alb, centrat vertical */
-.ef-header-cart { display: inline-flex; align-items: center; }
+/* coș NATIV Astra + info (nr. bucăți + total) — pe bara verde (rând 2) = ALB */
+.ef-header-cart { display: inline-flex; align-items: center; gap: 8px; }
 .ef-header-cart .ast-site-header-cart { line-height: 1; }
 .ef-header-cart .ast-site-header-cart a,
 .ef-header-cart .ast-site-header-cart i.astra-icon,
 .ef-header-cart .cart-container,
-.ef-header-cart .ast-woo-header-cart-info-wrap,
 .ef-header-cart .ast-cart-menu-wrap .count,
 .ef-header-cart .ast-cart-menu-wrap .count .ast-count-text { color: #fff !important; }
 .ef-header-cart .ast-cart-menu-wrap .count { border-color: #fff !important; }
 .ef-header-cart .ast-menu-cart-outline .cart-container,
 .ef-header-cart .ast-menu-cart-with-border .cart-container { border-color: rgba(255,255,255,.6) !important; }
+/* info coș: „N items / £Total" */
+.ef-cart-info { display: inline-flex; flex-direction: column; line-height: 1.15; color: #fff; font-family: var(--ef-font-head); }
+.ef-cart-count { font-size: .68rem; text-transform: uppercase; letter-spacing: .02em; opacity: .95; }
+.ef-cart-total { font-size: .88rem; font-weight: 700; }
+.ef-cart-total .amount, .ef-cart-total bdi { color: #fff !important; }
+
+/* acțiuni rând 1 (coș + hamburger) — doar pe mobil/tabletă, dreapta */
+.ef-row1-actions { display: none; align-items: center; gap: 12px; }
+.ef-row1-cart-slot { display: inline-flex; align-items: center; }
 
 /* hamburger (ascuns pe desktop) */
-.ef-menu-toggle { display: none; flex-direction: column; justify-content: center; gap: 5px; width: 42px; height: 42px; padding: 0; border: none; background: transparent; cursor: pointer; }
-.ef-menu-toggle span { display: block; width: 26px; height: 3px; background: var(--ef-text); border-radius: 2px; transition: .2s; }
+.ef-menu-toggle { display: none; flex-direction: column; justify-content: center; align-items: center; gap: 5px; width: 44px; height: 40px; padding: 0; border: none; background: transparent; cursor: pointer; }
+.ef-menu-toggle span { display: block; width: 24px; height: 3px; background: var(--ef-text); border-radius: 2px; transition: .2s; }
 
-/* —— mobil —— */
+/* overlay flyout */
+.ef-nav-overlay { display: none; }
+
+/* —— mobil / tabletă —— */
 @media (max-width: 992px) {
-  .ef-menu-toggle { display: flex; }
   .ef-header-row1 .ef-header-inner { min-height: 66px; }
-  .ef-row1-right {
-    position: absolute; left: 0; right: 0; top: 100%;
-    flex-direction: column; align-items: stretch; gap: 0;
-    background: #fff; box-shadow: 0 10px 20px rgba(0,0,0,.12);
-    padding: 10px 20px 18px; display: none;
+  .ef-row1-actions { display: flex; }
+
+  /* hamburger dreapta-sus: negru pe alb, cu chenar (și normal, și la apăsare) */
+  .ef-menu-toggle {
+    display: flex;
+    background: #fff !important;
+    border: 1px solid #111;
+    border-radius: 6px;
+    width: 46px; height: 40px;
   }
-  .ef-header.ef-nav-open .ef-row1-right { display: flex; }
+  .ef-menu-toggle span,
+  .ef-header.ef-nav-open .ef-menu-toggle span { background: #111; }
+  .ef-menu-toggle:hover, .ef-menu-toggle:focus, .ef-menu-toggle:active,
+  .ef-header.ef-nav-open .ef-menu-toggle { background: #fff !important; }
+
+  /* coșul mutat pe rândul 1 (fundal alb) → iconiță/închis; fără textul info */
+  .ef-row1-cart-slot .ast-site-header-cart a,
+  .ef-row1-cart-slot .ast-site-header-cart i.astra-icon,
+  .ef-row1-cart-slot .cart-container,
+  .ef-row1-cart-slot .ast-cart-menu-wrap .count,
+  .ef-row1-cart-slot .ast-cart-menu-wrap .count .ast-count-text { color: var(--ef-text) !important; }
+  .ef-row1-cart-slot .ast-cart-menu-wrap .count { border-color: var(--ef-text) !important; background: var(--ef-brand); color: #fff !important; }
+  .ef-row1-cart-slot .ast-menu-cart-outline .cart-container,
+  .ef-row1-cart-slot .ast-menu-cart-with-border .cart-container { border-color: var(--ef-border) !important; }
+  .ef-cart-info { display: none; } /* pe mobil doar iconița coșului */
+
+  /* meniul rând 1 = FLYOUT 70% din dreapta + overlay */
+  .ef-row1-right {
+    position: fixed; top: 0; right: 0; left: auto; height: 100vh; height: 100dvh;
+    width: 70%; max-width: 380px;
+    background: #fff; box-shadow: -10px 0 30px rgba(0,0,0,.2);
+    transform: translateX(100%); transition: transform .28s ease;
+    z-index: 1001; overflow-y: auto; padding: 76px 22px 28px;
+    flex-direction: column; align-items: stretch; gap: 0; display: flex;
+  }
+  .ef-header.ef-nav-open .ef-row1-right { transform: translateX(0); }
+  .ef-nav-overlay {
+    display: block; position: fixed; inset: 0; background: rgba(0,0,0,.45);
+    opacity: 0; visibility: hidden; transition: opacity .28s ease, visibility .28s; z-index: 1000;
+  }
+  .ef-header.ef-nav-open .ef-nav-overlay { opacity: 1; visibility: visible; }
+
   .ef-primary-nav .ef-menu { flex-direction: column; }
   .ef-primary-nav .ef-menu a { padding: 12px 4px; border-bottom: 1px solid var(--ef-border); }
   .ef-menu .sub-menu { position: static; opacity: 1; visibility: visible; transform: none; box-shadow: none; min-width: 0; max-width: none; padding-left: 12px; }

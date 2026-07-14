@@ -163,15 +163,31 @@ function ef_hdr_render_cat_nav() {
 	echo '</ul></nav>';
 }
 
-/** Coșul NATIV Astra WP Pro (icon + count + flyout), pentru bara verde din rândul 2. */
+/** Info coș: „N items  £Total" (actualizat prin fragmente AJAX). */
+function ef_hdr_cart_info() {
+	if ( ! function_exists( 'WC' ) || ! WC()->cart ) { return ''; }
+	$count = (int) WC()->cart->get_cart_contents_count();
+	$total = WC()->cart->get_cart_total();
+	return '<span class="ef-cart-info">'
+		. '<span class="ef-cart-count">' . $count . ' ' . _n( 'item', 'items', $count, 'eco-fridge-child' ) . '</span> '
+		. '<span class="ef-cart-total">' . wp_kses_post( $total ) . '</span>'
+		. '</span>';
+}
+add_filter( 'woocommerce_add_to_cart_fragments', function ( $fragments ) {
+	$fragments['span.ef-cart-info'] = ef_hdr_cart_info();
+	return $fragments;
+} );
+
+/** Coșul NATIV Astra WP Pro (icon + flyout) + info (nr. bucăți + total). */
 function ef_hdr_astra_cart() {
+	$cart = '';
 	if ( class_exists( 'Astra_Woocommerce' ) && method_exists( 'Astra_Woocommerce', 'get_instance' ) ) {
 		$woo = Astra_Woocommerce::get_instance();
 		if ( method_exists( $woo, 'woo_mini_cart_markup' ) ) {
-			return $woo->woo_mini_cart_markup( 'desktop' );
+			$cart = $woo->woo_mini_cart_markup( 'desktop' );
 		}
 	}
-	return '';
+	return $cart . ef_hdr_cart_info();
 }
 
 /** Randare header custom, înainte de header-ul Astra (ascuns prin CSS). */
@@ -190,20 +206,26 @@ add_action( 'astra_header_before', function () {
 		echo esc_html( get_bloginfo( 'name' ) );
 	}
 	echo '</a>';
-	echo '<button class="ef-menu-toggle" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>';
 	echo '<div class="ef-row1-right">';
 	ef_hdr_render_row1_nav();
 	if ( shortcode_exists( 'fibosearch' ) ) {
 		echo '<div class="ef-header-search">' . do_shortcode( '[fibosearch]' ) . '</div>';
 	}
-	echo '</div></div></div>';
+	echo '</div>';
+	// acțiuni pe mobil/tabletă (dreapta): coș (mutat aici din rândul 2 prin JS) + hamburger
+	echo '<div class="ef-row1-actions">';
+	echo '<span class="ef-row1-cart-slot"></span>';
+	echo '<button class="ef-menu-toggle" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>';
+	echo '</div>';
+	echo '</div></div>';
 
-	// —— rând 2: nav categorii (mega) | coș ——
+	// —— rând 2: nav categorii (mega) | coș (nativ Astra + info) ——
 	echo '<div class="ef-header-row ef-header-row2"><div class="ef-header-inner">';
 	ef_hdr_render_cat_nav();
 	echo '<div class="ef-header-cart">' . ef_hdr_astra_cart() . '</div>';
 	echo '</div></div>';
 
+	echo '<div class="ef-nav-overlay" aria-hidden="true"></div>';
 	echo '</div>'; // .ef-header
 }, 5 );
 
@@ -212,12 +234,28 @@ add_action( 'wp_footer', function () {
 	?>
 <script>
 (function(){
-	var t = document.querySelector('.ef-menu-toggle'), h = document.getElementById('ef-header');
-	if(!t || !h){ return; }
-	t.addEventListener('click', function(){
-		var open = h.classList.toggle('ef-nav-open');
-		t.setAttribute('aria-expanded', open ? 'true' : 'false');
-	});
+	var h = document.getElementById('ef-header');
+	if(!h){ return; }
+	var t = h.querySelector('.ef-menu-toggle');
+	var overlay = h.querySelector('.ef-nav-overlay');
+	var cart = h.querySelector('.ef-header-cart');
+	var slot = h.querySelector('.ef-row1-cart-slot');
+	var row2inner = h.querySelector('.ef-header-row2 .ef-header-inner');
+
+	function closeNav(){ h.classList.remove('ef-nav-open'); if(t){ t.setAttribute('aria-expanded','false'); } }
+	if(t){ t.addEventListener('click', function(e){ e.stopPropagation(); var open = h.classList.toggle('ef-nav-open'); t.setAttribute('aria-expanded', open ? 'true' : 'false'); }); }
+	if(overlay){ overlay.addEventListener('click', closeNav); }
+	document.addEventListener('keydown', function(e){ if(e.key === 'Escape'){ closeNav(); } });
+
+	// coșul: pe mobil/tabletă → rândul 1 (lângă hamburger); pe desktop → rândul 2 (bara verde)
+	function isMobile(){ return window.matchMedia('(max-width: 992px)').matches; }
+	function placeCart(){
+		if(!cart || !slot || !row2inner){ return; }
+		if(isMobile()){ if(cart.parentNode !== slot){ slot.appendChild(cart); } }
+		else if(cart.parentNode !== row2inner){ row2inner.appendChild(cart); }
+	}
+	placeCart();
+	var rt; window.addEventListener('resize', function(){ clearTimeout(rt); rt = setTimeout(function(){ placeCart(); if(!isMobile()){ closeNav(); } }, 150); });
 })();
 </script>
 	<?php
