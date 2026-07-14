@@ -5,7 +5,7 @@ Description: Temă copil Astra pentru ECO-Fridge Ltd. Header/footer/mega-meniu =
 Author: O2 Digital
 Author URI: https://seo2agency.com/
 Template: astra
-Version: 0.5.5
+Version: 0.5.6
 Text Domain: eco-fridge-child
 */
 
@@ -223,6 +223,8 @@ a:hover, a:focus { color: var(--ef-text); }
   background: #fff;
   box-shadow: 0 2px 10px rgba(0,0,0,.07);
 }
+/* toggle din Customize → „Green Category Bar" → Sticky top header */
+.ef-header.ef-nosticky { position: static; }
 .ef-header-inner {
   max-width: 1240px;
   margin: 0 auto;

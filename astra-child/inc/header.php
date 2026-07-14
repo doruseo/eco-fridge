@@ -176,8 +176,9 @@ function ef_hdr_astra_cart() {
 
 /** Randare header custom, înainte de header-ul Astra (ascuns prin CSS). */
 add_action( 'astra_header_before', function () {
-	$home = esc_url( home_url( '/' ) );
-	echo '<div class="ef-header" id="ef-header">';
+	$home       = esc_url( home_url( '/' ) );
+	$sticky_cls = ( function_exists( 'ef_header_is_sticky' ) && ! ef_header_is_sticky() ) ? ' ef-nosticky' : '';
+	echo '<div class="ef-header' . $sticky_cls . '" id="ef-header">';
 
 	// —— rând 1: logo | nav pagini + search ——
 	echo '<div class="ef-header-row ef-header-row1"><div class="ef-header-inner">';

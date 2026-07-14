@@ -36,6 +36,9 @@ require_once get_stylesheet_directory() . '/inc/category-content.php';
 // Carousel de sub-categorii pe Commercial Fridge / Commercial Freezer (din meniul WP).
 require_once get_stylesheet_directory() . '/inc/category-carousel.php';
 
+// Controale Customize pt. bara verde: iconița coșului (nativ Astra) + sticky.
+require_once get_stylesheet_directory() . '/inc/header-controls.php';
+
 /**
  * Fonturi Google 1:1 cu originalul: Oswald (titluri) + Open Sans (body).
  */
