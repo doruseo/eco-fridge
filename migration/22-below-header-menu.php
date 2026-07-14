@@ -69,26 +69,11 @@ foreach ( (array) ( $by[0] ?? array() ) as $top ) {
 	}
 }
 
-/* ---- asignează pe locația below-header (menu-2) ---- */
-$locations = get_theme_mod( 'nav_menu_locations', array() );
-$locations['ast-hf-menu-2'] = $menu_id;
-set_theme_mod( 'nav_menu_locations', $locations );
-
-/* ---- Below Header: menu-2 (stânga) + woo-cart (dreapta) ---- */
-$s = get_option( 'astra-settings', array() );
-if ( ! is_array( $s ) ) { $s = array(); }
-if ( ! isset( $s['header-desktop-items']['below'] ) ) { $s['header-desktop-items']['below'] = array(); }
-$s['header-desktop-items']['below']['below_left']         = array( 'menu-2' );
-$s['header-desktop-items']['below']['below_left_center']  = array();
-$s['header-desktop-items']['below']['below_center']       = array();
-$s['header-desktop-items']['below']['below_right_center'] = array();
-$s['header-desktop-items']['below']['below_right']        = array( 'woo-cart' );
-// bara below verde brand, meniu alb
-$s['hb-below-header-height']              = array( 'desktop' => 46, 'tablet' => 46, 'mobile' => '' );
-$s['below-header-menu-color']            = '#ffffff';
-$s['below-header-menu-h-color']          = '#ffffff';
-update_option( 'astra-settings', $s );
+/* NB: „Commercial Menu" e afișat de header-ul CUSTOM pe rândul 2 (bară verde), cu
+ * icon-mega — vezi astra-child/inc/header.php (îl citește după NUME). Rândul 1 =
+ * „Landing Pages Menu" (locația primary). Header-ul Astra nativ rămâne ascuns prin CSS.
+ * (Nu mai configurăm Below Header nativ.) */
 
 $items = wp_get_nav_menu_items( $menu_id );
-WP_CLI::log( '„Commercial Menu" #' . $menu_id . ' creat: ' . count( $items ) . ' iteme (' . $count_top . ' categorii top), asignat pe ast-hf-menu-2.' );
-WP_CLI::success( 'Below Header configurat: meniu comercial nativ + coș Astra.' );
+WP_CLI::log( '„Commercial Menu" #' . $menu_id . ' creat: ' . count( $items ) . ' iteme (' . $count_top . ' categorii top), citit de header-ul custom pe rândul 2.' );
+WP_CLI::success( 'Commercial Menu creat (rândul 2 al header-ului custom).' );
