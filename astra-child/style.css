@@ -5,7 +5,7 @@ Description: Temă copil Astra pentru ECO-Fridge Ltd. Header/footer/mega-meniu =
 Author: O2 Digital
 Author URI: https://seo2agency.com/
 Template: astra
-Version: 0.5.4
+Version: 0.5.5
 Text Domain: eco-fridge-child
 */
 
@@ -343,12 +343,18 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-header-search { width: 250px; max-width: 38vw; }
 .ef-header-search .dgwt-wcas-search-wrapp { max-width: 100%; margin: 0; }
 
-/* coș — fără chenar */
-.ef-cart { display: inline-flex; align-items: center; gap: 8px; color: #fff; text-decoration: none; font-family: var(--ef-font-head); font-size: .85rem; }
-.ef-cart:hover { color: #fff; opacity: .92; }
-.ef-cart-ico::before { content: "\1F6D2"; font-size: 1.05rem; }
-.ef-cart-count { text-transform: uppercase; letter-spacing: .02em; }
-.ef-cart-total { font-weight: 700; }
+/* coș NATIV Astra pe bara verde — alb, centrat vertical */
+.ef-header-cart { display: inline-flex; align-items: center; }
+.ef-header-cart .ast-site-header-cart { line-height: 1; }
+.ef-header-cart .ast-site-header-cart a,
+.ef-header-cart .ast-site-header-cart i.astra-icon,
+.ef-header-cart .cart-container,
+.ef-header-cart .ast-woo-header-cart-info-wrap,
+.ef-header-cart .ast-cart-menu-wrap .count,
+.ef-header-cart .ast-cart-menu-wrap .count .ast-count-text { color: #fff !important; }
+.ef-header-cart .ast-cart-menu-wrap .count { border-color: #fff !important; }
+.ef-header-cart .ast-menu-cart-outline .cart-container,
+.ef-header-cart .ast-menu-cart-with-border .cart-container { border-color: rgba(255,255,255,.6) !important; }
 
 /* hamburger (ascuns pe desktop) */
 .ef-menu-toggle { display: none; flex-direction: column; justify-content: center; gap: 5px; width: 42px; height: 42px; padding: 0; border: none; background: transparent; cursor: pointer; }

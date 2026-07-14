@@ -41,6 +41,12 @@ class EF_Subcat_Filter_Widget extends WP_Widget {
 
 		$terms = get_terms( array( 'taxonomy' => 'product_cat', 'parent' => $parent, 'hide_empty' => true ) );
 
+		// fără copii în taxonomie (ex. Commercial Fridge/Freezer) → categoriile-copil din
+		// MENIUL COMERCIAL (secondary_menu), ca pe carousel
+		if ( ( is_wp_error( $terms ) || empty( $terms ) ) && $current && function_exists( 'ef_commercial_menu_children' ) ) {
+			$mc = ef_commercial_menu_children( $current->slug );
+			if ( $mc ) { $terms = $mc; }
+		}
 		// categorie-frunză → arată surorile (copiii părintelui), ca filtrul să nu fie gol
 		if ( ( is_wp_error( $terms ) || empty( $terms ) ) && $current && $current->parent ) {
 			$parent = (int) $current->parent;

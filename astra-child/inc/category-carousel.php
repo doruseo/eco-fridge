@@ -20,13 +20,43 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  *   - 'chips'  = copiii direcți (tier-2: Display/Storage Fridge…), doar titlu + link
  *   - 'cards'  = descendenții acelor copii (tier-3/4), cu imagine + titlu + link
  */
-function ef_cat_carousel_data( $parent_slug ) {
+/** ID-ul meniului comercial (locația `secondary_menu`, fallback `ast-hf-menu-2`, apoi nume). */
+function ef_commercial_menu_id() {
 	$loc = get_nav_menu_locations();
-	$mid = isset( $loc['primary'] ) ? (int) $loc['primary'] : 0;
-	if ( ! $mid ) {
-		$m   = wp_get_nav_menu_object( 'Primary Menu' );
-		$mid = $m ? (int) $m->term_id : 0;
+	foreach ( array( 'secondary_menu', 'ast-hf-menu-2' ) as $l ) {
+		if ( ! empty( $loc[ $l ] ) ) { return (int) $loc[ $l ]; }
 	}
+	$m = wp_get_nav_menu_object( 'Commercial Menu' );
+	return $m ? (int) $m->term_id : 0;
+}
+
+/** Categoriile-copil directe (termeni) ale unei categorii, din meniul comercial. */
+function ef_commercial_menu_children( $parent_slug ) {
+	$mid   = ef_commercial_menu_id();
+	$items = $mid ? wp_get_nav_menu_items( $mid ) : array();
+	if ( ! $items ) { return array(); }
+	$by = array(); $topid = 0;
+	foreach ( $items as $it ) {
+		$by[ (int) $it->menu_item_parent ][] = $it;
+		if ( 'taxonomy' === $it->type && 'product_cat' === $it->object ) {
+			$t = get_term( (int) $it->object_id, 'product_cat' );
+			if ( $t && ! is_wp_error( $t ) && $t->slug === $parent_slug ) { $topid = (int) $it->ID; }
+		}
+	}
+	$out = array();
+	if ( $topid && ! empty( $by[ $topid ] ) ) {
+		foreach ( $by[ $topid ] as $it ) {
+			if ( 'taxonomy' === $it->type && 'product_cat' === $it->object ) {
+				$t = get_term( (int) $it->object_id, 'product_cat' );
+				if ( $t && ! is_wp_error( $t ) ) { $out[] = $t; }
+			}
+		}
+	}
+	return $out;
+}
+
+function ef_cat_carousel_data( $parent_slug ) {
+	$mid   = ef_commercial_menu_id();
 	$items = $mid ? wp_get_nav_menu_items( $mid ) : array();
 	if ( ! $items ) { return array( 'chips' => array(), 'cards' => array() ); }
 

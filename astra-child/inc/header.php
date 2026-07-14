@@ -163,20 +163,16 @@ function ef_hdr_render_cat_nav() {
 	echo '</ul></nav>';
 }
 
-/** Link coș (server-side; actualizat prin fragmente AJAX la add-to-cart). */
-function ef_cart_link() {
-	if ( ! function_exists( 'WC' ) || ! WC()->cart ) { return ''; }
-	$count = WC()->cart->get_cart_contents_count();
-	$total = WC()->cart->get_cart_total();
-	return '<a class="ef-cart" href="' . esc_url( wc_get_cart_url() ) . '">'
-		. '<span class="ef-cart-ico" aria-hidden="true"></span>'
-		. '<span class="ef-cart-txt"><span class="ef-cart-count">' . (int) $count . ' items</span> <span class="ef-cart-total">' . wp_kses_post( $total ) . '</span></span>'
-		. '</a>';
+/** Coșul NATIV Astra WP Pro (icon + count + flyout), pentru bara verde din rândul 2. */
+function ef_hdr_astra_cart() {
+	if ( class_exists( 'Astra_Woocommerce' ) && method_exists( 'Astra_Woocommerce', 'get_instance' ) ) {
+		$woo = Astra_Woocommerce::get_instance();
+		if ( method_exists( $woo, 'woo_mini_cart_markup' ) ) {
+			return $woo->woo_mini_cart_markup( 'desktop' );
+		}
+	}
+	return '';
 }
-add_filter( 'woocommerce_add_to_cart_fragments', function ( $fragments ) {
-	$fragments['a.ef-cart'] = ef_cart_link();
-	return $fragments;
-} );
 
 /** Randare header custom, înainte de header-ul Astra (ascuns prin CSS). */
 add_action( 'astra_header_before', function () {
@@ -204,7 +200,7 @@ add_action( 'astra_header_before', function () {
 	// —— rând 2: nav categorii (mega) | coș ——
 	echo '<div class="ef-header-row ef-header-row2"><div class="ef-header-inner">';
 	ef_hdr_render_cat_nav();
-	echo '<div class="ef-header-cart">' . ef_cart_link() . '</div>';
+	echo '<div class="ef-header-cart">' . ef_hdr_astra_cart() . '</div>';
 	echo '</div></div>';
 
 	echo '</div>'; // .ef-header
