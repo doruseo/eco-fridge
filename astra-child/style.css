@@ -5,7 +5,7 @@ Description: Astra child theme for ECO-Fridge Ltd. Header/footer/mega-menu = NAT
 Author: O2 Digital
 Author URI: https://seo2agency.com/
 Template: astra
-Version: 0.6.1
+Version: 0.6.2
 Text Domain: eco-fridge-child
 */
 
@@ -932,7 +932,7 @@ div.wpforms-container .wpforms-submit:hover {
 .ef-recently-viewed { clear: both; margin: 32px 0 0; }
 .ef-recently-viewed > h2 { margin: 0 0 16px; }
 
-/* Add-on-uri */
+/* Add-ons */
 .ef-addons { margin: 14px 0 18px; }
 .ef-addon {
   display: flex; align-items: flex-start; gap: 10px; cursor: pointer;
@@ -949,6 +949,35 @@ div.wpforms-container .wpforms-submit:hover {
 .ef-addon-toggle summary::-webkit-details-marker { display: none; }
 .ef-addon-toggle summary::before { content: "\25B8 "; }
 .ef-addon-toggle[open] summary::before { content: "\25BE "; }
+
+/* =========================================================================
+   CART PAGE (/cart) — classic layout: items on the left, totals on the right
+   ========================================================================= */
+@media (min-width: 769px) {
+  .woocommerce-cart .woocommerce {
+    display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px 40px;
+  }
+  .woocommerce-cart .woocommerce > .woocommerce-notices-wrapper { flex: 0 0 100%; }
+  .woocommerce-cart .woocommerce-cart-form { flex: 1 1 0%; min-width: 0; margin: 0; }
+  .woocommerce-cart .cart-collaterals {
+    flex: 0 0 34%; max-width: 380px; width: auto; margin: 0;
+  }
+  .woocommerce-cart .cart-collaterals .cart_totals { float: none; width: 100%; }
+}
+/* the "Cart totals" panel — light framing so it reads as a distinct column */
+.woocommerce-cart .cart_totals > h2 { font-size: 1.15rem; }
+.woocommerce-cart .cart_totals table { background: var(--ef-stripe); }
+
+/* cart add-ons box (Removal & Disposal, Warranty) shown below the cart items */
+.ef-cart-addons {
+  margin: 18px 0 0; padding: 16px 18px;
+  border: 1px solid var(--ef-border); border-radius: 6px; background: var(--ef-stripe);
+}
+.ef-cart-addons h3 {
+  margin: 0 0 10px; font-size: .95rem; text-transform: uppercase; letter-spacing: .02em;
+}
+.ef-cart-addons .ef-addon { background: #fff; margin-bottom: 8px; }
+.ef-cart-addons .ef-addon:last-child { margin-bottom: 0; }
 
 /* =========================================================================
    HOMEPAGE — rhythm/spacing + long-form SEO content (responsive)
