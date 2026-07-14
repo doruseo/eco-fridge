@@ -23,4 +23,12 @@ foreach ( glob( $dir . '*.html' ) as $f ) {
 	update_term_meta( $t->term_id, '_ef_range_content', file_get_contents( $f ) );
 	$n++;
 }
-WP_CLI::success( "Conținut îmbunătățit importat: $n categorii." );
+
+// Arhivele de categorie: afișează SUB-CATEGORIILE mai întâi, apoi PRODUSELE.
+update_option( 'woocommerce_category_archive_display', 'both' );
+update_option( 'woocommerce_shop_page_display', 'both' );
+foreach ( get_terms( array( 'taxonomy' => 'product_cat', 'hide_empty' => false ) ) as $term ) {
+	update_term_meta( $term->term_id, 'display_type', '' ); // moștenește setarea globală ('both')
+}
+
+WP_CLI::success( "Conținut îmbunătățit importat: $n categorii; afișare = sub-categorii + produse." );
