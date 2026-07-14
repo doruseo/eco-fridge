@@ -1,12 +1,12 @@
 <?php
 /**
- * Controale Customize pentru bara verde (rândul 2, custom): iconița coșului + sticky.
+ * Customize controls for the green bar (row 2, custom): cart icon + sticky.
  *
- * Rândul 2 (icon-mega) e randat de cod custom (nu de Header Builder-ul nativ, care nu
- * poate reproduce icon-mega). Totuși:
- *  - COȘUL din bara verde e coșul NATIV Astra → iconița lui = opțiunea Astra
- *    `woo-header-cart-icon`; o expunem aici ca s-o poți schimba.
- *  - STICKY: toggle pentru bara verde (header-ul custom lipit sus la scroll).
+ * Row 2 (icon-mega) is rendered by custom code (not by the native Header Builder,
+ * which cannot reproduce icon-mega). However:
+ *  - The CART in the green bar is the NATIVE Astra cart → its icon = the Astra
+ *    option `woo-header-cart-icon`; we expose it here so you can change it.
+ *  - STICKY: a toggle for the green bar (the custom header stuck to the top on scroll).
  *
  * @package Eco-Fridge-Child
  */
@@ -19,8 +19,8 @@ add_action( 'customize_register', function ( $wp_customize ) {
 		'priority' => 32,
 	) );
 
-	/* 1) Iconița coșului — folosește opțiunea nativă Astra `woo-header-cart-icon`,
-	 *    pe care o afișează coșul nativ din bara verde. */
+	/* 1) Cart icon — uses the native Astra option `woo-header-cart-icon`,
+	 *    which the native cart in the green bar displays. */
 	if ( ! $wp_customize->get_setting( 'astra-settings[woo-header-cart-icon]' ) ) {
 		$wp_customize->add_setting( 'astra-settings[woo-header-cart-icon]', array(
 			'type'              => 'option',
@@ -34,7 +34,7 @@ add_action( 'customize_register', function ( $wp_customize ) {
 		'section'     => 'ef_greenbar',
 		'settings'    => 'astra-settings[woo-header-cart-icon]',
 		'label'       => __( 'Cart icon', 'eco-fridge-child' ),
-		'description' => __( 'Iconița coșului nativ Astra din bara verde.', 'eco-fridge-child' ),
+		'description' => __( 'The native Astra cart icon shown in the green bar.', 'eco-fridge-child' ),
 		'choices'     => array(
 			'default' => __( 'Default', 'eco-fridge-child' ),
 			'bag'     => __( 'Bag', 'eco-fridge-child' ),
@@ -43,7 +43,7 @@ add_action( 'customize_register', function ( $wp_customize ) {
 		),
 	) );
 
-	/* 2) Sticky pentru bara verde (header-ul custom). */
+	/* 2) Sticky for the green bar (the custom header). */
 	$wp_customize->add_setting( 'ef_greenbar_sticky', array(
 		'type'              => 'theme_mod',
 		'default'           => true,
@@ -54,11 +54,11 @@ add_action( 'customize_register', function ( $wp_customize ) {
 		'type'        => 'checkbox',
 		'section'     => 'ef_greenbar',
 		'label'       => __( 'Sticky top header', 'eco-fridge-child' ),
-		'description' => __( 'Când e bifat, header-ul (inclusiv bara verde) rămâne lipit sus la scroll. Debifat = derulează cu pagina.', 'eco-fridge-child' ),
+		'description' => __( 'When checked, the header (including the green bar) stays stuck to the top on scroll. Unchecked = scrolls with the page.', 'eco-fridge-child' ),
 	) );
 } );
 
-/** true dacă header-ul (bara verde) e setat sticky. */
+/** true if the header (green bar) is set to sticky. */
 function ef_header_is_sticky() {
 	return (bool) get_theme_mod( 'ef_greenbar_sticky', true );
 }

@@ -1,12 +1,12 @@
 <?php
 /**
- * Filtre sidebar pentru arhivele de categorii de produse.
+ * Sidebar filters for product category archives.
  *
- * Widget custom „Product Subcategories (contextual)" — listează sub-categoriile
- * CATEGORIEI CURENTE (nu global). Celelalte filtre (preț, lățime, înălțime) sunt
- * widget-uri native WooCommerce (Price Filter + Layered Nav pe `pa_width`/`pa_height`),
- * contextuale automat la categoria curentă. Toate stau în sidebar-ul Astra
- * „astra-woo-shop-sidebar" (apare doar pe magazin/arhive), în stânga.
+ * Custom widget "Product Subcategories (contextual)" — lists the subcategories of
+ * the CURRENT CATEGORY (not global). The other filters (price, width, height) are
+ * native WooCommerce widgets (Price Filter + Layered Nav on `pa_width`/`pa_height`),
+ * automatically contextual to the current category. All live in the Astra sidebar
+ * "astra-woo-shop-sidebar" (shown only on shop/archives), on the left.
  *
  * @package Eco-Fridge-Child
  */
@@ -14,18 +14,18 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /**
- * Widget: sub-categoriile categoriei de produs curente (contextual).
- * - pe o categorie cu copii → listează copiii;
- * - pe o categorie fără copii → listează categoriile-surori (copiii părintelui);
- * - pe shop → categoriile top-level.
+ * Widget: the current product category's subcategories (contextual).
+ * - on a category with children → lists the children;
+ * - on a category without children → lists the sibling categories (the parent's children);
+ * - on the shop → the top-level categories.
  */
 class EF_Subcat_Filter_Widget extends WP_Widget {
 
 	public function __construct() {
 		parent::__construct(
 			'ef_subcat_filter',
-			'Filtru: Sub-categorii (contextual)',
-			array( 'description' => 'Sub-categoriile categoriei curente de produse (aferente contextului, nu global).' )
+			'Filter: Subcategories (contextual)',
+			array( 'description' => 'Subcategories of the current product category (context-aware, not global).' )
 		);
 	}
 
@@ -41,13 +41,13 @@ class EF_Subcat_Filter_Widget extends WP_Widget {
 
 		$terms = get_terms( array( 'taxonomy' => 'product_cat', 'parent' => $parent, 'hide_empty' => true ) );
 
-		// fără copii în taxonomie (ex. Commercial Fridge/Freezer) → categoriile-copil din
-		// MENIUL COMERCIAL (secondary_menu), ca pe carousel
+		// no taxonomy children (e.g. Commercial Fridge/Freezer) → the child categories from
+		// the COMMERCIAL MENU (secondary_menu), same as the carousel
 		if ( ( is_wp_error( $terms ) || empty( $terms ) ) && $current && function_exists( 'ef_commercial_menu_children' ) ) {
 			$mc = ef_commercial_menu_children( $current->slug );
 			if ( $mc ) { $terms = $mc; }
 		}
-		// categorie-frunză → arată surorile (copiii părintelui), ca filtrul să nu fie gol
+		// leaf category → show the siblings (the parent's children) so the filter isn't empty
 		if ( ( is_wp_error( $terms ) || empty( $terms ) ) && $current && $current->parent ) {
 			$parent = (int) $current->parent;
 			$terms  = get_terms( array( 'taxonomy' => 'product_cat', 'parent' => $parent, 'hide_empty' => true ) );
@@ -87,8 +87,8 @@ add_action( 'widgets_init', function () {
 } );
 
 /**
- * Pe mobil/tabletă: filtrele din sidebar devin butoane-dropdown inline (vezi CSS).
- * JS-ul face doar toggle-ul panourilor; se încarcă doar pe arhivele de magazin.
+ * On mobile/tablet: the sidebar filters become inline dropdown buttons (see CSS).
+ * The JS only toggles the panels; it loads only on shop archives.
  */
 add_action( 'wp_footer', function () {
 	if ( ! function_exists( 'is_product_category' ) ) { return; }
@@ -101,10 +101,10 @@ add_action( 'wp_footer', function () {
 	var primary = document.getElementById('primary');
 	if(!sec || !primary){ return; }
 
-	// Pe mobil: mută bara de filtre chiar ÎNAINTE de grila de produse (după descriere).
-	// Pe desktop: o repune în poziția de sidebar (înainte de #primary).
+	// On mobile: move the filter bar right BEFORE the product grid (after the description).
+	// On desktop: put it back in the sidebar position (before #primary).
 	function place(){
-		// ancoră = chiar după descrierea categoriei (result-count) sau, dacă lipsește, grila
+		// anchor = right after the category description (result-count) or, if missing, the grid
 		var anchor = primary.querySelector('.woocommerce-result-count')
 			|| primary.querySelector('.woocommerce-ordering')
 			|| primary.querySelector('ul.products');
@@ -117,7 +117,7 @@ add_action( 'wp_footer', function () {
 	place();
 	var rt; window.addEventListener('resize', function(){ clearTimeout(rt); rt = setTimeout(place, 150); });
 
-	// Toggle dropdown pe mobil.
+	// Dropdown toggle on mobile.
 	function closeAll(){ document.querySelectorAll('#secondary .widget.ef-open').forEach(function(o){ o.classList.remove('ef-open'); }); }
 	document.querySelectorAll('#secondary .widget-title, #secondary .widgettitle').forEach(function(t){
 		t.addEventListener('click', function(e){

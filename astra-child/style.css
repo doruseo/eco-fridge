@@ -1,23 +1,23 @@
 /*
 Theme Name: Eco-Fridge Child
 Theme URI: https://eco-fridge.co.uk
-Description: Temă copil Astra pentru ECO-Fridge Ltd. Header/footer/mega-meniu = NATIVE Astra Pro (Header/Footer Builder + Nav Menu mega). Aici rămân doar: tokens de design, accente brand peste componentele native, preț „from-price"/£POA, add-on-uri produs, hero-slider, tile-uri sub-categorii, blog. Design apropiat de eco-fridge.co.uk (Oswald/Open Sans, brand #228B22).
+Description: Astra child theme for ECO-Fridge Ltd. Header/footer/mega-menu = NATIVE Astra Pro (Header/Footer Builder + Nav Menu mega). Only these remain here: design tokens, brand accents over the native components, "from-price"/£POA pricing, product add-ons, hero slider, subcategory tiles, blog. Design close to eco-fridge.co.uk (Oswald/Open Sans, brand #228B22).
 Author: O2 Digital
 Author URI: https://seo2agency.com/
 Template: astra
-Version: 0.6.0
+Version: 0.6.1
 Text Domain: eco-fridge-child
 */
 
 /* =========================================================================
-   TOKENS DE DESIGN — extrase 1:1 din tema originală eco-fridge
+   DESIGN TOKENS — taken 1:1 from the original eco-fridge theme
    ========================================================================= */
 :root {
-  /* Legate de paleta globală Astra (editabilă din Customizer → Global → Colors);
-     fallback = paleta originală eco-fridge dacă Astra nu e încărcat. */
-  --ef-brand: var(--ast-global-color-0, #228B22);      /* verde forest brand */
+  /* Tied to the Astra global palette (editable in Customizer → Global → Colors);
+     fallback = the original eco-fridge palette if Astra isn't loaded. */
+  --ef-brand: var(--ast-global-color-0, #228B22);      /* forest brand green */
   --ef-brand-dark: var(--ast-global-color-1, #1b6f1b); /* hover */
-  --ef-brand-light: #81c784;                            /* verde deschis (chenar hover tile-uri) */
+  --ef-brand-light: #81c784;                            /* light green (tile hover border) */
   --ef-bg: var(--ast-global-color-5, #ffffff);
   --ef-text: var(--ast-global-color-3, #333);
   --ef-meta: #9fa6b4;
@@ -54,7 +54,7 @@ h1, h2, h3, h4, h5, h6,
   letter-spacing: 0.01em;
 }
 
-/* Titlurile de secțiune în stil original: majuscule, condensat */
+/* Section headings in the original style: uppercase, condensed */
 .ef-section-title {
   text-transform: uppercase;
   letter-spacing: 0.02em;
@@ -93,7 +93,7 @@ a:hover, a:focus { color: var(--ef-text); }
   color: #fff !important;
 }
 
-/* Preț „From £X +VAT" în stil original */
+/* "From £X +VAT" price in the original style */
 .ef-from-price { color: var(--ef-text); font-weight: 700; }
 .ef-from-price .amount { color: var(--ef-brand); }
 
@@ -103,7 +103,7 @@ a:hover, a:focus { color: var(--ef-text); }
 .woocommerce-breadcrumb .ef-crumb-sep { color: var(--ef-meta); font-weight: 700; }
 
 /* =========================================================================
-   SIDEBAR DE FILTRE pe arhivele de categorii (stânga)
+   FILTER SIDEBAR on category archives (left)
    ========================================================================= */
 #secondary .widget,
 .astra-woo-shop-sidebar .widget { margin-bottom: 28px; }
@@ -125,28 +125,28 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-filter-cats a:hover { color: var(--ef-brand); }
 .ef-filter-cats li.ef-current > a { color: var(--ef-brand); font-weight: 700; }
 .ef-filter-cats .ef-count { color: var(--ef-meta); font-size: .82em; }
-/* buton „resetează" activ pe layered nav */
+/* active "reset" button on layered nav */
 #secondary .woocommerce-widget-layered-nav-list__item--chosen a,
 #secondary .chosen a { font-weight: 700; }
 
-/* —— MOBIL/TABLETĂ (≤921px): filtrele = bară ORIZONTALĂ mică, mutată (prin JS)
-   după descrierea categoriei, chiar înainte de grila de produse. —— */
+/* —— MOBILE/TABLET (≤921px): filters = small HORIZONTAL bar, moved (via JS)
+   after the category description, right before the product grid. —— */
 @media (max-width: 921px) {
   #secondary,
   #secondary .sidebar-main { width: 100% !important; display: block; position: static; }
-  /* containerul REAL al widget-urilor de filtre (Astra le pune în .ast-filter-wrap) */
+  /* the REAL container of the filter widgets (Astra puts them in .ast-filter-wrap) */
   #secondary .ast-filter-wrap {
     display: flex !important;
-    flex-wrap: nowrap;                 /* toate titlurile pe o singură linie orizontală */
+    flex-wrap: nowrap;                 /* all titles on a single horizontal line */
     align-items: center;
     justify-content: flex-start;
     gap: 4px;
     margin: 2px 0 14px;
     padding: 0;
-    overflow: visible;                 /* NU tăia dropdown-urile care coboară sub bară */
+    overflow: visible;                 /* do NOT clip the dropdowns that drop below the bar */
   }
   #secondary .ast-filter-wrap > .widget { margin: 0 !important; padding: 0 !important; position: relative; flex: 0 0 auto; width: auto; border: 0; }
-  /* TITLUL (butonul) = foarte mic, ca să încapă toate pe orizontală */
+  /* the TITLE (button) = very small, so they all fit horizontally */
   #secondary .widget-title,
   #secondary .widgettitle {
     margin: 0;
@@ -172,8 +172,8 @@ a:hover, a:focus { color: var(--ef-text); }
   }
   #secondary .widget.ef-open .widget-title::after,
   #secondary .widget.ef-open .widgettitle::after { content: "\25B4"; /* ▴ */ }
-  /* panoul de opțiuni = dropdown ascuns — text la mărime NORMALĂ (visibility ca
-     slider-ul de preț să-și ia lățimea) */
+  /* the options panel = hidden dropdown — text at NORMAL size (visibility so the
+     price slider can take its width) */
   #secondary .widget > *:not(.widget-title):not(.widgettitle) {
     position: absolute; top: calc(100% + 4px); left: 0; z-index: 60;
     min-width: 210px; max-width: 82vw; max-height: 60vh; overflow: auto;
@@ -184,11 +184,11 @@ a:hover, a:focus { color: var(--ef-text); }
   #secondary .widget.ef-open > *:not(.widget-title):not(.widgettitle) {
     visibility: visible; opacity: 1; pointer-events: auto;
   }
-  /* ultimele filtre deschid dropdown-ul spre stânga ca să nu iasă din ecran */
+  /* the last filters open the dropdown to the left so it doesn't run off-screen */
   #secondary .widget:nth-child(n+3) > *:not(.widget-title):not(.widgettitle) { left: auto; right: 0; }
 }
 
-/* Card grilă produs — chenar subtil ca originalul */
+/* Product grid card — subtle border like the original */
 .ef-product-card {
   border: 1px solid var(--ef-border);
   background: #fff;
@@ -196,10 +196,10 @@ a:hover, a:focus { color: var(--ef-text); }
 }
 .ef-product-card:hover { box-shadow: 0 6px 18px rgba(0,0,0,.08); }
 
-/* Secțiuni de conținut — fundal alb (produsele cu fundal alb se îmbină natural) */
+/* Content sections — white background (white-background products blend naturally) */
 .ef-section-alt { background: #fff; }
 
-/* Zone care afișează produse: fundal alb, fără box/tentă în jurul imaginilor */
+/* Areas that display products: white background, no box/tint around the images */
 .woocommerce ul.products li.product,
 .woocommerce div.product .woocommerce-product-gallery,
 .ast-woocommerce-container,
@@ -209,8 +209,8 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-product-card:hover { border-color: var(--ef-border); }
 
 /* =========================================================================
-   HEADER CUSTOM PE 2 RÂNDURI (condus din meniul WP #342) — ascunde Astra nativ
-   (footer + banner rămân native — NU le ascundem)
+   CUSTOM 2-ROW HEADER (driven by the WP menu #342) — hides the native Astra header
+   (footer + banner stay native — we do NOT hide them)
    ========================================================================= */
 #masthead.site-header,
 .ast-above-header-wrap,
@@ -233,13 +233,13 @@ a:hover, a:focus { color: var(--ef-text); }
   padding: 0 20px;
 }
 
-/* —— rând 1 —— */
+/* —— row 1 —— */
 .ef-header-row1 .ef-header-inner { justify-content: space-between; gap: 24px; min-height: 80px; }
 .ef-logo { display: inline-flex; align-items: center; }
 .ef-logo-img { max-height: 58px; width: auto; display: block; }
 .ef-row1-right { display: flex; align-items: center; gap: 24px; }
 
-/* —— rând 2 (bară brand) —— */
+/* —— row 2 (brand bar) —— */
 .ef-header-row2 { background: var(--ef-brand); }
 .ef-header-row2 .ef-header-inner { justify-content: space-between; gap: 16px; min-height: 46px; position: relative; }
 
@@ -257,7 +257,7 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-cat-nav .ef-menu > li > a { color: #fff; padding: 12px 13px; font-size: .8rem; }
 .ef-cat-nav .ef-menu > li > a:hover { background: rgba(0,0,0,.14); }
 
-/* dropdowns simple (rând 1: Contact → About/Support/Cookie/Markets, Markets → …) */
+/* simple dropdowns (row 1: Contact → About/Support/Cookie/Markets, Markets → …) */
 .ef-menu .sub-menu {
   position: absolute; top: 100%; left: 0; min-width: 240px; max-width: 320px;
   background: #fff; box-shadow: 0 10px 26px rgba(0,0,0,.15);
@@ -271,13 +271,13 @@ a:hover, a:focus { color: var(--ef-text); }
   font-family: var(--ef-font-body); font-size: .87rem; padding: 9px 16px; white-space: nowrap;
 }
 .ef-menu .sub-menu a:hover { background: var(--ef-stripe); color: var(--ef-brand) !important; }
-/* dropdown de nivel 2 (Markets) — flyout spre dreapta */
+/* second-level dropdown (Markets) — flyout to the right */
 .ef-menu .sub-menu .sub-menu { top: 0; left: 100%; }
 .ef-row1-right .ef-menu > li:last-child .sub-menu { left: auto; right: 0; }
 .ef-row1-right .ef-menu > li:last-child .sub-menu .sub-menu { left: auto; right: 100%; }
 
-/* —— MEGA-MENIURI (rând 2) —— */
-.ef-cat-nav .ef-menu > li.ef-mega-full { position: static; } /* mega ocupă lățimea containerului */
+/* —— MEGA MENUS (row 2) —— */
+.ef-cat-nav .ef-menu > li.ef-mega-full { position: static; } /* mega spans the container width */
 .ef-mega {
   position: absolute; top: 100%;
   background: #fff; border-top: 3px solid var(--ef-brand);
@@ -290,7 +290,7 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-mega-full > .ef-mega { left: 0; right: 0; }
 .ef-cat-nav .ef-menu > li:hover > .ef-mega { opacity: 1; visibility: visible; transform: translateY(0); }
 
-/* grilă plată 5 coloane cu iconițe (Display / Storage Cabinets) */
+/* flat 5-column grid with icons (Display / Storage Cabinets) */
 .ef-mega-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
 .ef-mega-tile {
   display: flex; flex-direction: column; align-items: center; text-align: center;
@@ -303,25 +303,25 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-mega-tile-img img { max-height: 80px; max-width: 100%; width: auto; object-fit: contain; }
 .ef-mega-tile-name { font-family: var(--ef-font-head); font-size: .78rem; line-height: 1.28; color: #000; }
 
-/* —— mega COMPACT grupat (Commercial Fridge / Freezer) — mai lat, ancorat dreapta —— */
+/* —— grouped COMPACT mega (Commercial Fridge / Freezer) — wider, anchored right —— */
 .ef-cat-nav .ef-menu > li.ef-mega-compact { position: relative; }
 .ef-mega-compact > .ef-mega { right: 0; width: max-content; min-width: 560px; max-width: min(1040px, 96vw); padding: 22px 28px; }
 .ef-mega-groups { display: flex; flex-wrap: wrap; gap: 38px; align-items: flex-start; }
 .ef-mega-col { display: flex; flex-direction: column; min-width: 250px; }
-/* tier-2 header: FĂRĂ iconiță, text mai mare */
+/* tier-2 header: NO icon, larger text */
 .ef-mega-head {
   display: flex; align-items: center; text-decoration: none;
   padding-bottom: 10px; margin-bottom: 9px; border-bottom: 2px solid var(--ef-border);
 }
-.ef-mega-head-img { display: none; } /* iconița tier-2 ștearsă */
+.ef-mega-head-img { display: none; } /* tier-2 icon removed */
 .ef-mega-head-txt {
   font-family: var(--ef-font-head); text-transform: uppercase; letter-spacing: .02em;
   font-size: 1.05rem; color: var(--ef-brand);
 }
-/* tier-3: doar text (fără iconițe); tier-4 = sub-linkuri */
+/* tier-3: text only (no icons); tier-4 = sub-links */
 .ef-mega-col-items { display: flex; flex-direction: column; gap: 1px; }
 .ef-mega-compact .ef-mega-tile { flex-direction: row; align-items: center; text-align: left; padding: 7px 10px; border-radius: 8px; }
-/* simbol „›" în fața fiecărui link tier-3 (marchează clar linkurile separate) */
+/* "›" symbol before each tier-3 link (clearly marks the separate links) */
 .ef-mega-compact .ef-mega-tile::before {
   content: "\203A";
   flex: 0 0 auto;
@@ -333,7 +333,7 @@ a:hover, a:focus { color: var(--ef-text); }
 }
 .ef-mega-compact .ef-mega-tile:hover::before { color: var(--ef-brand-dark); }
 .ef-mega-compact .ef-mega-tile-name { font-family: var(--ef-font-body); font-size: .86rem; color: #000; }
-.ef-mega-compact .ef-mega-tile-img { display: none; } /* iconițe tier-3 șterse (Commercial) */
+.ef-mega-compact .ef-mega-tile-img { display: none; } /* tier-3 icons removed (Commercial) */
 .ef-mega-subitems { display: flex; flex-direction: column; margin: 0 0 4px 14px; }
 .ef-mega-subitem {
   font-family: var(--ef-font-body); font-size: .78rem; color: #555 !important;
@@ -341,14 +341,14 @@ a:hover, a:focus { color: var(--ef-text); }
 }
 .ef-mega-subitem:hover { color: var(--ef-brand) !important; }
 
-/* search în header */
+/* header search */
 .ef-header-search { width: 250px; max-width: 38vw; }
 .ef-header-search .dgwt-wcas-search-wrapp { max-width: 100%; margin: 0; }
 
-/* coș NATIV Astra + info (nr. bucăți + total) — pe bara verde (rând 2) = ALB */
+/* NATIVE Astra cart + info (item count + total) — on the green bar (row 2) = WHITE */
 .ef-header-cart { display: inline-flex; align-items: center; gap: 8px; }
 .ef-header-cart .ast-site-header-cart { line-height: 1; }
-/* ALB doar pe TRIGGER-ul coșului (iconiță + contor), NU pe flyout-ul deschis la hover */
+/* WHITE only on the cart TRIGGER (icon + counter), NOT on the flyout opened on hover */
 .ef-header-cart .cart-container,
 .ef-header-cart .cart-container i.astra-icon,
 .ef-header-cart .ast-cart-menu-wrap .count,
@@ -357,7 +357,7 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-header-cart .ast-menu-cart-outline .cart-container,
 .ef-header-cart .ast-menu-cart-with-border .cart-container { border-color: rgba(255,255,255,.6) !important; }
 
-/* —— Flyout mini-coș (pop-up la hover): text lizibil (negru), pe clase stabile WooCommerce —— */
+/* —— Mini-cart flyout (hover pop-up): readable text (black), on stable WooCommerce classes —— */
 .ef-header-cart .widget_shopping_cart_content,
 .ef-header-cart .woocommerce-mini-cart__total,
 .ef-header-cart .woocommerce-mini-cart__total *,
@@ -366,7 +366,7 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-header-cart .woocommerce-mini-cart-item bdi,
 .ef-header-cart .woocommerce-mini-cart-item > a:not(.remove) { color: var(--ef-text) !important; }
 
-/* butonul de ștergere (×): NEGRU, clar, rotund cu chenar */
+/* the remove (×) button: BLACK, clear, round with a border */
 .ef-header-cart .woocommerce-mini-cart-item a.remove.remove_from_cart_button {
   color: #111 !important; opacity: 1 !important;
   width: 22px; height: 22px; border: 1px solid #111; border-radius: 50%;
@@ -388,29 +388,29 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-mini-qty button[disabled] { opacity: .4; cursor: default; }
 .ef-mini-qty button[disabled]:hover { background: #fff; color: #111; }
 .ef-mini-qty .ef-mini-qty-val { min-width: 26px; text-align: center; font-weight: 700; color: #111; }
-/* info coș: „N items / £Total" */
+/* cart info: "N items / £Total" */
 .ef-cart-info { display: inline-flex; flex-direction: column; line-height: 1.15; color: #fff; font-family: var(--ef-font-head); }
 .ef-cart-count { font-size: .68rem; text-transform: uppercase; letter-spacing: .02em; opacity: .95; }
 .ef-cart-total { font-size: .88rem; font-weight: 700; }
 .ef-cart-total .amount, .ef-cart-total bdi { color: #fff !important; }
 
-/* acțiuni rând 1 (coș + hamburger) — doar pe mobil/tabletă, dreapta */
+/* row 1 actions (cart + hamburger) — only on mobile/tablet, right */
 .ef-row1-actions { display: none; align-items: center; gap: 12px; }
 .ef-row1-cart-slot { display: inline-flex; align-items: center; }
 
-/* hamburger (ascuns pe desktop) */
+/* hamburger (hidden on desktop) */
 .ef-menu-toggle { display: none; flex-direction: column; justify-content: center; align-items: center; gap: 5px; width: 44px; height: 40px; padding: 0; border: none; background: transparent; cursor: pointer; }
 .ef-menu-toggle span { display: block; width: 24px; height: 3px; background: var(--ef-text); border-radius: 2px; transition: .2s; }
 
 /* overlay flyout */
 .ef-nav-overlay { display: none; }
 
-/* —— mobil / tabletă —— */
+/* —— mobile / tablet —— */
 @media (max-width: 992px) {
   .ef-header-row1 .ef-header-inner { min-height: 66px; }
   .ef-row1-actions { display: flex; }
 
-  /* hamburger dreapta-sus: negru pe alb, cu chenar (și normal, și la apăsare) */
+  /* hamburger top-right: black on white, with a border (both normal and pressed) */
   .ef-menu-toggle {
     display: flex;
     background: #fff !important;
@@ -423,7 +423,7 @@ a:hover, a:focus { color: var(--ef-text); }
   .ef-menu-toggle:hover, .ef-menu-toggle:focus, .ef-menu-toggle:active,
   .ef-header.ef-nav-open .ef-menu-toggle { background: #fff !important; }
 
-  /* coșul mutat pe rândul 1 (fundal alb) → doar TRIGGER-ul întunecat; flyout-ul e stilizat separat */
+  /* cart moved to row 1 (white background) → only the TRIGGER dark; the flyout is styled separately */
   .ef-row1-cart-slot .cart-container,
   .ef-row1-cart-slot .cart-container i.astra-icon,
   .ef-row1-cart-slot .ast-cart-menu-wrap .count,
@@ -431,9 +431,9 @@ a:hover, a:focus { color: var(--ef-text); }
   .ef-row1-cart-slot .ast-cart-menu-wrap .count { border-color: var(--ef-text) !important; background: var(--ef-brand); color: #fff !important; }
   .ef-row1-cart-slot .ast-menu-cart-outline .cart-container,
   .ef-row1-cart-slot .ast-menu-cart-with-border .cart-container { border-color: var(--ef-border) !important; }
-  .ef-cart-info { display: none; } /* pe mobil doar iconița coșului */
+  .ef-cart-info { display: none; } /* on mobile, only the cart icon */
 
-  /* meniul rând 1 = FLYOUT 70% din dreapta + overlay */
+  /* row 1 menu = 70% FLYOUT from the right + overlay */
   .ef-row1-right {
     position: fixed; top: 0; right: 0; left: auto; height: 100vh; height: 100dvh;
     width: 70%; max-width: 380px;
@@ -457,14 +457,14 @@ a:hover, a:focus { color: var(--ef-text); }
   .ef-header-row2 .ef-header-inner { overflow-x: auto; }
   .ef-cat-nav .ef-menu { flex-wrap: nowrap; }
   .ef-cat-nav .ef-menu > li > a { white-space: nowrap; }
-  .ef-mega { display: none !important; } /* pe mobil: link-ul duce la pagina categoriei */
+  .ef-mega { display: none !important; } /* on mobile: the link goes to the category page */
 }
 
 /* =========================================================================
-   FOOTER NATIV Astra — stil brand (fundal închis, ca originalul)
-   (conținutul = elemente HTML în Footer Builder, editabile din Customizer)
+   NATIVE Astra FOOTER — brand style (dark background, like the original)
+   (the content = HTML elements in the Footer Builder, editable from the Customizer)
    ========================================================================= */
-/* rândul principal (3 coloane): fundal verde deschis, text negru, linkuri verde închis */
+/* main row (3 columns): light green background, black text, dark green links */
 .site-primary-footer-wrap { background: #d3ecd0; }
 .site-footer .ast-builder-html-element,
 .site-footer .ast-builder-html-element p { color: #111; line-height: 1.7; }
@@ -481,7 +481,7 @@ a:hover, a:focus { color: var(--ef-text); }
 .site-footer .ast-builder-html-element ul { list-style: none; margin: 0; padding: 0; }
 .site-footer .ast-builder-html-element li { margin: 0 0 8px; }
 
-/* coloana „Information" = widget Navigation Menu (același stil ca celelalte coloane) */
+/* the "Information" column = Navigation Menu widget (same style as the other columns) */
 .site-footer .footer-widget-area .widget-title {
   font-family: var(--ef-font-head);
   text-transform: uppercase;
@@ -495,7 +495,7 @@ a:hover, a:focus { color: var(--ef-text); }
 .site-footer .footer-widget-area a { color: var(--ef-brand-dark); text-decoration: none; font-weight: 600; }
 .site-footer .footer-widget-area a:hover { color: #000; text-decoration: underline; }
 
-/* rândul de jos (copyright): fundal negru, text alb, linkuri verzi */
+/* bottom row (copyright): black background, white text, green links */
 .site-below-footer-wrap { background: #000; color: #fff; }
 .site-below-footer-wrap p { margin: 0; }
 .site-below-footer-wrap a { color: var(--ef-brand-light); text-decoration: underline; }
@@ -503,19 +503,19 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-footer-credit { font-size: .82rem; opacity: .9; margin-top: 4px !important; }
 
 /* =========================================================================
-   SEARCH FiboSearch — dreptunghiular cu colțuri rotunjite, FĂRĂ lupă
+   FiboSearch SEARCH — rectangular with rounded corners, NO magnifier
    ========================================================================= */
-/* ascunde complet lupa / butonul de submit + iconițele */
+/* completely hide the magnifier / submit button + icons */
 .ef-header-search .dgwt-wcas-search-submit,
 .ef-header-search .dgwt-wcas-search-icon,
 .ef-header-search .dgwt-wcas-ico-magnifier,
 .ef-header-search .dgwt-wcas-ico-magnifier-handler,
 .ef-header-search .dgwt-wcas-voice-search { display: none !important; }
-/* input dreptunghiular cu colțuri rotunjite (fără spațiu rezervat pt. lupă) */
+/* rectangular input with rounded corners (no space reserved for the magnifier) */
 .ef-header-search input[type="search"],
 .ef-header-search .dgwt-wcas-sf-wrapp input[type="search"] {
-  border: 2px solid var(--ef-brand-light) !important; /* chenar verde deschis */
-  border-radius: 8px !important;                       /* colțuri rotunjite */
+  border: 2px solid var(--ef-brand-light) !important; /* light green border */
+  border-radius: 8px !important;                       /* rounded corners */
   padding-right: 14px !important;
 }
 .ef-header-search input[type="search"]:focus,
@@ -526,7 +526,7 @@ a:hover, a:focus { color: var(--ef-text); }
 .dgwt-wcas-suggestion-product .dgwt-wcas-st-title { font-family: var(--ef-font-body); }
 
 /* =========================================================================
-   CONȚINUT PAGINI INTERNE
+   INTERNAL PAGES CONTENT
    ========================================================================= */
 .ef-page-content { line-height: 1.75; }
 .ef-page-content h2, .ef-page-content h3 { margin-top: 1.4em; }
@@ -582,7 +582,7 @@ div.wpforms-container .wpforms-submit:hover {
 .ef-markets-grid a:hover { background: var(--ef-brand); color: #fff; border-color: var(--ef-brand); }
 
 /* =========================================================================
-   GRILĂ SUB-CATEGORII (Display / Storage) — tile-uri cu iconițe
+   SUBCATEGORY GRID (Display / Storage) — tiles with icons
    ========================================================================= */
 .ef-subcat-grid {
   display: grid;
@@ -599,8 +599,8 @@ div.wpforms-container .wpforms-submit:hover {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  background: #fff;               /* alb, ca produsul (fundal alb) să se îmbine */
-  border: 1px solid transparent;  /* fără chenar la repaus → aspect natural */
+  background: #fff;               /* white, so the product (white background) blends in */
+  border: 1px solid transparent;  /* no border at rest → natural look */
   border-radius: 10px;
   padding: 16px 10px 14px;
   text-decoration: none;
@@ -608,7 +608,7 @@ div.wpforms-container .wpforms-submit:hover {
   transition: border-color .18s ease, box-shadow .18s ease;
 }
 .ef-subcat-tile:hover {
-  border-color: var(--ef-brand-light); /* chenar verde deschis, colțuri rotunjite */
+  border-color: var(--ef-brand-light); /* light green border, rounded corners */
   box-shadow: 0 6px 18px rgba(0,0,0,.06);
   color: #000;
 }
@@ -626,7 +626,7 @@ div.wpforms-container .wpforms-submit:hover {
 }
 
 /* =========================================================================
-   CAROUSEL SUB-CATEGORII (Commercial Fridge / Freezer) — după descrierea scurtă
+   SUBCATEGORY CAROUSEL (Commercial Fridge / Freezer) — after the short description
    ========================================================================= */
 .ef-cat-carousel-wrap { margin: 22px 0 30px; }
 .ef-cc-heading {
@@ -637,7 +637,7 @@ div.wpforms-container .wpforms-submit:hover {
   color: var(--ef-text);
   margin: 0 0 14px;
 }
-/* „nori" tier-2 (Display/Storage Fridge·Freezer) deasupra carouselului — pastile text, fără iconiță */
+/* tier-2 "clouds" (Display/Storage Fridge·Freezer) above the carousel — text pills, no icon */
 .ef-cc-chips { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 18px; }
 .ef-cc-chip {
   display: inline-block;
@@ -736,7 +736,7 @@ div.wpforms-container .wpforms-submit:hover {
   position: relative;
   width: 100%;
   min-height: 480px;
-  background: #ffffff;                          /* alb — produsele (fundal alb) se îmbină */
+  background: #ffffff;                          /* white — the products (white background) blend in */
   border-bottom: 1px solid var(--ef-border);
   overflow: hidden;
 }
@@ -836,14 +836,14 @@ div.wpforms-container .wpforms-submit:hover {
   .ef-hero-text { max-width: 100%; }
   .ef-hero-title { font-size: 1.85rem; }
   .ef-hero-media img { max-height: 250px; }
-  /* la stivuire, slide-urile inactive nu pot fi absolute (înălțime variabilă) */
+  /* when stacked, inactive slides can't be absolute (variable height) */
   .ef-hero-slide { position: relative; }
   .ef-hero-slide:not(.is-active) { display: none; }
   .ef-hero-nav { width: 38px; height: 38px; font-size: 1.5rem; }
 }
 
 /* =========================================================================
-   CLIENȚI — bandă „Some of Our Clients" pe homepage
+   CLIENTS — "Some of Our Clients" strip on the homepage
    ========================================================================= */
 .ef-clients-intro {
   max-width: 820px;
@@ -882,7 +882,7 @@ div.wpforms-container .wpforms-submit:hover {
 }
 
 /* =========================================================================
-   ARTICOLE BLOG (single post) — lățime 1000px + featured image sub titlu
+   BLOG POSTS (single post) — 1000px width + featured image below the title
    ========================================================================= */
 .single-post .site-content > .ast-container {
   max-width: 1000px;
@@ -898,7 +898,7 @@ div.wpforms-container .wpforms-submit:hover {
 }
 
 /* =========================================================================
-   PAGINA DE PRODUS SINGLE
+   SINGLE PRODUCT PAGE
    ========================================================================= */
 .ef-price { font-family: var(--ef-font-head); }
 .ef-price .ef-vat { font-size: .6em; color: var(--ef-meta); text-transform: uppercase; letter-spacing: .04em; }
@@ -920,7 +920,7 @@ div.wpforms-container .wpforms-submit:hover {
 .ef-product-notes li::before { content: "\2713"; position: absolute; left: 0; color: var(--ef-brand); font-weight: 700; }
 .ef-tc-note { font-size: .82rem; color: var(--ef-meta); margin: 0; }
 
-/* Linii livrare/plată + note trade + T&C (blocul de la finalul paginii de produs) */
+/* Delivery/payment lines + trade notes + T&C (the block at the bottom of the product page) */
 .ef-delivery-lines { list-style: none; margin: 8px 0 12px; padding: 0; }
 .ef-delivery-lines li { position: relative; padding-left: 18px; font-size: .88rem; color: var(--ef-meta); margin: 4px 0; }
 .ef-delivery-lines li::before { content: "\2013"; position: absolute; left: 0; color: var(--ef-brand); font-weight: 700; }
@@ -951,19 +951,19 @@ div.wpforms-container .wpforms-submit:hover {
 .ef-addon-toggle[open] summary::before { content: "\25BE "; }
 
 /* =========================================================================
-   HOMEPAGE — ritm/spațiere + conținut SEO long-form (responsive)
+   HOMEPAGE — rhythm/spacing + long-form SEO content (responsive)
    ========================================================================= */
-/* imaginile din blocurile wp:html / Spectra nu depășesc niciodată containerul */
+/* images in wp:html / Spectra blocks never exceed the container */
 .wp-block-uagb-container img,
 .ast-container .wp-block-html img,
 .ef-seo-content img { max-width: 100%; height: auto; }
 
-/* pe mobil reducem padding-ul vertical al secțiunilor homepage (Spectra pune 55px) */
+/* on mobile we reduce the vertical padding of homepage sections (Spectra sets 55px) */
 @media (max-width: 600px) {
   .wp-block-uagb-container.uagb-is-root-container { padding-top: 34px !important; padding-bottom: 34px !important; }
 }
 
-/* conținut SEO long-form: lățime lizibilă + tipografie curată */
+/* long-form SEO content: readable width + clean typography */
 .ef-seo-content,
 .ef-range-content {
   max-width: 1000px;
@@ -971,7 +971,7 @@ div.wpforms-container .wpforms-submit:hover {
   line-height: 1.75;
   color: var(--ef-text);
 }
-/* conținutul de categorie apare sub grila de produse, cu separare clară */
+/* the category content appears below the product grid, with clear separation */
 .ef-range-content {
   clear: both;
   margin-top: 40px;
@@ -1003,7 +1003,7 @@ div.wpforms-container .wpforms-submit:hover {
 .ef-seo-content ol { margin: 0 0 1.1em 1.3em; }
 .ef-seo-content li { margin: 0 0 .4em; }
 .ef-seo-content a { color: var(--ef-brand); }
-/* tabele din conținutul legacy: nu ies din ecran (scroll orizontal propriu) */
+/* tables in legacy content: don't overflow the screen (own horizontal scroll) */
 .ef-seo-content table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; margin: 1.2em 0; }
 .ef-seo-content td,
 .ef-seo-content th { border: 1px solid var(--ef-border); padding: 8px 10px; }

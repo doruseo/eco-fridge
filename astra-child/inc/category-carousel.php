@@ -1,14 +1,14 @@
 <?php
 /**
- * Carousel de sub-categorii pe paginile „Commercial Fridge" și „Commercial Freezer".
+ * Subcategory carousel on the "Commercial Fridge" and "Commercial Freezer" pages.
  *
- * Structură (după descrierea scurtă, înainte de grila de produse):
- *   - „nori" (pastile text, fără iconiță) cu categoriile tier-2 din meniu:
+ * Structure (after the short description, before the product grid):
+ *   - "clouds" (text pills, no icon) with the tier-2 categories from the menu:
  *     Commercial Fridge → Display Fridge, Storage Fridge;
  *     Commercial Freezer → Display Freezer, Storage Freezer.
- *   - carousel cu sub-categoriile lor (descendenții din dropdown), NU cu cele două de sus.
+ *   - a carousel with their subcategories (dropdown descendants), NOT the two above.
  *
- * Datele vin din meniul WP autoritar (#342), deci rămân sincronizate cu meniul.
+ * The data comes from the authoritative WP menu (#342), so it stays in sync with it.
  *
  * @package Eco-Fridge-Child
  */
@@ -16,11 +16,11 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /**
- * Împarte dropdown-ul de meniu al unei categorii-părinte în:
- *   - 'chips'  = copiii direcți (tier-2: Display/Storage Fridge…), doar titlu + link
- *   - 'cards'  = descendenții acelor copii (tier-3/4), cu imagine + titlu + link
+ * Splits a parent category's menu dropdown into:
+ *   - 'chips'  = direct children (tier-2: Display/Storage Fridge…), title + link only
+ *   - 'cards'  = those children's descendants (tier-3/4), with image + title + link
  */
-/** ID-ul meniului comercial (locația `secondary_menu`, fallback `ast-hf-menu-2`, apoi nume). */
+/** The commercial menu ID (`secondary_menu` location, fallback `ast-hf-menu-2`, then name). */
 function ef_commercial_menu_id() {
 	$loc = get_nav_menu_locations();
 	foreach ( array( 'secondary_menu', 'ast-hf-menu-2' ) as $l ) {
@@ -30,7 +30,7 @@ function ef_commercial_menu_id() {
 	return $m ? (int) $m->term_id : 0;
 }
 
-/** Categoriile-copil directe (termeni) ale unei categorii, din meniul comercial. */
+/** A category's direct child categories (terms), from the commercial menu. */
 function ef_commercial_menu_children( $parent_slug ) {
 	$mid   = ef_commercial_menu_id();
 	$items = $mid ? wp_get_nav_menu_items( $mid ) : array();
@@ -100,13 +100,13 @@ function ef_cat_carousel_data( $parent_slug ) {
 				$chips[] = array( 'title' => $it->title, 'link' => is_wp_error( $link ) ? '#' : $link );
 			}
 		}
-		$collect_cards( (int) $it->ID ); // descendenții acestui copil direct → carduri
+		$collect_cards( (int) $it->ID ); // this direct child's descendants → cards
 	}
 
 	return array( 'chips' => $chips, 'cards' => $cards );
 }
 
-/** Randează norii + carouselul, după descrierea scurtă, înainte de grila de produse. */
+/** Renders the clouds + the carousel, after the short description, before the product grid. */
 add_action( 'woocommerce_archive_description', function () {
 	if ( ! is_product_category() ) { return; }
 	$term = get_queried_object();
@@ -146,12 +146,12 @@ add_action( 'woocommerce_archive_description', function () {
 }, 15 );
 
 /**
- * Pagina /shop: carousel cu categoriile top de produse, în ordinea cerută.
- * Același design ca pe Commercial Fridge/Freezer (carduri cu imagine + titlu),
- * după descrierea scurtă, înainte de grila de produse. Fără „nori" aici.
+ * /shop page: a carousel with the top product categories, in the requested order.
+ * Same design as on Commercial Fridge/Freezer (cards with image + title),
+ * after the short description, before the product grid. No "clouds" here.
  */
 function ef_shop_carousel_cards() {
-	// slug => etichetă (label-uri furnizate explicit, în ordinea dorită)
+	// slug => label (labels provided explicitly, in the desired order)
 	$wanted = array(
 		'commercial-fridge'               => 'Commercial Fridge',
 		'commercial-freezer'              => 'Commercial Freezer',
@@ -198,7 +198,7 @@ add_action( 'woocommerce_archive_description', function () {
 	echo '</section>';
 }, 15 );
 
-/** JS de navigare a carouselului (cele două arhive comerciale + pagina /shop). */
+/** Carousel navigation JS (the two commercial archives + the /shop page). */
 add_action( 'wp_footer', function () {
 	$ok = false;
 	if ( function_exists( 'is_shop' ) && is_shop() && ! ( function_exists( 'is_product_category' ) && is_product_category() ) ) {

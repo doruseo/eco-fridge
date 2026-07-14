@@ -1,15 +1,15 @@
 <?php
 /**
- * HEADER CUSTOM PE 2 RÂNDURI — designul eco-fridge, condus din DOUĂ meniuri WP:
- *   Rând 1: „Landing Pages Menu" (locația `primary`) — logo | nav pagini (Home/Blog/
- *           About/Contact + dropdowns) + FiboSearch (dreapta)
- *   Rând 2 (bară verde brand): „Commercial Menu" — nav categorii cu MEGA-MENIU + iconițe
- *           (Display/Storage Cabinets = grilă cu iconițe; Commercial Fridge/Freezer =
- *           coloane grupate) | coș (dreapta)
+ * CUSTOM 2-ROW HEADER — the eco-fridge design, driven by TWO WP menus:
+ *   Row 1: "Landing Pages Menu" (`primary` location) — logo | page nav (Home/Blog/
+ *          About/Contact + dropdowns) + FiboSearch (right)
+ *   Row 2 (green brand bar): "Commercial Menu" — category nav with MEGA MENU + icons
+ *          (Display/Storage Cabinets = icon grid; Commercial Fridge/Freezer =
+ *          grouped columns) | cart (right)
  *
- * Header-ul Astra nativ e ascuns prin CSS; footer + banner rămân native. Iconițele vin
- * din thumbnail-ul categoriei (fallback: primul produs) prin `ef_term_image_url()`.
- * Ambele meniuri editabile din Appearance → Menus (referințe interne, nu custom links).
+ * The native Astra header is hidden via CSS; footer + banner stay native. Icons come
+ * from the category thumbnail (fallback: first product) via `ef_term_image_url()`.
+ * Both menus are editable in Appearance → Menus (internal references, not custom links).
  *
  * @package Eco-Fridge-Child
  */
@@ -17,17 +17,17 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /**
- * Itemele unui meniu, grupate după părinte.
- * @param string $which 'landing' = Landing Pages Menu (locația primary); 'commercial' = Commercial Menu.
+ * A menu's items, grouped by parent.
+ * @param string $which 'landing' = Landing Pages Menu (primary location); 'commercial' = Commercial Menu.
  */
 function ef_hdr_menu( $which = 'landing' ) {
 	static $cache = array();
 	if ( isset( $cache[ $which ] ) ) { return $cache[ $which ]; }
 
 	if ( 'commercial' === $which ) {
-		// rândul 2 = meniul asignat pe locația `secondary_menu` (Astra „Secondary Menu",
-		// prezentă și în Header Builder) → editabil la nevoie; fallback `ast-hf-menu-2`,
-		// apoi după nume. Aspectul icon-mega se construiește din ierarhia meniului.
+		// row 2 = the menu assigned to the `secondary_menu` location (Astra "Secondary Menu",
+		// also present in the Header Builder) → editable when needed; fallback `ast-hf-menu-2`,
+		// then by name. The icon-mega look is built from the menu hierarchy.
 		$loc = get_nav_menu_locations();
 		$mid = 0;
 		foreach ( array( 'secondary_menu', 'ast-hf-menu-2' ) as $l ) {
@@ -55,7 +55,7 @@ function ef_hdr_menu( $which = 'landing' ) {
 	return $cache[ $which ];
 }
 
-/** Iconița unui item de meniu: thumbnail categorie sau imagine produs. */
+/** A menu item's icon: category thumbnail or product image. */
 function ef_hdr_icon( $it ) {
 	if ( 'taxonomy' === $it->type ) {
 		return ef_term_image_url( (int) $it->object_id );
@@ -67,7 +67,7 @@ function ef_hdr_icon( $it ) {
 	return '';
 }
 
-/** Tile mega (iconiță + nume) dintr-un item de meniu. */
+/** Mega tile (icon + name) from a menu item. */
 function ef_hdr_tile( $it ) {
 	$icon = ef_hdr_icon( $it );
 	return '<a class="ef-mega-tile" href="' . esc_url( $it->url ) . '">'
@@ -76,11 +76,11 @@ function ef_hdr_tile( $it ) {
 }
 
 /**
- * Construiește panoul mega pentru o categorie top-level, DIN DESCENDENȚII EI DE MENIU.
- *   - copii plați (fără nepoți) → grilă cu iconițe (Display / Storage Cabinets)
- *   - copii cu nepoți           → coloane grupate cu titlu + iconiță (Commercial Fridge/Freezer),
- *                                 tier-3 = tile-uri, tier-4 = sub-linkuri indentate.
- * Întoarce array( html, type ) unde type = 'ef-mega-full' | 'ef-mega-compact' | ''.
+ * Builds the mega panel for a top-level category, FROM ITS MENU DESCENDANTS.
+ *   - flat children (no grandchildren) → icon grid (Display / Storage Cabinets)
+ *   - children with grandchildren      → grouped columns with title + icon (Commercial Fridge/Freezer),
+ *                                        tier-3 = tiles, tier-4 = indented sub-links.
+ * Returns array( html, type ) where type = 'ef-mega-full' | 'ef-mega-compact' | ''.
  */
 function ef_hdr_mega( $top, $by ) {
 	$children = isset( $by[ $top->ID ] ) ? $by[ $top->ID ] : array();
@@ -110,7 +110,7 @@ function ef_hdr_mega( $top, $by ) {
 		$out .= '<div class="ef-mega-col-items">';
 		foreach ( $grandkids as $g ) {
 			$out .= ef_hdr_tile( $g );
-			if ( ! empty( $by[ $g->ID ] ) ) { // tier-4 → sub-linkuri indentate
+			if ( ! empty( $by[ $g->ID ] ) ) { // tier-4 → indented sub-links
 				$out .= '<div class="ef-mega-subitems">';
 				foreach ( $by[ $g->ID ] as $gg ) {
 					$out .= '<a class="ef-mega-subitem" href="' . esc_url( $gg->url ) . '">' . esc_html( $gg->title ) . '</a>';
@@ -124,7 +124,7 @@ function ef_hdr_mega( $top, $by ) {
 	return array( $out, 'ef-mega-compact' );
 }
 
-/** Randează recursiv un item de meniu cu dropdown (rând 1). */
+/** Recursively renders a menu item with a dropdown (row 1). */
 function ef_hdr_render_dropdown_item( $it, $by ) {
 	$kids = isset( $by[ $it->ID ] ) ? $by[ $it->ID ] : array();
 	$has  = $kids ? ' menu-item-has-children' : '';
@@ -138,7 +138,7 @@ function ef_hdr_render_dropdown_item( $it, $by ) {
 	echo '</li>';
 }
 
-/** Nav rând 1 — „Landing Pages Menu" (paginile). */
+/** Row 1 nav — "Landing Pages Menu" (the pages). */
 function ef_hdr_render_row1_nav() {
 	$m = ef_hdr_menu( 'landing' );
 	echo '<nav class="ef-primary-nav"><ul class="ef-menu">';
@@ -148,7 +148,7 @@ function ef_hdr_render_row1_nav() {
 	echo '</ul></nav>';
 }
 
-/** Nav rând 2 — „Commercial Menu" (categorii), cu mega-meniuri + iconițe. */
+/** Row 2 nav — "Commercial Menu" (categories), with mega menus + icons. */
 function ef_hdr_render_cat_nav() {
 	$m = ef_hdr_menu( 'commercial' );
 	echo '<nav class="ef-cat-nav"><ul class="ef-menu">';
@@ -157,13 +157,13 @@ function ef_hdr_render_cat_nav() {
 		$cls = $mega ? ' class="ef-has-mega menu-item-has-children ' . $type . '"' : '';
 		echo '<li' . $cls . '>';
 		echo '<a href="' . esc_url( $it->url ) . '">' . esc_html( $it->title ) . '</a>';
-		echo $mega; // deja escapat în ef_hdr_mega
+		echo $mega; // already escaped in ef_hdr_mega
 		echo '</li>';
 	}
 	echo '</ul></nav>';
 }
 
-/** Info coș: „N items  £Total" (actualizat prin fragmente AJAX). */
+/** Cart info: "N items  £Total" (updated via AJAX fragments). */
 function ef_hdr_cart_info() {
 	if ( ! function_exists( 'WC' ) || ! WC()->cart ) { return ''; }
 	$count = (int) WC()->cart->get_cart_contents_count();
@@ -178,7 +178,7 @@ add_filter( 'woocommerce_add_to_cart_fragments', function ( $fragments ) {
 	return $fragments;
 } );
 
-/** Coșul NATIV Astra WP Pro (icon + flyout) + info (nr. bucăți + total). */
+/** The NATIVE Astra WP Pro cart (icon + flyout) + info (item count + total). */
 function ef_hdr_astra_cart() {
 	$cart = '';
 	if ( class_exists( 'Astra_Woocommerce' ) && method_exists( 'Astra_Woocommerce', 'get_instance' ) ) {
@@ -190,13 +190,13 @@ function ef_hdr_astra_cart() {
 	return $cart . ef_hdr_cart_info();
 }
 
-/** Randare header custom, înainte de header-ul Astra (ascuns prin CSS). */
+/** Render the custom header, before the Astra header (hidden via CSS). */
 add_action( 'astra_header_before', function () {
 	$home       = esc_url( home_url( '/' ) );
 	$sticky_cls = ( function_exists( 'ef_header_is_sticky' ) && ! ef_header_is_sticky() ) ? ' ef-nosticky' : '';
 	echo '<div class="ef-header' . $sticky_cls . '" id="ef-header">';
 
-	// —— rând 1: logo | nav pagini + search ——
+	// —— row 1: logo | page nav + search ——
 	echo '<div class="ef-header-row ef-header-row1"><div class="ef-header-inner">';
 	echo '<a class="ef-logo" href="' . $home . '" rel="home">';
 	if ( has_custom_logo() ) {
@@ -212,14 +212,14 @@ add_action( 'astra_header_before', function () {
 		echo '<div class="ef-header-search">' . do_shortcode( '[fibosearch]' ) . '</div>';
 	}
 	echo '</div>';
-	// acțiuni pe mobil/tabletă (dreapta): coș (mutat aici din rândul 2 prin JS) + hamburger
+	// mobile/tablet actions (right): cart (moved here from row 2 via JS) + hamburger
 	echo '<div class="ef-row1-actions">';
 	echo '<span class="ef-row1-cart-slot"></span>';
 	echo '<button class="ef-menu-toggle" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>';
 	echo '</div>';
 	echo '</div></div>';
 
-	// —— rând 2: nav categorii (mega) | coș (nativ Astra + info) ——
+	// —— row 2: category nav (mega) | cart (native Astra + info) ——
 	echo '<div class="ef-header-row ef-header-row2"><div class="ef-header-inner">';
 	ef_hdr_render_cat_nav();
 	echo '<div class="ef-header-cart">' . ef_hdr_astra_cart() . '</div>';
@@ -229,7 +229,7 @@ add_action( 'astra_header_before', function () {
 	echo '</div>'; // .ef-header
 }, 5 );
 
-/** Toggle meniu mobil pentru header-ul custom. */
+/** Mobile menu toggle for the custom header. */
 add_action( 'wp_footer', function () {
 	?>
 <script>
@@ -247,7 +247,7 @@ add_action( 'wp_footer', function () {
 	if(overlay){ overlay.addEventListener('click', closeNav); }
 	document.addEventListener('keydown', function(e){ if(e.key === 'Escape'){ closeNav(); } });
 
-	// coșul: pe mobil/tabletă → rândul 1 (lângă hamburger); pe desktop → rândul 2 (bara verde)
+	// the cart: on mobile/tablet → row 1 (next to the hamburger); on desktop → row 2 (green bar)
 	function isMobile(){ return window.matchMedia('(max-width: 992px)').matches; }
 	function placeCart(){
 		if(!cart || !slot || !row2inner){ return; }
@@ -262,10 +262,10 @@ add_action( 'wp_footer', function () {
 }, 20 );
 
 /**
- * Steppere +/− de cantitate în flyout-ul mini-coșului (bara verde).
- * Coșul nativ WooCommerce nu are controale de cantitate — le injectăm și le
- * legăm la WooCommerce Store API (`cart/update-item`), apoi reîmprospătăm
- * fragmentele. Butonul de ștergere (×) rămâne cel nativ (recolorat prin CSS).
+ * +/− quantity steppers in the mini-cart flyout (green bar).
+ * The native WooCommerce cart has no quantity controls — we inject them and wire
+ * them to the WooCommerce Store API (`cart/update-item`), then refresh the
+ * fragments. The remove (×) button stays the native one (recolored via CSS).
  */
 add_action( 'wp_footer', function () {
 	$rest = esc_url_raw( rest_url() );

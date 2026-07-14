@@ -1,17 +1,17 @@
 <?php
 /**
- * Eco-Fridge Child — funcții temă copil.
+ * Eco-Fridge Child — child theme functions.
  *
- * Găzduiește DOAR logica ce nu se exprimă curat în Astra Pro / Gutenberg:
- *  - preț „from-price" / £POA pe produse + în grilele Spectra (meta produs)
- *  - note livrare + T&C + add-on-uri pe pagina de produs (hook Woo, în inc/woo-single.php)
- *  - număr comandă legacy, imaginea featured pe blog, shortcode [ef_subcats] pt. homepage
- *  - rotația hero-slider-ului de pe homepage
+ * Hosts ONLY the logic that doesn't express cleanly in Astra Pro / Gutenberg:
+ *  - "from-price" / £POA pricing on products + in the Spectra grids (product meta)
+ *  - delivery notes + T&C + add-ons on the product page (Woo hook, in inc/woo-single.php)
+ *  - legacy order number, featured image on the blog, [ef_subcats] shortcode for the homepage
+ *  - the homepage hero slider rotation
  *
- * Header, mega-meniu, footer și banner-ul „Call us today" sunt acum NATIVE Astra
- * (Header/Footer Builder + Nav Menu mega + Custom Layout), configurate din
- * migration/16-header-footer-native.php și editabile din dashboard — nu mai există
- * cod de header/footer aici.
+ * Header, mega menu, footer and the "Call us today" banner are now NATIVE Astra
+ * (Header/Footer Builder + Nav Menu mega + Custom Layout), configured from
+ * migration/16-header-footer-native.php and editable from the dashboard — there is
+ * no header/footer code here anymore.
  *
  * @package Eco-Fridge-Child
  */
@@ -20,27 +20,27 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Logica paginii de produs single + add-on-uri (preț +VAT/POA, note, garanție, removal).
+// Single product page logic + add-ons (price +VAT/POA, notes, warranty, removal).
 require_once get_stylesheet_directory() . '/inc/woo-single.php';
 
-// Header custom pe 2 rânduri (logo/utilitar/search + categorii mega/iconițe/coș),
-// condus 100% din meniul WP autoritar (Primary Menu #342). Footer/banner rămân native.
+// Custom 2-row header (logo/utility/search + mega categories/icons/cart),
+// driven 100% by the authoritative WP menu (Primary Menu #342). Footer/banner stay native.
 require_once get_stylesheet_directory() . '/inc/header.php';
 
-// Widget custom pentru filtrul de sub-categorii (contextual) din sidebar-ul de shop.
+// Custom widget for the (contextual) subcategory filter in the shop sidebar.
 require_once get_stylesheet_directory() . '/inc/shop-filters.php';
 
-// Conținutul long-form al categoriilor (sub grila de produse) + editare din dashboard.
+// Categories' long-form content (below the product grid) + editing from the dashboard.
 require_once get_stylesheet_directory() . '/inc/category-content.php';
 
-// Carousel de sub-categorii pe Commercial Fridge / Commercial Freezer (din meniul WP).
+// Subcategory carousel on Commercial Fridge / Commercial Freezer (from the WP menu).
 require_once get_stylesheet_directory() . '/inc/category-carousel.php';
 
-// Controale Customize pt. bara verde: iconița coșului (nativ Astra) + sticky.
+// Customize controls for the green bar: cart icon (native Astra) + sticky.
 require_once get_stylesheet_directory() . '/inc/header-controls.php';
 
 /**
- * Fonturi Google 1:1 cu originalul: Oswald (titluri) + Open Sans (body).
+ * Google fonts 1:1 with the original: Oswald (headings) + Open Sans (body).
  */
 add_action( 'wp_enqueue_scripts', function () {
 	wp_enqueue_style(
@@ -52,7 +52,7 @@ add_action( 'wp_enqueue_scripts', function () {
 }, 5 );
 
 /**
- * Încarcă stilul temei copil după al părintelui Astra.
+ * Load the child theme style after the Astra parent's.
  */
 add_action( 'wp_enqueue_scripts', function () {
 	wp_enqueue_style(
@@ -64,21 +64,21 @@ add_action( 'wp_enqueue_scripts', function () {
 }, 15 );
 
 /**
- * Afișează numărul original al comenzii (din site-ul vechi) în loc de ID-ul nou.
- * Comenzile migrate păstrează ID-ul legacy în meta `_ef_legacy_order_id`.
+ * Show the original order number (from the old site) instead of the new ID.
+ * Migrated orders keep the legacy ID in the `_ef_legacy_order_id` meta.
  */
 add_filter( 'woocommerce_order_number', function ( $number, $order ) {
 	$legacy = is_a( $order, 'WC_Order' ) ? $order->get_meta( '_ef_legacy_order_id' ) : '';
 	return $legacy ? $legacy : $number;
 }, 10, 2 );
 
-/** Sortează o listă de termeni după meta `order` (1:1 cu originalul), apoi nume. */
+/** Sort a list of terms by the `order` meta (1:1 with the original), then by name. */
 function ef_sort_terms_by_order( $terms ) {
 	usort( $terms, function ( $a, $b ) {
 		$oa = (int) get_term_meta( $a->term_id, 'order', true );
 		$ob = (int) get_term_meta( $b->term_id, 'order', true );
 		if ( $oa === $ob ) { return strcasecmp( $a->name, $b->name ); }
-		if ( 0 === $oa ) { return 1; }   // fără ordine → la coadă
+		if ( 0 === $oa ) { return 1; }   // no order → to the end
 		if ( 0 === $ob ) { return -1; }
 		return $oa - $ob;
 	} );
@@ -86,9 +86,9 @@ function ef_sort_terms_by_order( $terms ) {
 }
 
 /**
- * Hero slider homepage — logica de rotație (crossfade, autoplay, dots, arrows,
- * pauză la hover). Markup + CSS sunt în homepage (wp:html) + tema copil;
- * scriptul e injectat inline doar pe front page ca să nu fie filtrat de kses.
+ * Homepage hero slider — the rotation logic (crossfade, autoplay, dots, arrows,
+ * pause on hover). Markup + CSS live in the homepage (wp:html) + the child theme;
+ * the script is injected inline only on the front page so it isn't filtered by kses.
  */
 add_action( 'wp_footer', function () {
 	if ( ! is_front_page() ) {
@@ -128,11 +128,11 @@ add_action( 'wp_footer', function () {
 }, 20 );
 
 /**
- * Featured image pe articolele de blog (single post), afișată DUPĂ titlu +
- * detaliile meta, înainte de conținut. Astra modern nu o randează implicit
- * în structura `ast-dynamic-single-post-structure` (doar title+meta), iar
- * varianta nativă „single-image" o pune ca fundal — de aceea o randăm noi
- * aici, la `astra_single_post_banner_after` (fix după title+meta, în header).
+ * Featured image on blog posts (single post), shown AFTER the title +
+ * meta details, before the content. Modern Astra doesn't render it by default
+ * in the `ast-dynamic-single-post-structure` structure (only title+meta), and
+ * the native "single-image" variant sets it as a background — so we render it
+ * here, on `astra_single_post_banner_after` (right after title+meta, in the header).
  */
 add_action( 'astra_single_post_banner_after', function () {
 	if ( ! is_singular( 'post' ) || ! has_post_thumbnail() ) {
@@ -144,8 +144,8 @@ add_action( 'astra_single_post_banner_after', function () {
 }, 10 );
 
 /**
- * Imaginea unei categorii de produs: thumbnail-ul categoriei, cu fallback pe
- * imaginea principală a primului produs din categorie. Folosit de [ef_subcats].
+ * A product category's image: the category thumbnail, falling back to the
+ * main image of the first product in the category. Used by [ef_subcats].
  */
 function ef_term_image_url( $term_id, $size = 'woocommerce_thumbnail' ) {
 	$tid = get_term_meta( $term_id, 'thumbnail_id', true );
@@ -168,9 +168,9 @@ function ef_term_image_url( $term_id, $size = 'woocommerce_thumbnail' ) {
 }
 
 /**
- * Shortcode [ef_subcats parent="44" cols="5"] — grilă de tile-uri cu sub-categoriile
- * unei categorii (iconiță + nume + link), ca pe homepage-ul original (Display /
- * Storage Cabinets). Sare peste sub-categoriile fără produse.
+ * Shortcode [ef_subcats parent="44" cols="5"] — a grid of tiles with a category's
+ * subcategories (icon + name + link), as on the original homepage (Display /
+ * Storage Cabinets). Skips subcategories with no products.
  */
 function ef_subcats_shortcode( $atts ) {
 	$a = shortcode_atts( array( 'parent' => 0, 'cols' => 5 ), $atts, 'ef_subcats' );
@@ -183,7 +183,7 @@ function ef_subcats_shortcode( $atts ) {
 		'hide_empty' => true,
 	) );
 	if ( is_wp_error( $terms ) || empty( $terms ) ) { return ''; }
-	$terms = ef_sort_terms_by_order( $terms ); // ordine 1:1 cu originalul
+	$terms = ef_sort_terms_by_order( $terms ); // order 1:1 with the original
 
 	$out = '<div class="ef-subcat-grid" style="--ef-cols:' . (int) $a['cols'] . '">';
 	foreach ( $terms as $t ) {
@@ -201,14 +201,14 @@ function ef_subcats_shortcode( $atts ) {
 add_shortcode( 'ef_subcats', 'ef_subcats_shortcode' );
 
 /**
- * Preț „From £X +VAT" — normalizare din meta _ef_from_price (migrat din Types),
- * cu fallback pe prețul Woo. Reutilizat în grile + single product.
+ * "From £X +VAT" price — normalized from the _ef_from_price meta (migrated from Types),
+ * falling back to the Woo price. Reused in grids + single product.
  */
 function ef_from_price_html( $product_id ) {
 	$raw = get_post_meta( $product_id, '_ef_from_price', true );
 	$raw = trim( (string) $raw );
 	if ( '' !== $raw ) {
-		// valorile migrate conțin deja £ și/sau +VAT în forme variate — le păstrăm 1:1
+		// migrated values already contain £ and/or +VAT in various forms — keep them 1:1
 		$label = ( stripos( $raw, 'from' ) === 0 ) ? $raw : 'From ' . $raw;
 		return '<div class="ef-from-price">' . wp_kses_post( $label ) . '</div>';
 	}
@@ -223,9 +223,9 @@ function ef_from_price_html( $product_id ) {
 }
 
 /**
- * Afișează „From £X +VAT" sub titlul fiecărui produs din grilele Spectra Post Grid.
- * Post-procesăm HTML-ul blocului (robust, independent de interne Spectra): după
- * fiecare titlu de produs injectăm prețul, identificând produsul din permalink.
+ * Show "From £X +VAT" below each product's title in the Spectra Post Grid blocks.
+ * We post-process the block HTML (robust, independent of Spectra internals): after
+ * each product title we inject the price, identifying the product from its permalink.
  */
 add_filter( 'render_block', function ( $content, $block ) {
 	if ( empty( $block['blockName'] ) || 'uagb/post-grid' !== $block['blockName'] ) {

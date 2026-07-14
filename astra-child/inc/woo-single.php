@@ -1,12 +1,12 @@
 <?php
 /**
- * Logica paginii de produs single ECO-Fridge (temă copil Astra).
- * Replică elementele din tema originală (single-product.php) + add-on-urile YITH:
- *   - preț „+VAT" / £POA (from-price) pentru produse fără preț
- *   - link „Back to {category}"
- *   - note livrare/trade + T&C sub sumar (hook global)
- *   - add-on-uri: garanție 12 luni extra (+15%) sub toggle + Removal & Disposal (+£150)
- *     cu integrare în coș, totaluri, checkout și meta comandă.
+ * ECO-Fridge single product logic (Astra child theme).
+ * Replicates elements from the original theme (single-product.php) + the YITH add-ons:
+ *   - "+VAT" / £POA (from-price) pricing for products without a price
+ *   - "Back to {category}" link
+ *   - delivery/trade notes + T&C below the summary (global hook)
+ *   - add-ons: 12 months extra warranty (+15%) under a toggle + Removal & Disposal (+£150)
+ *     integrated into the cart, totals, checkout and order meta.
  *
  * @package Eco-Fridge-Child
  */
@@ -14,17 +14,17 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 const EF_REMOVAL_FEE   = 150;   // £ Removal & Disposal
-const EF_WARRANTY_RATE = 0.15;  // +15% garanție extra
+const EF_WARRANTY_RATE = 0.15;  // +15% extra warranty
 
 /* =========================================================================
- * 1. PREȚ: „+VAT" pe afișare + £POA / from-price pentru produse fără preț
+ * 1. PRICE: "+VAT" on display + £POA / from-price for products without a price
  * ========================================================================= */
 add_filter( 'woocommerce_get_price_html', function ( $html, $product ) {
 	if ( is_admin() ) { return $html; }
 	$id = $product->get_id();
 	$has_price = '' !== $product->get_price() && null !== $product->get_price();
 	if ( ! $has_price ) {
-		// fără preț -> afișează from-price (poate fi „£POA") din meta migrat
+		// no price -> show the from-price (may be "£POA") from migrated meta
 		$from = trim( (string) get_post_meta( $id, '_ef_from_price', true ) );
 		if ( '' !== $from ) {
 			$label = ( stripos( $from, 'from' ) === 0 ) ? $from : 'From ' . $from;
@@ -36,7 +36,7 @@ add_filter( 'woocommerce_get_price_html', function ( $html, $product ) {
 }, 20, 2 );
 
 /* =========================================================================
- * 2. „Back to {category}" deasupra produsului
+ * 2. "Back to {category}" above the product
  * ========================================================================= */
 add_action( 'woocommerce_before_single_product', function () {
 	global $product;
@@ -49,13 +49,13 @@ add_action( 'woocommerce_before_single_product', function () {
 }, 5 );
 
 /* =========================================================================
- * 3. Note livrare / trade + T&C — MUTATE la finalul paginii, după
- *    „Related products" și „Recently Viewed Products".
+ * 3. Delivery / trade notes + T&C — MOVED to the bottom of the page, after
+ *    "Related products" and "Recently Viewed Products".
  * ========================================================================= */
 /**
- * „Recently Viewed Products" — grilă (ca Related Products) din cookie-ul
- * `woocommerce_recently_viewed` (întreținut de wc_track_product_view). Exclude
- * produsul curent. Gol la prima vizită → nu randează nimic.
+ * "Recently Viewed Products" — grid (like Related Products) from the
+ * `woocommerce_recently_viewed` cookie (maintained by wc_track_product_view).
+ * Excludes the current product. Empty on first visit → renders nothing.
  */
 function ef_recently_viewed_html() {
 	$raw    = ! empty( $_COOKIE['woocommerce_recently_viewed'] ) ? (array) explode( '|', wp_unslash( $_COOKIE['woocommerce_recently_viewed'] ) ) : array(); // phpcs:ignore
@@ -93,8 +93,8 @@ function ef_recently_viewed_html() {
 }
 
 /**
- * Caseta de note trade + politici de livrare/plată + Terms & Conditions.
- * Reutilizată la finalul paginii de produs ȘI la finalul arhivelor de categorie.
+ * Trade notes + delivery/payment policies + Terms & Conditions box.
+ * Reused at the bottom of the single product page AND category archives.
  */
 function ef_trade_terms_box() {
 	?>
@@ -136,14 +136,14 @@ function ef_trade_terms_box() {
 	<?php
 }
 
-// Pe pagina de produs: după „Related products" + „Recently Viewed Products".
+// On the single product page: after "Related products" + "Recently Viewed Products".
 add_action( 'woocommerce_after_single_product', function () {
 	echo ef_recently_viewed_html(); // phpcs:ignore
 	ef_trade_terms_box();
 }, 5 );
 
-// Pe arhivele de categorie de produse: la finalul paginii, după grila de produse
-// și după conținutul long-form al categoriei (care e pe after_shop_loop prio 20).
+// On product category archives: at the bottom of the page, after the product grid
+// and after the category long-form content (which is on after_shop_loop prio 20).
 add_action( 'woocommerce_after_shop_loop', function () {
 	if ( ! is_product_category() ) { return; }
 	$term = get_queried_object();
@@ -152,8 +152,8 @@ add_action( 'woocommerce_after_shop_loop', function () {
 }, 30 );
 
 /* =========================================================================
- * 3b. Breadcrumbs WooCommerce: 🏢 în loc de „Home", separator „>>"
- *     (linkurile verzi se stilizează în style.css)
+ * 3b. WooCommerce breadcrumbs: 🏢 instead of "Home", ">>" separator
+ *     (the green links are styled in style.css)
  * ========================================================================= */
 add_filter( 'woocommerce_breadcrumb_defaults', function ( $args ) {
 	$args['home']      = '🏢';
@@ -162,10 +162,10 @@ add_filter( 'woocommerce_breadcrumb_defaults', function ( $args ) {
 } );
 
 /* =========================================================================
- * 4. ADD-ON-URI produs: garanție extra (+15%) + Removal & Disposal (+£150)
+ * 4. Product ADD-ONS: extra warranty (+15%) + Removal & Disposal (+£150)
  * ========================================================================= */
 
-// 4a. câmpuri pe pagina produsului (garanția sub un toggle, ca în original)
+// 4a. fields on the product page (warranty under a toggle, as in the original)
 add_action( 'woocommerce_before_add_to_cart_button', function () {
 	global $product;
 	if ( ! is_a( $product, 'WC_Product' ) || ! $product->is_purchasable() ) { return; }
@@ -186,16 +186,16 @@ add_action( 'woocommerce_before_add_to_cart_button', function () {
 	<?php
 }, 15 );
 
-// 4b. captează opțiunile în datele item-ului din coș
+// 4b. capture the options into the cart item data
 add_filter( 'woocommerce_add_cart_item_data', function ( $data, $product_id ) {
 	if ( ! empty( $_POST['ef_removal'] ) ) { $data['ef_removal'] = 1; }
 	if ( ! empty( $_POST['ef_warranty'] ) ) { $data['ef_warranty'] = 1; }
 	return $data;
 }, 10, 2 );
 
-// 4c. add-on-urile ca TAXE (fee-uri) SEPARATE în coș — linii distincte, cu TVA aplicat.
-//     Prețul produsului rămâne neatins (fără TVA); Removal & Disposal și Warranty apar
-//     ca rânduri proprii, iar TVA se calculează peste tot (produs + fee-uri).
+// 4c. add-ons as SEPARATE fees in the cart — distinct lines, with VAT applied.
+//     The product price stays untouched (ex-VAT); Removal & Disposal and Warranty
+//     appear as their own rows, and VAT is calculated across everything (product + fees).
 add_action( 'woocommerce_cart_calculate_fees', function ( $cart ) {
 	if ( is_admin() && ! defined( 'DOING_AJAX' ) ) { return; }
 	$removal_total  = 0.0;
@@ -210,7 +210,7 @@ add_action( 'woocommerce_cart_calculate_fees', function ( $cart ) {
 			$warranty_total += $base * EF_WARRANTY_RATE * $qty;
 		}
 	}
-	// add_fee( nume, sumă, taxabil=true, clasă_taxă='' → Standard 20% )
+	// add_fee( name, amount, taxable=true, tax_class='' → Standard 20% )
 	if ( $removal_total > 0 ) {
 		$cart->add_fee( __( 'Removal & Disposal', 'eco-fridge-child' ), $removal_total, true, '' );
 	}
@@ -219,7 +219,7 @@ add_action( 'woocommerce_cart_calculate_fees', function ( $cart ) {
 	}
 }, 20 );
 
-// 4d. marchează pe linia de produs ce add-on-uri au fost alese (fără preț — suma e pe linia de fee)
+// 4d. mark on the product line which add-ons were chosen (no price — the amount is on the fee line)
 add_filter( 'woocommerce_get_item_data', function ( $items, $cart_item ) {
 	if ( ! empty( $cart_item['ef_removal'] ) ) {
 		$items[] = array( 'key' => 'Removal &amp; Disposal', 'value' => 'Added' );
@@ -230,7 +230,7 @@ add_filter( 'woocommerce_get_item_data', function ( $items, $cart_item ) {
 	return $items;
 }, 10, 2 );
 
-// 4e. salvează selecția ca meta pe linia de comandă (suma rămâne pe fee-urile comenzii)
+// 4e. save the selection as meta on the order line item (the amount stays on the order fees)
 add_action( 'woocommerce_checkout_create_order_line_item', function ( $item, $key, $values ) {
 	if ( ! empty( $values['ef_removal'] ) ) { $item->add_meta_data( 'Removal & Disposal', 'Added', true ); }
 	if ( ! empty( $values['ef_warranty'] ) ) { $item->add_meta_data( 'Extended warranty', '12 months', true ); }

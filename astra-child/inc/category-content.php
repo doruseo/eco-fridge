@@ -1,10 +1,10 @@
 <?php
 /**
- * Conținutul long-form al categoriilor de produse (importat 1:1 din originalul
- * eco-fridge, câmp Toolset `range-content-2`, stocat în term meta `_ef_range_content`).
+ * Product categories' long-form content (imported 1:1 from the original
+ * eco-fridge Toolset field `range-content-2`, stored in the `_ef_range_content` term meta).
  *
- *  - randare: SUB grila de produse pe arhivele de categorie (ca pe site-ul original)
- *  - editare: casetă WYSIWYG în ecranul de editare al categoriei (Products → Categories)
+ *  - render: BELOW the product grid on category archives (as on the original site)
+ *  - edit: a WYSIWYG box on the category edit screen (Products → Categories)
  *
  * @package Eco-Fridge-Child
  */
@@ -12,7 +12,7 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /**
- * Afișează conținutul de categorie sub grila de produse.
+ * Display the category content below the product grid.
  */
 add_action( 'woocommerce_after_shop_loop', function () {
 	if ( ! is_product_category() ) { return; }
@@ -22,12 +22,12 @@ add_action( 'woocommerce_after_shop_loop', function () {
 	if ( '' === trim( (string) $content ) ) { return; }
 
 	echo '<section class="ef-range-content">'
-		. apply_filters( 'the_content', $content ) // wpautop + do_shortcode ([table], [caption], embed-uri)
+		. apply_filters( 'the_content', $content ) // wpautop + do_shortcode ([table], [caption], embeds)
 		. '</section>';
 }, 20 );
 
 /**
- * Casetă de editare a conținutului în ecranul „Edit category" (WYSIWYG, cu media).
+ * Content editing box on the "Edit category" screen (WYSIWYG, with media).
  */
 add_action( 'product_cat_edit_form_fields', function ( $term ) {
 	$content = get_term_meta( $term->term_id, '_ef_range_content', true );
@@ -47,14 +47,14 @@ add_action( 'product_cat_edit_form_fields', function ( $term ) {
 				)
 			);
 			?>
-			<p class="description"><?php esc_html_e( 'Conținutul long-form afișat sub grila de produse pe pagina acestei categorii.', 'eco-fridge-child' ); ?></p>
+			<p class="description"><?php esc_html_e( 'The long-form content shown below the product grid on this category page.', 'eco-fridge-child' ); ?></p>
 		</td>
 	</tr>
 	<?php
 }, 10 );
 
 /**
- * Salvează conținutul editat.
+ * Save the edited content.
  */
 add_action( 'edited_product_cat', function ( $term_id ) {
 	if ( ! isset( $_POST['ef_range_content_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['ef_range_content_nonce'] ) ), 'ef_range_content_save' ) ) {
