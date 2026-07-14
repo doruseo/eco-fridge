@@ -237,67 +237,63 @@ add_action( 'woocommerce_checkout_create_order_line_item', function ( $item, $ke
 }, 10, 3 );
 
 /* =========================================================================
- * 4f. Add-on checkboxes on the /cart page, so a customer who forgot to add
- *     Removal & Disposal or the 12-month warranty on the product page can add
- *     them here. Rendered inside the cart form; a change auto-submits the form
- *     and the selection is applied to every cart item.
+ * 4f. PER-ITEM add-on checkboxes on the /cart page, so a customer who forgot to
+ *     add Removal & Disposal or the 12-month warranty on the product page can
+ *     add them here — to a single item or to several. Rendered inside each cart
+ *     row (inside the cart form); a change auto-submits and applies per item.
  * ========================================================================= */
 
-// Render the checkboxes below the cart items (inside the cart form).
-add_action( 'woocommerce_after_cart_table', function () {
-	if ( ! WC()->cart || WC()->cart->is_empty() ) { return; }
-	$items = WC()->cart->get_cart();
-	$total = count( $items );
-	$removal_on  = 0;
-	$warranty_on = 0;
-	foreach ( $items as $it ) {
-		if ( ! empty( $it['ef_removal'] ) ) { $removal_on++; }
-		if ( ! empty( $it['ef_warranty'] ) ) { $warranty_on++; }
-	}
-	$removal_checked  = ( $total > 0 && $removal_on === $total ) ? ' checked' : '';
-	$warranty_checked = ( $total > 0 && $warranty_on === $total ) ? ' checked' : '';
+// Render the two checkboxes under each cart item's name (inside the cart form).
+add_action( 'woocommerce_after_cart_item_name', function ( $cart_item, $cart_item_key ) {
+	$key = esc_attr( $cart_item_key );
 	?>
-	<div class="ef-cart-addons">
-		<input type="hidden" name="_ef_cart_addons" value="1">
-		<h3><?php esc_html_e( 'Optional extras', 'eco-fridge-child' ); ?></h3>
+	<div class="ef-cart-item-addons">
 		<label class="ef-addon ef-addon--removal">
-			<input type="checkbox" name="ef_cart_removal" value="1"<?php echo esc_attr( $removal_checked ); ?>>
-			<span>Add <strong>Removal &amp; Disposal</strong> of your old unit <em>(+&pound;<?php echo esc_html( EF_REMOVAL_FEE ); ?> each)</em></span>
+			<input type="checkbox" name="ef_item_removal[<?php echo $key; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>]" value="1" <?php checked( ! empty( $cart_item['ef_removal'] ) ); ?>>
+			<span>Add <strong>Removal &amp; Disposal</strong> <em>(+&pound;<?php echo esc_html( EF_REMOVAL_FEE ); ?>)</em></span>
 		</label>
 		<label class="ef-addon ef-addon--warranty">
-			<input type="checkbox" name="ef_cart_warranty" value="1"<?php echo esc_attr( $warranty_checked ); ?>>
-			<span>Add <strong>12 months extra warranty</strong> <em>(+15%)</em></span>
+			<input type="checkbox" name="ef_item_warranty[<?php echo $key; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>]" value="1" <?php checked( ! empty( $cart_item['ef_warranty'] ) ); ?>>
+			<span>Add <strong>12 months warranty</strong> <em>(+15%)</em></span>
 		</label>
 	</div>
 	<?php
-}, 20 );
+}, 10, 2 );
 
-// Apply the checkbox selection to every cart item — only when the customer
-// actually toggled a checkbox (marker `ef_addons_submit`), so a normal quantity
-// "Update cart" never clobbers add-ons set on the product page.
+/**
+ * Apply the per-item checkbox selection when the cart form is submitted.
+ *
+ * IMPORTANT: `WC_Cart::set_session()` itself fires `woocommerce_cart_updated`,
+ * so a naive handler that calls set_session() here would recurse infinitely
+ * (that was the "critical error"). A one-shot static guard set BEFORE the call
+ * prevents both the recursion and any reprocessing later in the request.
+ */
 add_action( 'woocommerce_cart_updated', function () {
+	static $done = false;
+	if ( $done ) { return; }
 	if ( empty( $_POST['ef_addons_submit'] ) ) { return; } // phpcs:ignore WordPress.Security.NonceVerification.Missing
-	if ( ! isset( $_POST['woocommerce-cart-nonce'] )
-		|| ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['woocommerce-cart-nonce'] ) ), 'woocommerce-cart' ) ) {
-		return;
-	}
+	$nonce = isset( $_POST['woocommerce-cart-nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['woocommerce-cart-nonce'] ) ) : '';
+	if ( ! wp_verify_nonce( $nonce, 'woocommerce-cart' ) ) { return; }
 	if ( ! WC()->cart ) { return; }
-	$removal  = ! empty( $_POST['ef_cart_removal'] ) ? 1 : 0;
-	$warranty = ! empty( $_POST['ef_cart_warranty'] ) ? 1 : 0;
+
+	$done    = true; // set before set_session() to break the cart_updated recursion.
+	$removal = isset( $_POST['ef_item_removal'] ) ? array_map( 'absint', (array) wp_unslash( $_POST['ef_item_removal'] ) ) : array(); // phpcs:ignore
+	$warranty = isset( $_POST['ef_item_warranty'] ) ? array_map( 'absint', (array) wp_unslash( $_POST['ef_item_warranty'] ) ) : array(); // phpcs:ignore
+
 	foreach ( WC()->cart->get_cart() as $key => $item ) {
-		WC()->cart->cart_contents[ $key ]['ef_removal']  = $removal;
-		WC()->cart->cart_contents[ $key ]['ef_warranty'] = $warranty;
+		WC()->cart->cart_contents[ $key ]['ef_removal']  = ! empty( $removal[ $key ] ) ? 1 : 0;
+		WC()->cart->cart_contents[ $key ]['ef_warranty'] = ! empty( $warranty[ $key ] ) ? 1 : 0;
 	}
 	WC()->cart->set_session();
-} );
+}, 10 );
 
-// Auto-submit the cart form when an add-on checkbox is toggled.
+// Auto-submit the cart form when a per-item add-on checkbox is toggled.
 add_action( 'wp_footer', function () {
 	if ( ! function_exists( 'is_cart' ) || ! is_cart() ) { return; }
 	?>
 <script>
 (function(){
-	document.querySelectorAll('.ef-cart-addons input[type="checkbox"]').forEach(function(cb){
+	document.querySelectorAll('.ef-cart-item-addons input[type="checkbox"]').forEach(function(cb){
 		cb.addEventListener('change', function(){
 			var form = cb.closest('form.woocommerce-cart-form');
 			if(!form){ return; }
