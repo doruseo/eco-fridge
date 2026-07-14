@@ -5,7 +5,7 @@ Description: Temă copil Astra pentru ECO-Fridge Ltd. Header/footer/mega-meniu =
 Author: O2 Digital
 Author URI: https://seo2agency.com/
 Template: astra
-Version: 0.5.0
+Version: 0.5.1
 Text Domain: eco-fridge-child
 */
 
@@ -553,6 +553,30 @@ div.wpforms-container .wpforms-submit:hover {
   color: var(--ef-text);
   margin: 0 0 14px;
 }
+/* „nori" tier-2 (Display/Storage Fridge·Freezer) deasupra carouselului — pastile text, fără iconiță */
+.ef-cc-chips { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 18px; }
+.ef-cc-chip {
+  display: inline-block;
+  padding: 9px 22px;
+  border-radius: 999px;
+  background: var(--ef-brand);
+  color: #fff !important;
+  text-decoration: none;
+  font-family: var(--ef-font-head);
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  font-size: .82rem;
+  line-height: 1.2;
+  box-shadow: 0 3px 10px rgba(34,139,34,.22);
+  transition: background .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+.ef-cc-chip:hover {
+  background: var(--ef-brand-dark);
+  color: #fff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(34,139,34,.3);
+}
+
 .ef-cat-carousel { position: relative; padding: 0 46px; }
 .ef-cc-track {
   display: flex;
