@@ -87,6 +87,26 @@ add_action( 'widgets_init', function () {
 } );
 
 /**
+ * Show the filter sidebar ONLY on product category archives (/product-category/…).
+ * Everywhere else — shop, cart, checkout, account, single product, product tags —
+ * force a no-sidebar layout so the filter widgets never leak onto those pages
+ * (and the cart/checkout get the full content width).
+ */
+add_filter( 'astra_page_layout', function ( $layout ) {
+	if ( is_admin() ) { return $layout; }
+	if ( function_exists( 'is_product_category' ) && is_product_category() ) {
+		return 'left-sidebar';
+	}
+	if ( ( function_exists( 'is_woocommerce' ) && is_woocommerce() )
+		|| ( function_exists( 'is_cart' ) && is_cart() )
+		|| ( function_exists( 'is_checkout' ) && is_checkout() )
+		|| ( function_exists( 'is_account_page' ) && is_account_page() ) ) {
+		return 'no-sidebar';
+	}
+	return $layout;
+}, 99 );
+
+/**
  * On mobile/tablet: the sidebar filters become inline dropdown buttons (see CSS).
  * The JS only toggles the panels; it loads only on shop archives.
  */
