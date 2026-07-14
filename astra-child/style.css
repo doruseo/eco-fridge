@@ -5,7 +5,7 @@ Description: Astra child theme for ECO-Fridge Ltd. Header/footer/mega-menu = NAT
 Author: O2 Digital
 Author URI: https://seo2agency.com/
 Template: astra
-Version: 0.6.3
+Version: 0.6.4
 Text Domain: eco-fridge-child
 */
 
@@ -954,18 +954,25 @@ div.wpforms-container .wpforms-submit:hover {
    CART PAGE (/cart) — classic layout: items on the left, totals on the right
    ========================================================================= */
 @media (min-width: 769px) {
-  .woocommerce-cart .woocommerce {
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
-    grid-column-gap: 40px; align-items: start;
+  /* clearfix so the floated columns don't collapse the container */
+  .woocommerce-cart .woocommerce::after { content: ""; display: block; clear: both; }
+  /* full-width rows stay full width and clear the floats */
+  .woocommerce-cart .woocommerce > .woocommerce-notices-wrapper,
+  .woocommerce-cart .woocommerce > .woocommerce-message,
+  .woocommerce-cart .woocommerce > .woocommerce-info,
+  .woocommerce-cart .woocommerce > .woocommerce-error { clear: both; width: 100%; }
+  /* items table on the LEFT */
+  .woocommerce-cart form.woocommerce-cart-form {
+    float: left !important; width: calc(100% - 400px) !important; margin: 0 !important; clear: left;
   }
-  .woocommerce-cart .woocommerce > .woocommerce-notices-wrapper { grid-column: 1 / -1; }
-  .woocommerce-cart .woocommerce-cart-form { grid-column: 1; min-width: 0; margin: 0; }
+  /* Cart totals on the RIGHT */
   .woocommerce-cart .cart-collaterals {
-    grid-column: 2; width: auto !important; max-width: none; margin: 0; float: none;
+    float: right !important; width: 360px !important; max-width: 40%; margin: 0 !important;
   }
   .woocommerce-cart .cart-collaterals .cart_totals,
-  .woocommerce-cart .cart-collaterals .cross-sells { float: none; width: 100%; }
+  .woocommerce-cart .cart-collaterals .cross-sells {
+    float: none !important; width: 100% !important; margin: 0;
+  }
 }
 /* the "Cart totals" panel — light framing so it reads as a distinct column */
 .woocommerce-cart .cart_totals > h2 { font-size: 1.15rem; }
