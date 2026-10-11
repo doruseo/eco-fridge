@@ -310,3 +310,13 @@ add_action( 'wp_footer', function () {
 </script>
 	<?php
 }, 30 );
+
+/* =========================================================================
+ * 4g. Cart cross-sells ("You may be interested in…"): removed from /cart.
+ *     Emptying the id list kills the block at the source, so it stays gone no
+ *     matter who calls woocommerce_cross_sell_display() (hook or template).
+ *     The add-on products (Removal & Disposal, warranty) were surfacing here
+ *     as suggestions, which made no sense next to the items they attach to.
+ * ========================================================================= */
+remove_action( 'woocommerce_cart_collaterals', 'woocommerce_cross_sell_display' );
+add_filter( 'woocommerce_cart_crosssell_ids', '__return_empty_array', 99 );

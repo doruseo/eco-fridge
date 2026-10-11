@@ -198,14 +198,110 @@ add_action( 'woocommerce_archive_description', function () {
 	echo '</section>';
 }, 15 );
 
-/** Carousel navigation JS (the two commercial archives + the /shop page). */
+/**
+ * Two-column carousels: archive slug => the cards it shows.
+ *
+ * Labels are spelled out because the term names carry SEO suffixes that read
+ * badly on a card ("Display Fridge - Commercial Display Fridge"). Slugs don't
+ * follow the labels either — "Display Fridge" lives at `commercial-display-fridge`.
+ *
+ * Each card names its own banner instead of falling back to the category
+ * thumbnail. Paths are relative to the uploads folder so they survive the move
+ * off localhost.
+ */
+function ef_two_col_carousel_map() {
+	return array(
+		'display-cabinets' => array(
+			'commercial-display-fridge' => array(
+				'label' => 'Display Fridge',
+				'img'   => '2026/07/display-fridges.jpg',
+			),
+			'display-freezer'           => array(
+				'label' => 'Display Freezer',
+				'img'   => 'Display-Freezer.jpg',
+			),
+		),
+		'storage-cabinets' => array(
+			'storage-fridge'  => array(
+				'label' => 'Storage Fridge',
+				'img'   => '2026/07/Commercial-Storage-Fridges.jpg',
+			),
+			'storage-freezer' => array(
+				'label' => 'Storage Freezer',
+				'img'   => 'upright-storage-freezer.jpg',
+			),
+		),
+	);
+}
+
+/** Cards (image + title + link) for one two-column carousel, in the given order. */
+function ef_two_col_carousel_cards( $wanted ) {
+	$uploads = wp_upload_dir();
+	$base    = trailingslashit( $uploads['baseurl'] );
+	$cards   = array();
+	foreach ( $wanted as $slug => $card ) {
+		$t = get_term_by( 'slug', $slug, 'product_cat' );
+		if ( ! $t || is_wp_error( $t ) ) { continue; }
+		$link = get_term_link( $t );
+
+		$img = '';
+		if ( ! empty( $card['img'] ) ) {
+			$img = $base . ltrim( $card['img'], '/' );
+		} elseif ( function_exists( 'ef_term_image_url' ) ) {
+			$img = ef_term_image_url( $t->term_id, 'woocommerce_thumbnail' );
+		}
+
+		$cards[] = array(
+			'title' => $card['label'],
+			'link'  => is_wp_error( $link ) ? '#' : $link,
+			'img'   => $img,
+		);
+	}
+	return $cards;
+}
+
+/**
+ * Display Cabinets / Storage Cabinets: a two-column carousel (one column on
+ * mobile) after the short description, before the product grid. Same card design
+ * as the other archives; no "clouds" here.
+ */
+add_action( 'woocommerce_archive_description', function () {
+	if ( ! ( function_exists( 'is_product_category' ) && is_product_category() ) ) { return; }
+	$term = get_queried_object();
+	if ( ! $term || is_wp_error( $term ) ) { return; }
+
+	$map = ef_two_col_carousel_map();
+	if ( ! isset( $map[ $term->slug ] ) ) { return; }
+
+	$cards = ef_two_col_carousel_cards( $map[ $term->slug ] );
+	if ( empty( $cards ) ) { return; }
+
+	echo '<section class="ef-cat-carousel-wrap">';
+	echo '<h2 class="ef-cc-heading">Shop by category</h2>';
+	echo '<div class="ef-cat-carousel ef-cat-carousel--2col">';
+	echo '<button type="button" class="ef-cc-arrow ef-cc-prev" aria-label="Previous">&lsaquo;</button>';
+	echo '<div class="ef-cc-track" role="list">';
+	foreach ( $cards as $c ) {
+		echo '<a class="ef-cc-card" role="listitem" href="' . esc_url( $c['link'] ) . '">';
+		echo '<span class="ef-cc-img">' . ( $c['img'] ? '<img src="' . esc_url( $c['img'] ) . '" alt="' . esc_attr( $c['title'] ) . '" loading="lazy" />' : '' ) . '</span>';
+		echo '<span class="ef-cc-name">' . esc_html( $c['title'] ) . '</span>';
+		echo '</a>';
+	}
+	echo '</div>';
+	echo '<button type="button" class="ef-cc-arrow ef-cc-next" aria-label="Next">&rsaquo;</button>';
+	echo '</div>';
+	echo '</section>';
+}, 15 );
+
+/** Carousel navigation JS (the commercial + two-column archives, and /shop). */
 add_action( 'wp_footer', function () {
 	$ok = false;
 	if ( function_exists( 'is_shop' ) && is_shop() && ! ( function_exists( 'is_product_category' ) && is_product_category() ) ) {
 		$ok = true;
 	} elseif ( function_exists( 'is_product_category' ) && is_product_category() ) {
-		$term = get_queried_object();
-		$ok = ( $term && ! is_wp_error( $term ) && in_array( $term->slug, array( 'commercial-fridge', 'commercial-freezer' ), true ) );
+		$term  = get_queried_object();
+		$slugs = array_merge( array( 'commercial-fridge', 'commercial-freezer' ), array_keys( ef_two_col_carousel_map() ) );
+		$ok    = ( $term && ! is_wp_error( $term ) && in_array( $term->slug, $slugs, true ) );
 	}
 	if ( ! $ok ) { return; }
 	?>
