@@ -1,25 +1,27 @@
 <?php
 /**
- * Subcategory carousel on the "Commercial Fridge" and "Commercial Freezer" pages.
+ * Category carousels, after the short description and before the product grid.
  *
- * Structure (after the short description, before the product grid):
- *   - "clouds" (text pills, no icon) with the tier-2 categories from the menu:
- *     Commercial Fridge → Display Fridge, Storage Fridge;
- *     Commercial Freezer → Display Freezer, Storage Freezer.
- *   - a carousel with their subcategories (dropdown descendants), NOT the two above.
+ * Big categories (Display Cabinets, Storage Cabinets, Commercial Fridge,
+ * Commercial Freezer):
+ *   1. "Shop by category": their two types as wide banner cards
+ *      (Display Fridge / Display Freezer, Display Fridge / Storage Fridge…);
+ *   2. "Subcategories": a carousel with every category under them in the
+ *      Commercial menu (the types themselves excluded);
+ *   3. the product grid, listing products only.
+ * Other commercial categories with subcategories (Display Fridge, Drinks
+ * Fridge…): a "Shop by category" carousel of their direct subcategories, then
+ * products only.
+ * /shop: a carousel of the top categories.
  *
- * The data comes from the authoritative WP menu (#342), so it stays in sync with it.
+ * Every image is shown whole (fitted into its box, never cropped).
+ * The data comes from the authoritative Commercial menu, so it stays in sync with it.
  *
  * @package Eco-Fridge-Child
  */
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-/**
- * Splits a parent category's menu dropdown into:
- *   - 'chips'  = direct children (tier-2: Display/Storage Fridge…), title + link only
- *   - 'cards'  = those children's descendants (tier-3/4), with image + title + link
- */
 /** The commercial menu ID (`secondary_menu` location, fallback `ast-hf-menu-2`, then name). */
 function ef_commercial_menu_id() {
 	$loc = get_nav_menu_locations();
@@ -30,125 +32,210 @@ function ef_commercial_menu_id() {
 	return $m ? (int) $m->term_id : 0;
 }
 
-/** A category's direct child categories (terms), from the commercial menu. */
-function ef_commercial_menu_children( $parent_slug ) {
+/**
+ * The Commercial menu's items grouped by parent item, plus the item of each
+ * product category (by slug). Built once per request.
+ *
+ * @return array{children:array<int,WP_Post[]>,by_slug:array<string,int>}
+ */
+function ef_commercial_menu_tree() {
+	static $tree = null;
+	if ( null !== $tree ) { return $tree; }
+	$tree  = array( 'children' => array(), 'by_slug' => array() );
 	$mid   = ef_commercial_menu_id();
 	$items = $mid ? wp_get_nav_menu_items( $mid ) : array();
-	if ( ! $items ) { return array(); }
-	$by = array(); $topid = 0;
-	foreach ( $items as $it ) {
-		$by[ (int) $it->menu_item_parent ][] = $it;
+	foreach ( (array) $items as $it ) {
+		$tree['children'][ (int) $it->menu_item_parent ][] = $it;
 		if ( 'taxonomy' === $it->type && 'product_cat' === $it->object ) {
 			$t = get_term( (int) $it->object_id, 'product_cat' );
-			if ( $t && ! is_wp_error( $t ) && $t->slug === $parent_slug ) { $topid = (int) $it->ID; }
+			if ( $t && ! is_wp_error( $t ) && ! isset( $tree['by_slug'][ $t->slug ] ) ) {
+				$tree['by_slug'][ $t->slug ] = (int) $it->ID;
+			}
 		}
 	}
-	$out = array();
-	if ( $topid && ! empty( $by[ $topid ] ) ) {
-		foreach ( $by[ $topid ] as $it ) {
-			if ( 'taxonomy' === $it->type && 'product_cat' === $it->object ) {
-				$t = get_term( (int) $it->object_id, 'product_cat' );
-				if ( $t && ! is_wp_error( $t ) ) { $out[] = $t; }
-			}
+	return $tree;
+}
+
+/** A category's direct child categories (terms), from the commercial menu. */
+function ef_commercial_menu_children( $parent_slug ) {
+	$tree = ef_commercial_menu_tree();
+	$out  = array();
+	if ( empty( $tree['by_slug'][ $parent_slug ] ) ) { return $out; }
+	foreach ( $tree['children'][ $tree['by_slug'][ $parent_slug ] ] ?? array() as $it ) {
+		if ( 'taxonomy' === $it->type && 'product_cat' === $it->object ) {
+			$t = get_term( (int) $it->object_id, 'product_cat' );
+			if ( $t && ! is_wp_error( $t ) ) { $out[] = $t; }
 		}
 	}
 	return $out;
 }
 
-function ef_cat_carousel_data( $parent_slug ) {
-	$mid   = ef_commercial_menu_id();
-	$items = $mid ? wp_get_nav_menu_items( $mid ) : array();
-	if ( ! $items ) { return array( 'chips' => array(), 'cards' => array() ); }
-
-	$by    = array();
-	$topid = 0;
-	foreach ( $items as $it ) {
-		$by[ (int) $it->menu_item_parent ][] = $it;
-		if ( 'taxonomy' === $it->type && 'product_cat' === $it->object ) {
-			$t = get_term( (int) $it->object_id, 'product_cat' );
-			if ( $t && ! is_wp_error( $t ) && $t->slug === $parent_slug ) { $topid = (int) $it->ID; }
-		}
+/** A card (title, link, whole image) for a category. */
+function ef_category_card( $term_id, $title, $img = '' ) {
+	$t = get_term( (int) $term_id, 'product_cat' );
+	if ( ! $t || is_wp_error( $t ) ) { return null; }
+	$link = get_term_link( $t );
+	if ( '' === $img && function_exists( 'ef_term_image_url' ) ) {
+		// Uncropped size: the card shows the whole image.
+		$img = ef_term_image_url( $t->term_id, 'woocommerce_single' );
 	}
-	if ( ! $topid || empty( $by[ $topid ] ) ) { return array( 'chips' => array(), 'cards' => array() ); }
-
-	$chips = array();
-	$cards = array();
-
-	$collect_cards = function ( $pid ) use ( &$collect_cards, $by, &$cards ) {
-		if ( empty( $by[ $pid ] ) ) { return; }
-		foreach ( $by[ $pid ] as $it ) {
-			if ( 'taxonomy' === $it->type && 'product_cat' === $it->object ) {
-				$t = get_term( (int) $it->object_id, 'product_cat' );
-				if ( $t && ! is_wp_error( $t ) ) {
-					$link = get_term_link( $t );
-					$cards[] = array(
-						'title' => $it->title,
-						'link'  => is_wp_error( $link ) ? '#' : $link,
-						'img'   => function_exists( 'ef_term_image_url' ) ? ef_term_image_url( $t->term_id, 'woocommerce_thumbnail' ) : '',
-					);
-				}
-			}
-			$collect_cards( (int) $it->ID );
-		}
-	};
-
-	foreach ( $by[ $topid ] as $it ) {
-		if ( 'taxonomy' === $it->type && 'product_cat' === $it->object ) {
-			$t = get_term( (int) $it->object_id, 'product_cat' );
-			if ( $t && ! is_wp_error( $t ) ) {
-				$link    = get_term_link( $t );
-				$chips[] = array( 'title' => $it->title, 'link' => is_wp_error( $link ) ? '#' : $link );
-			}
-		}
-		$collect_cards( (int) $it->ID ); // this direct child's descendants → cards
-	}
-
-	return array( 'chips' => $chips, 'cards' => $cards );
+	return array(
+		'title' => $title,
+		'link'  => is_wp_error( $link ) ? '#' : $link,
+		'img'   => $img,
+	);
 }
 
-/** Renders the clouds + the carousel, after the short description, before the product grid. */
+/**
+ * Cards for every product category under a category in the Commercial menu,
+ * in menu order, skipping the given slugs (the type categories).
+ *
+ * @param string   $parent_slug Category slug.
+ * @param string[] $skip        Slugs left out (their own descendants are kept).
+ * @return array[]
+ */
+function ef_menu_subcategory_cards( $parent_slug, $skip = array() ) {
+	$tree  = ef_commercial_menu_tree();
+	$cards = array();
+	if ( empty( $tree['by_slug'][ $parent_slug ] ) ) { return $cards; }
+	$collect = function ( $item_id ) use ( &$collect, &$cards, $tree, $skip ) {
+		foreach ( $tree['children'][ $item_id ] ?? array() as $it ) {
+			if ( 'taxonomy' === $it->type && 'product_cat' === $it->object ) {
+				$t = get_term( (int) $it->object_id, 'product_cat' );
+				if ( $t && ! is_wp_error( $t ) && ! in_array( $t->slug, $skip, true ) ) {
+					$card = ef_category_card( $t->term_id, wp_strip_all_tags( $it->title ) );
+					if ( $card ) { $cards[] = $card; }
+				}
+			}
+			$collect( (int) $it->ID );
+		}
+	};
+	$collect( $tree['by_slug'][ $parent_slug ] );
+	return $cards;
+}
+
+/**
+ * Big categories => their two type categories, as wide banner cards.
+ *
+ * Labels are spelled out because the term names carry SEO suffixes that read
+ * badly on a card ("Display Fridge - Commercial Display Fridge"). Each card names
+ * its own banner (paths relative to the uploads folder, so they survive the move
+ * off localhost).
+ */
+function ef_category_types_map() {
+	$display_fridge   = array( 'label' => 'Display Fridge', 'img' => '2026/07/display-fridges.jpg' );
+	$display_freezer  = array( 'label' => 'Display Freezer', 'img' => 'Display-Freezer.jpg' );
+	$storage_fridge   = array( 'label' => 'Storage Fridge', 'img' => '2026/07/Commercial-Storage-Fridges.jpg' );
+	$storage_freezer  = array( 'label' => 'Storage Freezer', 'img' => 'upright-storage-freezer.jpg' );
+	return array(
+		'display-cabinets'   => array( 'commercial-display-fridge' => $display_fridge, 'display-freezer' => $display_freezer ),
+		'storage-cabinets'   => array( 'storage-fridge' => $storage_fridge, 'storage-freezer' => $storage_freezer ),
+		'commercial-fridge'  => array( 'commercial-display-fridge' => $display_fridge, 'storage-fridge' => $storage_fridge ),
+		'commercial-freezer' => array( 'display-freezer' => $display_freezer, 'storage-freezer' => $storage_freezer ),
+	);
+}
+
+/** Banner cards for one big category's types, in the given order. */
+function ef_category_type_cards( $wanted ) {
+	$base  = trailingslashit( wp_upload_dir()['baseurl'] );
+	$cards = array();
+	foreach ( $wanted as $slug => $card ) {
+		$t = get_term_by( 'slug', $slug, 'product_cat' );
+		if ( ! $t || is_wp_error( $t ) ) { continue; }
+		$c = ef_category_card( $t->term_id, $card['label'], empty( $card['img'] ) ? '' : $base . ltrim( $card['img'], '/' ) );
+		if ( $c ) { $cards[] = $c; }
+	}
+	return $cards;
+}
+
+/**
+ * What a category archive shows above its grid. Null when it gets no carousel.
+ *
+ * @param WP_Term $term Category.
+ * @return array{types:array[],cards:array[],cards_heading:string}|null
+ */
+function ef_category_carousel_data( $term ) {
+	static $cache = array();
+	if ( array_key_exists( $term->term_id, $cache ) ) { return $cache[ $term->term_id ]; }
+
+	$map  = ef_category_types_map();
+	$data = null;
+	if ( isset( $map[ $term->slug ] ) ) {
+		$types = ef_category_type_cards( $map[ $term->slug ] );
+		$cards = ef_menu_subcategory_cards( $term->slug, array_keys( $map[ $term->slug ] ) );
+		if ( $types || $cards ) {
+			$data = array( 'types' => $types, 'cards' => $cards, 'cards_heading' => 'Subcategories' );
+		}
+	} elseif ( function_exists( 'efb_landing_applies' ) && efb_landing_applies( $term->term_id ) ) {
+		// Subcategories from the Commercial menu, then real child categories the menu
+		// places elsewhere (e.g. Meat Fridge sits under Storage Fridge in the menu but
+		// is a child of Upright Storage Fridge), so none is left out of the carousel.
+		$children = efb_landing_children( $term->term_id );
+		$real     = get_terms( array( 'taxonomy' => 'product_cat', 'parent' => $term->term_id, 'hide_empty' => true, 'fields' => 'ids' ) );
+		$children = array_values( array_unique( array_merge( $children, is_wp_error( $real ) ? array() : array_map( 'intval', $real ) ) ) );
+		$cards    = array();
+		foreach ( $children as $child_id ) {
+			$card = ef_category_card( $child_id, efb_landing_label( $child_id ) );
+			if ( $card ) { $cards[] = $card; }
+		}
+		if ( $cards ) {
+			$data = array( 'types' => array(), 'cards' => $cards, 'cards_heading' => 'Shop by category' );
+		}
+	}
+	$cache[ $term->term_id ] = $data;
+	return $data;
+}
+
+/** Prints one carousel of cards. */
+function ef_render_category_carousel( $cards, $variant = '' ) {
+	echo '<div class="ef-cat-carousel' . ( $variant ? ' ef-cat-carousel--' . esc_attr( $variant ) : '' ) . '">';
+	echo '<button type="button" class="ef-cc-arrow ef-cc-prev" aria-label="Previous">&lsaquo;</button>';
+	echo '<div class="ef-cc-track" role="list">';
+	foreach ( $cards as $c ) {
+		echo '<a class="ef-cc-card" role="listitem" href="' . esc_url( $c['link'] ) . '">';
+		echo '<span class="ef-cc-img">' . ( $c['img'] ? '<img src="' . esc_url( $c['img'] ) . '" alt="' . esc_attr( $c['title'] ) . '" loading="lazy" />' : '' ) . '</span>';
+		echo '<span class="ef-cc-name">' . esc_html( $c['title'] ) . '</span>';
+		echo '</a>';
+	}
+	echo '</div>';
+	echo '<button type="button" class="ef-cc-arrow ef-cc-next" aria-label="Next">&rsaquo;</button>';
+	echo '</div>';
+}
+
+/**
+ * Categories with a carousel list only products in the grid: the subcategories
+ * are in the carousel, not mixed in among the products.
+ */
+add_action( 'wp', function () {
+	if ( ! function_exists( 'is_product_category' ) || ! is_product_category() ) { return; }
+	$term = get_queried_object();
+	if ( $term && ! is_wp_error( $term ) && ef_category_carousel_data( $term ) ) {
+		remove_filter( 'woocommerce_product_loop_start', 'woocommerce_maybe_show_product_subcategories' );
+	}
+} );
+
+/** Types + subcategories carousels on category archives. */
 add_action( 'woocommerce_archive_description', function () {
 	if ( ! is_product_category() ) { return; }
 	$term = get_queried_object();
 	if ( ! $term || is_wp_error( $term ) ) { return; }
-	if ( ! in_array( $term->slug, array( 'commercial-fridge', 'commercial-freezer' ), true ) ) { return; }
-
-	$data = ef_cat_carousel_data( $term->slug );
-	if ( empty( $data['chips'] ) && empty( $data['cards'] ) ) { return; }
+	$data = ef_category_carousel_data( $term );
+	if ( ! $data ) { return; }
 
 	echo '<section class="ef-cat-carousel-wrap">';
-	echo '<h2 class="ef-cc-heading">Shop by category</h2>';
-
-	if ( ! empty( $data['chips'] ) ) {
-		echo '<div class="ef-cc-chips">';
-		foreach ( $data['chips'] as $ch ) {
-			echo '<a class="ef-cc-chip" href="' . esc_url( $ch['link'] ) . '">' . esc_html( $ch['title'] ) . '</a>';
-		}
-		echo '</div>';
+	if ( $data['types'] ) {
+		echo '<h2 class="ef-cc-heading">Shop by category</h2>';
+		ef_render_category_carousel( $data['types'], '2col' );
 	}
-
-	if ( ! empty( $data['cards'] ) ) {
-		echo '<div class="ef-cat-carousel">';
-		echo '<button type="button" class="ef-cc-arrow ef-cc-prev" aria-label="Previous">&lsaquo;</button>';
-		echo '<div class="ef-cc-track" role="list">';
-		foreach ( $data['cards'] as $c ) {
-			echo '<a class="ef-cc-card" role="listitem" href="' . esc_url( $c['link'] ) . '">';
-			echo '<span class="ef-cc-img">' . ( $c['img'] ? '<img src="' . esc_url( $c['img'] ) . '" alt="' . esc_attr( $c['title'] ) . '" loading="lazy" />' : '' ) . '</span>';
-			echo '<span class="ef-cc-name">' . esc_html( $c['title'] ) . '</span>';
-			echo '</a>';
-		}
-		echo '</div>';
-		echo '<button type="button" class="ef-cc-arrow ef-cc-next" aria-label="Next">&rsaquo;</button>';
-		echo '</div>';
+	if ( $data['cards'] ) {
+		echo '<h2 class="ef-cc-heading">' . esc_html( $data['cards_heading'] ) . '</h2>';
+		ef_render_category_carousel( $data['cards'] );
 	}
-
 	echo '</section>';
 }, 15 );
 
 /**
  * /shop page: a carousel with the top product categories, in the requested order.
- * Same design as on Commercial Fridge/Freezer (cards with image + title),
- * after the short description, before the product grid. No "clouds" here.
  */
 function ef_shop_carousel_cards() {
 	// slug => label (labels provided explicitly, in the desired order)
@@ -164,12 +251,8 @@ function ef_shop_carousel_cards() {
 	foreach ( $wanted as $slug => $label ) {
 		$t = get_term_by( 'slug', $slug, 'product_cat' );
 		if ( ! $t || is_wp_error( $t ) ) { continue; }
-		$link = get_term_link( $t );
-		$cards[] = array(
-			'title' => $label,
-			'link'  => is_wp_error( $link ) ? '#' : $link,
-			'img'   => function_exists( 'ef_term_image_url' ) ? ef_term_image_url( $t->term_id, 'woocommerce_thumbnail' ) : '',
-		);
+		$card = ef_category_card( $t->term_id, $label );
+		if ( $card ) { $cards[] = $card; }
 	}
 	return $cards;
 }
@@ -183,125 +266,18 @@ add_action( 'woocommerce_archive_description', function () {
 
 	echo '<section class="ef-cat-carousel-wrap">';
 	echo '<h2 class="ef-cc-heading">Shop by category</h2>';
-	echo '<div class="ef-cat-carousel">';
-	echo '<button type="button" class="ef-cc-arrow ef-cc-prev" aria-label="Previous">&lsaquo;</button>';
-	echo '<div class="ef-cc-track" role="list">';
-	foreach ( $cards as $c ) {
-		echo '<a class="ef-cc-card" role="listitem" href="' . esc_url( $c['link'] ) . '">';
-		echo '<span class="ef-cc-img">' . ( $c['img'] ? '<img src="' . esc_url( $c['img'] ) . '" alt="' . esc_attr( $c['title'] ) . '" loading="lazy" />' : '' ) . '</span>';
-		echo '<span class="ef-cc-name">' . esc_html( $c['title'] ) . '</span>';
-		echo '</a>';
-	}
-	echo '</div>';
-	echo '<button type="button" class="ef-cc-arrow ef-cc-next" aria-label="Next">&rsaquo;</button>';
-	echo '</div>';
+	ef_render_category_carousel( $cards );
 	echo '</section>';
 }, 15 );
 
-/**
- * Two-column carousels: archive slug => the cards it shows.
- *
- * Labels are spelled out because the term names carry SEO suffixes that read
- * badly on a card ("Display Fridge - Commercial Display Fridge"). Slugs don't
- * follow the labels either — "Display Fridge" lives at `commercial-display-fridge`.
- *
- * Each card names its own banner instead of falling back to the category
- * thumbnail. Paths are relative to the uploads folder so they survive the move
- * off localhost.
- */
-function ef_two_col_carousel_map() {
-	return array(
-		'display-cabinets' => array(
-			'commercial-display-fridge' => array(
-				'label' => 'Display Fridge',
-				'img'   => '2026/07/display-fridges.jpg',
-			),
-			'display-freezer'           => array(
-				'label' => 'Display Freezer',
-				'img'   => 'Display-Freezer.jpg',
-			),
-		),
-		'storage-cabinets' => array(
-			'storage-fridge'  => array(
-				'label' => 'Storage Fridge',
-				'img'   => '2026/07/Commercial-Storage-Fridges.jpg',
-			),
-			'storage-freezer' => array(
-				'label' => 'Storage Freezer',
-				'img'   => 'upright-storage-freezer.jpg',
-			),
-		),
-	);
-}
-
-/** Cards (image + title + link) for one two-column carousel, in the given order. */
-function ef_two_col_carousel_cards( $wanted ) {
-	$uploads = wp_upload_dir();
-	$base    = trailingslashit( $uploads['baseurl'] );
-	$cards   = array();
-	foreach ( $wanted as $slug => $card ) {
-		$t = get_term_by( 'slug', $slug, 'product_cat' );
-		if ( ! $t || is_wp_error( $t ) ) { continue; }
-		$link = get_term_link( $t );
-
-		$img = '';
-		if ( ! empty( $card['img'] ) ) {
-			$img = $base . ltrim( $card['img'], '/' );
-		} elseif ( function_exists( 'ef_term_image_url' ) ) {
-			$img = ef_term_image_url( $t->term_id, 'woocommerce_thumbnail' );
-		}
-
-		$cards[] = array(
-			'title' => $card['label'],
-			'link'  => is_wp_error( $link ) ? '#' : $link,
-			'img'   => $img,
-		);
-	}
-	return $cards;
-}
-
-/**
- * Display Cabinets / Storage Cabinets: a two-column carousel (one column on
- * mobile) after the short description, before the product grid. Same card design
- * as the other archives; no "clouds" here.
- */
-add_action( 'woocommerce_archive_description', function () {
-	if ( ! ( function_exists( 'is_product_category' ) && is_product_category() ) ) { return; }
-	$term = get_queried_object();
-	if ( ! $term || is_wp_error( $term ) ) { return; }
-
-	$map = ef_two_col_carousel_map();
-	if ( ! isset( $map[ $term->slug ] ) ) { return; }
-
-	$cards = ef_two_col_carousel_cards( $map[ $term->slug ] );
-	if ( empty( $cards ) ) { return; }
-
-	echo '<section class="ef-cat-carousel-wrap">';
-	echo '<h2 class="ef-cc-heading">Shop by category</h2>';
-	echo '<div class="ef-cat-carousel ef-cat-carousel--2col">';
-	echo '<button type="button" class="ef-cc-arrow ef-cc-prev" aria-label="Previous">&lsaquo;</button>';
-	echo '<div class="ef-cc-track" role="list">';
-	foreach ( $cards as $c ) {
-		echo '<a class="ef-cc-card" role="listitem" href="' . esc_url( $c['link'] ) . '">';
-		echo '<span class="ef-cc-img">' . ( $c['img'] ? '<img src="' . esc_url( $c['img'] ) . '" alt="' . esc_attr( $c['title'] ) . '" loading="lazy" />' : '' ) . '</span>';
-		echo '<span class="ef-cc-name">' . esc_html( $c['title'] ) . '</span>';
-		echo '</a>';
-	}
-	echo '</div>';
-	echo '<button type="button" class="ef-cc-arrow ef-cc-next" aria-label="Next">&rsaquo;</button>';
-	echo '</div>';
-	echo '</section>';
-}, 15 );
-
-/** Carousel navigation JS (the commercial + two-column archives, and /shop). */
+/** Carousel navigation JS (category archives with a carousel, and /shop). */
 add_action( 'wp_footer', function () {
 	$ok = false;
 	if ( function_exists( 'is_shop' ) && is_shop() && ! ( function_exists( 'is_product_category' ) && is_product_category() ) ) {
 		$ok = true;
 	} elseif ( function_exists( 'is_product_category' ) && is_product_category() ) {
-		$term  = get_queried_object();
-		$slugs = array_merge( array( 'commercial-fridge', 'commercial-freezer' ), array_keys( ef_two_col_carousel_map() ) );
-		$ok    = ( $term && ! is_wp_error( $term ) && in_array( $term->slug, $slugs, true ) );
+		$term = get_queried_object();
+		$ok   = $term && ! is_wp_error( $term ) && ef_category_carousel_data( $term );
 	}
 	if ( ! $ok ) { return; }
 	?>
@@ -317,11 +293,13 @@ add_action( 'wp_footer', function () {
 			return card ? (card.offsetWidth + gap) : 260;
 		}
 		function update(){
+			var overflow = track.scrollWidth > track.clientWidth + 2;
+			cc.classList.toggle('is-static', !overflow);
 			if(prev){ prev.disabled = track.scrollLeft <= 2; }
 			if(next){ next.disabled = (track.scrollLeft + track.clientWidth) >= (track.scrollWidth - 2); }
 		}
-		if(prev){ prev.addEventListener('click', function(){ track.scrollBy({left: -step()*2, behavior:'smooth'}); }); }
-		if(next){ next.addEventListener('click', function(){ track.scrollBy({left: step()*2, behavior:'smooth'}); }); }
+		if(prev){ prev.addEventListener('click', function(){ track.scrollBy({left: -step(), behavior:'smooth'}); }); }
+		if(next){ next.addEventListener('click', function(){ track.scrollBy({left: step(), behavior:'smooth'}); }); }
 		track.addEventListener('scroll', update, {passive:true});
 		window.addEventListener('resize', update);
 		update();

@@ -3,7 +3,8 @@
  * Product categories' long-form content (imported 1:1 from the original
  * eco-fridge Toolset field `range-content-2`, stored in the `_ef_range_content` term meta).
  *
- *  - render: BELOW the product grid on category archives (as on the original site)
+ *  - render: BELOW the product grid on category archives (as on the original site);
+ *    on the commercial categories the ECO-Fridge Blocks landing sections render it
  *  - edit: a WYSIWYG box on the category edit screen (Products → Categories)
  *
  * @package Eco-Fridge-Child
@@ -18,6 +19,9 @@ add_action( 'woocommerce_after_shop_loop', function () {
 	if ( ! is_product_category() ) { return; }
 	$term = get_queried_object();
 	if ( ! $term || is_wp_error( $term ) ) { return; }
+	// Commercial categories: the ECO-Fridge Blocks landing sections show this text
+	// as their "Long description" section, in the order chosen on the category.
+	if ( function_exists( 'efb_landing_applies' ) && efb_landing_applies( $term->term_id ) ) { return; }
 	$content = get_term_meta( $term->term_id, '_ef_range_content', true );
 	if ( '' === trim( (string) $content ) ) { return; }
 
@@ -34,7 +38,7 @@ add_action( 'product_cat_edit_form_fields', function ( $term ) {
 	wp_nonce_field( 'ef_range_content_save', 'ef_range_content_nonce' );
 	?>
 	<tr class="form-field">
-		<th scope="row"><label for="ef_range_content"><?php esc_html_e( 'Category content (below products)', 'eco-fridge-child' ); ?></label></th>
+		<th scope="row"><label for="ef_range_content"><?php esc_html_e( 'Long description (below products)', 'eco-fridge-child' ); ?></label></th>
 		<td>
 			<?php
 			wp_editor(

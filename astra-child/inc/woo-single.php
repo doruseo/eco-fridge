@@ -51,8 +51,8 @@ add_action( 'woocommerce_before_single_product', function () {
 }, 5 );
 
 /* =========================================================================
- * 3. Delivery / trade notes + T&C — MOVED to the bottom of the page, after
- *    "Related products" and "Recently Viewed Products".
+ * 3. Delivery / trade notes + T&C — at the very bottom of the page content,
+ *    after "Related products", "Recently Viewed Products" and the category sections.
  * ========================================================================= */
 /**
  * "Recently Viewed Products" — grid (like Related Products) from the
@@ -138,20 +138,19 @@ function ef_trade_terms_box() {
 	<?php
 }
 
-// On the single product page: after "Related products" + "Recently Viewed Products".
+// On the single product page: after "Related products".
 add_action( 'woocommerce_after_single_product', function () {
 	echo ef_recently_viewed_html(); // phpcs:ignore
-	ef_trade_terms_box();
 }, 5 );
 
-// On product category archives: at the bottom of the page, after the product grid
-// and after the category long-form content (which is on after_shop_loop prio 20).
-add_action( 'woocommerce_after_shop_loop', function () {
-	if ( ! is_product_category() ) { return; }
-	$term = get_queried_object();
-	if ( ! $term || is_wp_error( $term ) ) { return; }
-	ef_trade_terms_box();
-}, 30 );
+// The trade notes + T&C box closes the page content on product pages and
+// product category archives: after everything else (product grid, category
+// texts and landing sections, related / recently viewed products).
+add_action( 'woocommerce_after_main_content', function () {
+	if ( is_product() || is_product_category() ) {
+		ef_trade_terms_box();
+	}
+}, 5 );
 
 /* =========================================================================
  * 3b. WooCommerce breadcrumbs: 🏢 instead of "Home", ">>" separator
@@ -176,6 +175,7 @@ add_filter( 'woocommerce_breadcrumb_defaults', function ( $args ) {
 
 /**
  * Add-on definitions: label shown to the customer, fee line name, price rule.
+ * The order is the display order (product page, cart, fee lines).
  *
  * @return array<string,array{label:string,fee:string,type:string,amount:float}>
  */
@@ -187,17 +187,17 @@ function ef_addon_defs() {
 			'type'   => 'fixed',
 			'amount' => (float) EF_REMOVAL_FEE,
 		),
-		'warranty' => array(
-			'label'  => '12 months parts warranty',
-			'fee'    => '12 months parts warranty',
-			'type'   => 'percent',
-			'amount' => (float) EF_WARRANTY_RATE,
-		),
 		'castors'  => array(
 			'label'  => 'Castors',
 			'fee'    => 'Castors',
 			'type'   => 'fixed',
 			'amount' => (float) EF_CASTORS_FEE,
+		),
+		'warranty' => array(
+			'label'  => '12 months parts warranty',
+			'fee'    => '12 months parts warranty',
+			'type'   => 'percent',
+			'amount' => (float) EF_WARRANTY_RATE,
 		),
 	);
 }
@@ -249,7 +249,9 @@ function ef_addon_label( $key, $product = null ) {
 	return $label;
 }
 
-// 4a. fields on the product page (the warranty under a toggle, as before).
+// 4a. fields on the product page: at the top of the cart form, which Astra shows
+//     right under the price — all visible, in the order Removal & Disposal,
+//     Castors, Warranty (above the quantity and Add to cart).
 add_action( 'woocommerce_before_add_to_cart_button', function () {
 	global $product;
 	if ( ! is_a( $product, 'WC_Product' ) || ! $product->is_purchasable() ) { return; }
@@ -257,14 +259,10 @@ add_action( 'woocommerce_before_add_to_cart_button', function () {
 	if ( ! $keys ) { return; }
 	echo '<div class="ef-addons">';
 	foreach ( $keys as $key ) {
-		$box = '<label class="ef-addon ef-addon--' . esc_attr( $key ) . '"><input type="checkbox" name="ef_' . esc_attr( $key ) . '" value="1"> <span>Add ' . ef_addon_label( $key, $product ) . '</span></label>';
-		if ( 'warranty' === $key ) {
-			$box = '<details class="ef-addon-toggle"><summary>Extended warranty options</summary>' . $box . '</details>';
-		}
-		echo $box; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
+		echo '<label class="ef-addon ef-addon--' . esc_attr( $key ) . '"><input type="checkbox" name="ef_' . esc_attr( $key ) . '" value="1"> <span>Add ' . ef_addon_label( $key, $product ) . '</span></label>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
 	}
 	echo '</div>';
-}, 15 );
+}, 5 );
 
 // 4b. capture the options into the cart item data (only those the product offers).
 add_filter( 'woocommerce_add_cart_item_data', function ( $data, $product_id ) {

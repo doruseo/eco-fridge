@@ -1,0 +1,8 @@
+/* Classic editor (product descriptions): tables look like on the site —
+   green header row and green border. !important: TinyMCE's own table helper
+   styles (.mce-item-table) would otherwise draw grey dashed borders. */
+table, table.mce-item-table { width: 100%; border-collapse: collapse; margin: 0 0 1.5em; font-size: 14px; border: 2px solid #228b22 !important; }
+table th, table td, table.mce-item-table th, table.mce-item-table td { padding: 8px 10px; border: 1px solid #b9dcb9 !important; text-align: left; vertical-align: top; }
+table thead th, table thead td { background: #228b22; border-color: #228b22 !important; color: #fff; font-weight: 600; }
+table tbody tr:nth-child(even) { background: #f8f9fa; }
+table caption { text-align: left; font-weight: 600; padding: 0 0 6px; }
