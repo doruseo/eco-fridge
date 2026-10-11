@@ -1,0 +1,59 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "category": "ecofridge",
+  "textdomain": "ecofridge-blocks",
+  "editorScript": "efb-editor",
+  "editorStyle": "efb-editor",
+  "style": "efb-blocks",
+  "render": "file:./render.php",
+  "name": "efb/product-grid",
+  "title": "Product Grid",
+  "description": "Products from a category with image, title and \u201cFrom \u00a3X +VAT\u201d price.",
+  "icon": "products",
+  "attributes": {
+    "category": {
+      "type": "number",
+      "default": 0
+    },
+    "count": {
+      "type": "number",
+      "default": 8
+    },
+    "columns": {
+      "type": "number",
+      "default": 4
+    },
+    "orderby": {
+      "type": "string",
+      "default": "menu_order"
+    },
+    "showPrice": {
+      "type": "boolean",
+      "default": true
+    },
+    "showButton": {
+      "type": "boolean",
+      "default": false
+    },
+    "ids": {
+      "type": "array",
+      "default": []
+    },
+    "market": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "supports": {
+    "html": false,
+    "anchor": true,
+    "align": [
+      "wide",
+      "full"
+    ],
+    "spacing": {
+      "margin": true
+    }
+  }
+}

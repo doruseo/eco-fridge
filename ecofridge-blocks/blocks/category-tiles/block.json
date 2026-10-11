@@ -1,0 +1,59 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "category": "ecofridge",
+  "textdomain": "ecofridge-blocks",
+  "editorScript": "efb-editor",
+  "editorStyle": "efb-editor",
+  "style": "efb-blocks",
+  "render": "file:./render.php",
+  "name": "efb/category-tiles",
+  "title": "Category Tiles",
+  "description": "Tiles (image + name) for a product category's sub-categories, or a hand-picked list.",
+  "icon": "grid-view",
+  "attributes": {
+    "parent": {
+      "type": "number",
+      "default": 0
+    },
+    "include": {
+      "type": "array",
+      "default": []
+    },
+    "columns": {
+      "type": "number",
+      "default": 4
+    },
+    "hideEmpty": {
+      "type": "boolean",
+      "default": true
+    },
+    "heading": {
+      "type": "string",
+      "default": ""
+    },
+    "headingLink": {
+      "type": "boolean",
+      "default": true
+    },
+    "style": {
+      "type": "string",
+      "default": "plain"
+    },
+    "items": {
+      "type": "array",
+      "default": []
+    }
+  },
+  "supports": {
+    "html": false,
+    "anchor": true,
+    "align": [
+      "wide",
+      "full"
+    ],
+    "spacing": {
+      "margin": true
+    }
+  }
+}

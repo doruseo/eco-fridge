@@ -208,8 +208,9 @@ add_action( 'astra_header_before', function () {
 	echo '</a>';
 	echo '<div class="ef-row1-right">';
 	ef_hdr_render_row1_nav();
-	if ( shortcode_exists( 'fibosearch' ) ) {
-		echo '<div class="ef-header-search">' . do_shortcode( '[fibosearch]' ) . '</div>';
+	// Live product search from the ECO-Fridge Blocks plugin (replaces FiboSearch).
+	if ( function_exists( 'efb_render_search_form' ) ) {
+		echo '<div class="ef-header-search">' . efb_render_search_form( array( 'showButton' => false ) ) . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput
 	}
 	echo '</div>';
 	// mobile/tablet actions (right): cart (moved here from row 2 via JS) + hamburger

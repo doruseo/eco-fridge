@@ -1,0 +1,55 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "category": "ecofridge",
+  "textdomain": "ecofridge-blocks",
+  "editorScript": "efb-editor",
+  "editorStyle": "efb-editor",
+  "style": "efb-blocks",
+  "render": "file:./render.php",
+  "name": "efb/contact-form",
+  "title": "Contact Form",
+  "description": "Contact / enquiry form. Entries are emailed and stored under Form Entries.",
+  "icon": "email",
+  "attributes": {
+    "formId": {
+      "type": "string",
+      "default": ""
+    },
+    "formName": {
+      "type": "string",
+      "default": "Contact form"
+    },
+    "fields": {
+      "type": "array",
+      "default": []
+    },
+    "recipient": {
+      "type": "string",
+      "default": "sales@eco-fridge.co.uk"
+    },
+    "subject": {
+      "type": "string",
+      "default": "Enquiry from ECO-Fridge website contact form"
+    },
+    "successMessage": {
+      "type": "string",
+      "default": "Thank you for your enquiry. We will be in touch shortly."
+    },
+    "buttonText": {
+      "type": "string",
+      "default": "Send"
+    }
+  },
+  "supports": {
+    "html": false,
+    "anchor": true,
+    "spacing": {
+      "margin": true
+    }
+  },
+  "viewScript": "efb-form",
+  "usesContext": [
+    "postId"
+  ]
+}

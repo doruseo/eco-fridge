@@ -3,10 +3,12 @@
  * Eco-Fridge Child — child theme functions.
  *
  * Hosts ONLY the logic that doesn't express cleanly in Astra Pro / Gutenberg:
- *  - "from-price" / £POA pricing on products + in the Spectra grids (product meta)
+ *  - "from-price" / £POA pricing on products (product meta)
  *  - delivery notes + T&C + add-ons on the product page (Woo hook, in inc/woo-single.php)
- *  - legacy order number, featured image on the blog, [ef_subcats] shortcode for the homepage
- *  - the homepage hero slider rotation
+ *  - legacy order number, featured image on the blog, [ef_subcats] shortcode
+ *
+ * Content blocks (sections, slider, offers, logos, tiles, search, forms, spec
+ * tables…) live in the ECO-Fridge Blocks plugin, not in the theme.
  *
  * Header, mega menu, footer and the "Call us today" banner are now NATIVE Astra
  * (Header/Footer Builder + Nav Menu mega + Custom Layout), configured from
@@ -38,6 +40,9 @@ require_once get_stylesheet_directory() . '/inc/category-carousel.php';
 
 // Customize controls for the green bar: cart icon (native Astra) + sticky.
 require_once get_stylesheet_directory() . '/inc/header-controls.php';
+
+// Order statuses: the shop's fulfilment flow (Processed / Shipped / Returned).
+require_once get_stylesheet_directory() . '/inc/order-statuses.php';
 
 /**
  * Google fonts 1:1 with the original: Oswald (headings) + Open Sans (body).
@@ -84,48 +89,6 @@ function ef_sort_terms_by_order( $terms ) {
 	} );
 	return $terms;
 }
-
-/**
- * Homepage hero slider — the rotation logic (crossfade, autoplay, dots, arrows,
- * pause on hover). Markup + CSS live in the homepage (wp:html) + the child theme;
- * the script is injected inline only on the front page so it isn't filtered by kses.
- */
-add_action( 'wp_footer', function () {
-	if ( ! is_front_page() ) {
-		return;
-	}
-	?>
-<script>
-(function(){
-	var hero = document.querySelector('.ef-hero');
-	if(!hero){ return; }
-	var slides = hero.querySelectorAll('.ef-hero-slide');
-	var dots   = hero.querySelectorAll('.ef-hero-dot');
-	var n = slides.length, i = 0, timer = null;
-	var delay = parseInt(hero.getAttribute('data-autoplay'), 10) || 6000;
-	if(n < 2){ return; }
-	function go(k){
-		slides[i].classList.remove('is-active');
-		if(dots[i]){ dots[i].classList.remove('is-active'); }
-		i = (k + n) % n;
-		slides[i].classList.add('is-active');
-		if(dots[i]){ dots[i].classList.add('is-active'); }
-	}
-	function next(){ go(i + 1); }
-	function prev(){ go(i - 1); }
-	function start(){ stop(); timer = setInterval(next, delay); }
-	function stop(){ if(timer){ clearInterval(timer); timer = null; } }
-	var nx = hero.querySelector('.ef-hero-next'), pv = hero.querySelector('.ef-hero-prev');
-	if(nx){ nx.addEventListener('click', function(){ next(); start(); }); }
-	if(pv){ pv.addEventListener('click', function(){ prev(); start(); }); }
-	Array.prototype.forEach.call(dots, function(d, k){ d.addEventListener('click', function(){ go(k); start(); }); });
-	hero.addEventListener('mouseenter', stop);
-	hero.addEventListener('mouseleave', start);
-	start();
-})();
-</script>
-	<?php
-}, 20 );
 
 /**
  * Featured image on blog posts (single post), shown AFTER the title +
@@ -223,26 +186,15 @@ function ef_from_price_html( $product_id ) {
 }
 
 /**
- * Show "From £X +VAT" below each product's title in the Spectra Post Grid blocks.
- * We post-process the block HTML (robust, independent of Spectra internals): after
- * each product title we inject the price, identifying the product from its permalink.
+ * Same fonts inside the block editor, so editing looks like the front end.
  */
-add_filter( 'render_block', function ( $content, $block ) {
-	if ( empty( $block['blockName'] ) || 'uagb/post-grid' !== $block['blockName'] ) {
-		return $content;
+add_action( 'enqueue_block_assets', function () {
+	if ( is_admin() ) {
+		wp_enqueue_style(
+			'eco-fridge-fonts',
+			'https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Oswald:wght@400;500;600;700&display=swap',
+			array(),
+			null
+		);
 	}
-	if ( strpos( $content, 'uagb-post__title' ) === false ) {
-		return $content;
-	}
-	return preg_replace_callback(
-		'/(<(h[1-6])[^>]*class="[^"]*uagb-post__title[^"]*"[^>]*>.*?href="([^"]+)".*?<\/\2>)/is',
-		function ( $m ) {
-			$pid = url_to_postid( $m[3] );
-			if ( $pid && 'product' === get_post_type( $pid ) ) {
-				return $m[1] . ef_from_price_html( $pid );
-			}
-			return $m[1];
-		},
-		$content
-	);
-}, 10, 2 );
+} );
