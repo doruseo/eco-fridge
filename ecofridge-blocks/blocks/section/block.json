@@ -1,0 +1,79 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "category": "ecofridge",
+  "textdomain": "ecofridge-blocks",
+  "editorScript": "efb-editor",
+  "editorStyle": "efb-editor",
+  "style": "efb-blocks",
+  "render": "file:./render.php",
+  "name": "efb/section",
+  "title": "Section",
+  "description": "A full-width or boxed section with background colour/image, padding and inner blocks.",
+  "icon": "align-wide",
+  "attributes": {
+    "tagName": {
+      "type": "string",
+      "default": "section"
+    },
+    "contentWidth": {
+      "type": "string",
+      "default": "boxed"
+    },
+    "maxWidth": {
+      "type": "number",
+      "default": 1240
+    },
+    "bgColor": {
+      "type": "string",
+      "default": ""
+    },
+    "textColor": {
+      "type": "string",
+      "default": ""
+    },
+    "bgImageId": {
+      "type": "number",
+      "default": 0
+    },
+    "bgImageUrl": {
+      "type": "string",
+      "default": ""
+    },
+    "overlay": {
+      "type": "number",
+      "default": 0
+    },
+    "paddingTop": {
+      "type": "number",
+      "default": 48
+    },
+    "paddingBottom": {
+      "type": "number",
+      "default": 48
+    },
+    "paddingTopMobile": {
+      "type": "number",
+      "default": 28
+    },
+    "paddingBottomMobile": {
+      "type": "number",
+      "default": 28
+    },
+    "textAlign": {
+      "type": "string",
+      "default": ""
+    }
+  },
+  "supports": {
+    "html": false,
+    "anchor": true,
+    "align": [
+      "wide",
+      "full"
+    ],
+    "spacing": {
+      "margin": true
+    }
+  }
+}

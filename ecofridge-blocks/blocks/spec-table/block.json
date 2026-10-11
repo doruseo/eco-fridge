@@ -1,0 +1,56 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "category": "ecofridge",
+  "textdomain": "ecofridge-blocks",
+  "editorScript": "efb-editor",
+  "editorStyle": "efb-editor",
+  "style": "efb-blocks",
+  "render": "file:./render.php",
+  "name": "efb/spec-table",
+  "title": "Spec Table",
+  "description": "Product specification table: sortable columns, stacked on mobile.",
+  "icon": "editor-table",
+  "attributes": {
+    "head": {
+      "type": "array",
+      "default": [
+        "Code",
+        "Dimensions WxDxH",
+        "Temp Range",
+        "Weight"
+      ]
+    },
+    "rows": {
+      "type": "array",
+      "default": [
+        [
+          "",
+          "",
+          "",
+          ""
+        ]
+      ]
+    },
+    "sortable": {
+      "type": "boolean",
+      "default": true
+    },
+    "caption": {
+      "type": "string",
+      "default": ""
+    }
+  },
+  "supports": {
+    "html": false,
+    "anchor": true,
+    "align": [
+      "wide",
+      "full"
+    ],
+    "spacing": {
+      "margin": true
+    }
+  },
+  "viewScript": "efb-table"
+}

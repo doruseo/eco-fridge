@@ -5,7 +5,7 @@ Description: Astra child theme for ECO-Fridge Ltd. Header/footer/mega-menu = NAT
 Author: O2 Digital
 Author URI: https://seo2agency.com/
 Template: astra
-Version: 0.6.4
+Version: 0.7.1
 Text Domain: eco-fridge-child
 */
 
@@ -729,6 +729,33 @@ div.wpforms-container .wpforms-submit:hover {
   .ef-cc-arrow { width: 34px; height: 34px; font-size: 1.3rem; }
 }
 
+/* Two-column variant (Display Cabinets / Storage Cabinets): 2 cards on desktop
+   and tablet, 1 on mobile. The `--2col` selectors outrank the plain .ef-cc-card
+   rules above, so the per-breakpoint card widths there don't apply here. */
+.ef-cat-carousel--2col .ef-cc-card { flex: 0 0 calc((100% - 16px) / 2); }
+@media (max-width: 640px) {
+  .ef-cat-carousel--2col .ef-cc-card { flex-basis: 100%; }
+}
+/* These cards use wide line-up banners (~2.5:1 to 3.2:1) whose products run to
+   both edges, so cropping to a squarer box would cut the outer products off.
+   The box matches the widest banner instead and the image is fitted whole —
+   the banners sit on white like the card, so the fit leaves no visible bars. */
+.ef-cat-carousel--2col .ef-cc-img {
+  height: auto;
+  aspect-ratio: 3 / 1;
+  min-height: 0;   /* it's a column flex item: without this, min-height:auto lets
+                      the image's own height win and the two cards end up uneven */
+  padding: 0;
+  overflow: hidden;
+}
+.ef-cat-carousel--2col .ef-cc-img img {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  object-fit: contain;
+}
+
 /* =========================================================================
    HERO SLIDER homepage (4 slide-uri, crossfade)
    ========================================================================= */
@@ -953,27 +980,17 @@ div.wpforms-container .wpforms-submit:hover {
 /* =========================================================================
    CART PAGE (/cart) — classic layout: items on the left, totals on the right
    ========================================================================= */
-@media (min-width: 769px) {
-  /* clearfix so the floated columns don't collapse the container */
-  .woocommerce-cart .woocommerce::after { content: ""; display: block; clear: both; }
-  /* full-width rows stay full width and clear the floats */
-  .woocommerce-cart .woocommerce > .woocommerce-notices-wrapper,
-  .woocommerce-cart .woocommerce > .woocommerce-message,
-  .woocommerce-cart .woocommerce > .woocommerce-info,
-  .woocommerce-cart .woocommerce > .woocommerce-error { clear: both; width: 100%; }
-  /* items table on the LEFT */
-  .woocommerce-cart form.woocommerce-cart-form {
-    float: left !important; width: calc(100% - 400px) !important; margin: 0 !important; clear: left;
-  }
-  /* Cart totals on the RIGHT */
-  .woocommerce-cart .cart-collaterals {
-    float: right !important; width: 360px !important; max-width: 40%; margin: 0 !important;
-  }
-  .woocommerce-cart .cart-collaterals .cart_totals,
-  .woocommerce-cart .cart-collaterals .cross-sells {
-    float: none !important; width: 100% !important; margin: 0;
-  }
-}
+/* Astra's modern cart layout already builds the two columns natively:
+   #ast-cart-wrapper is a flex row holding .ast-cart-non-sticky (the items form,
+   68%) and .cart-collaterals (the totals, 30%). Do NOT float these — the form
+   sits INSIDE .ast-cart-non-sticky, so floating it sizes it against the wrong
+   parent, and any pair of widths summing over 100% makes flex-wrap drop the
+   totals below the items. Widening the items column = widen .ast-cart-non-sticky
+   and keep the two widths under 100%. */
+
+/* cross-sells are removed server-side (see inc/woo-single.php §4g); this is a
+   safety net in case a plugin renders the block again */
+.woocommerce-cart .cross-sells { display: none !important; }
 /* the "Cart totals" panel — light framing so it reads as a distinct column */
 .woocommerce-cart .cart_totals > h2 { font-size: 1.15rem; }
 .woocommerce-cart .cart_totals table { background: var(--ef-stripe); }

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "category": "ecofridge",
+  "textdomain": "ecofridge-blocks",
+  "editorScript": "efb-editor",
+  "editorStyle": "efb-editor",
+  "style": "efb-blocks",
+  "render": "file:./render.php",
+  "name": "efb/logo-grid",
+  "title": "Logo Grid",
+  "description": "Client / partner logos in a responsive grid.",
+  "icon": "awards",
+  "attributes": {
+    "logos": {
+      "type": "array",
+      "default": []
+    },
+    "columns": {
+      "type": "number",
+      "default": 10
+    },
+    "grayscale": {
+      "type": "boolean",
+      "default": false
+    },
+    "heading": {
+      "type": "string",
+      "default": ""
+    },
+    "mobileCarousel": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "supports": {
+    "html": false,
+    "anchor": true,
+    "align": [
+      "wide",
+      "full"
+    ],
+    "spacing": {
+      "margin": true
+    }
+  }
+}
