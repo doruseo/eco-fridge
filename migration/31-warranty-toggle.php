@@ -82,7 +82,7 @@ $load_table = function ( $tid ) use ( $q, $px, $tp_map ) {
 	return array_map( 'array_values', $out );
 };
 
-$title = 'Warranty available on request – view prices';
+$title = 'Warranty';
 $stats = array( 'added' => 0, 'missing' => 0, 'empty' => 0 );
 foreach ( $rows as $r ) {
 	if ( ! preg_match( '~\[table id=(\d+)~', $r['meta_value'], $m ) ) {
@@ -108,7 +108,8 @@ foreach ( $rows as $r ) {
 	);
 
 	// Replace an earlier run's toggle, then insert after the last spec table.
-	$content = preg_replace( '~<!-- wp:efb/toggle \{[^}]*efb-toggle--warranty.*?<!-- /wp:efb/toggle -->\n?~s', '', $post->post_content );
+	// ("--" in the class is stored unicode-escaped by serialize_block_attributes().)
+	$content = preg_replace( '~<!-- wp:efb/toggle \{[^}]*efb-toggle(?:--|\\\\u002d\\\\u002d)warranty.*?<!-- /wp:efb/toggle -->\n?~s', '', $post->post_content );
 	$last    = strrpos( $content, '<!-- wp:efb/spec-table ' );
 	if ( false !== $last ) {
 		$end     = strpos( $content, '/-->', $last ) + 4;

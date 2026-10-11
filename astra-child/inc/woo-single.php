@@ -5,7 +5,8 @@
  *   - "+VAT" / £POA (from-price) pricing for products without a price
  *   - "Back to {category}" link
  *   - delivery/trade notes + T&C below the summary (global hook)
- *   - add-ons: 12 months extra warranty (+15%) under a toggle + Removal & Disposal (+£150)
+ *   - add-ons per product, as on live: Removal & Disposal (+£150), 12 months parts
+ *     warranty (+15% of the current price) under a toggle, Castors (+£100) —
  *     integrated into the cart, totals, checkout and order meta.
  *
  * @package Eco-Fridge-Child
@@ -14,7 +15,8 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 const EF_REMOVAL_FEE   = 150;   // £ Removal & Disposal
-const EF_WARRANTY_RATE = 0.15;  // +15% extra warranty
+const EF_WARRANTY_RATE = 0.15;  // 12 months parts warranty: 15% of the current price
+const EF_CASTORS_FEE   = 100;   // £ Castors
 
 /* =========================================================================
  * 1. PRICE: "+VAT" on display + £POA / from-price for products without a price
@@ -162,102 +164,212 @@ add_filter( 'woocommerce_breadcrumb_defaults', function ( $args ) {
 } );
 
 /* =========================================================================
- * 4. Product ADD-ONS: extra warranty (+15%) + Removal & Disposal (+£150)
+ * 4. Product ADD-ONS — 1:1 with the original YITH add-ons on the live site:
+ *      - Removal & Disposal: £150 per unit (fixed)
+ *      - 12 months parts warranty: 15% of the product's CURRENT price per unit
+ *        (the sale price when the product is on offer, as YITH calculated it)
+ *      - Castors: £100 per unit (fixed)
+ *    Each product offers only its own add-ons (product meta `_ef_addons`,
+ *    synced from live by migration/32-addons-live.php, editable in the
+ *    product's General tab). Products without any show none.
  * ========================================================================= */
 
-// 4a. fields on the product page (warranty under a toggle, as in the original)
+/**
+ * Add-on definitions: label shown to the customer, fee line name, price rule.
+ *
+ * @return array<string,array{label:string,fee:string,type:string,amount:float}>
+ */
+function ef_addon_defs() {
+	return array(
+		'removal'  => array(
+			'label'  => 'Removal &amp; Disposal',
+			'fee'    => 'Removal & Disposal',
+			'type'   => 'fixed',
+			'amount' => (float) EF_REMOVAL_FEE,
+		),
+		'warranty' => array(
+			'label'  => '12 months parts warranty',
+			'fee'    => '12 months parts warranty',
+			'type'   => 'percent',
+			'amount' => (float) EF_WARRANTY_RATE,
+		),
+		'castors'  => array(
+			'label'  => 'Castors',
+			'fee'    => 'Castors',
+			'type'   => 'fixed',
+			'amount' => (float) EF_CASTORS_FEE,
+		),
+	);
+}
+
+/**
+ * Add-on keys a product offers.
+ *
+ * @param int $product_id Product ID.
+ * @return string[]
+ */
+function ef_product_addons( $product_id ) {
+	$keys = get_post_meta( $product_id, '_ef_addons', true );
+	return array_values( array_intersect( array_keys( ef_addon_defs() ), is_array( $keys ) ? $keys : array() ) );
+}
+
+/**
+ * Price of one add-on for one unit of a product (ex-VAT).
+ *
+ * @param string     $key     Add-on key.
+ * @param WC_Product $product Product.
+ * @return float
+ */
+function ef_addon_unit_price( $key, $product ) {
+	$def = ef_addon_defs()[ $key ];
+	if ( 'percent' === $def['type'] ) {
+		return round( (float) $product->get_price() * $def['amount'], 2 );
+	}
+	return $def['amount'];
+}
+
+/**
+ * Checkbox label, e.g. "12 months parts warranty + 15% (+£97.50)".
+ *
+ * @param string          $key     Add-on key.
+ * @param WC_Product|null $product Product (for the calculated amount).
+ * @return string HTML.
+ */
+function ef_addon_label( $key, $product = null ) {
+	$def   = ef_addon_defs()[ $key ];
+	$label = '<strong>' . $def['label'] . '</strong>';
+	if ( 'percent' === $def['type'] ) {
+		$label .= ' + ' . ( $def['amount'] * 100 ) . '%';
+	}
+	if ( $product && '' !== (string) $product->get_price() ) {
+		$label .= ' <em>(+' . wc_price( ef_addon_unit_price( $key, $product ) ) . ')</em>';
+	} elseif ( 'fixed' === $def['type'] ) {
+		$label .= ' <em>(+&pound;' . esc_html( $def['amount'] ) . ')</em>';
+	}
+	return $label;
+}
+
+// 4a. fields on the product page (the warranty under a toggle, as before).
 add_action( 'woocommerce_before_add_to_cart_button', function () {
 	global $product;
 	if ( ! is_a( $product, 'WC_Product' ) || ! $product->is_purchasable() ) { return; }
-	?>
-	<div class="ef-addons">
-		<label class="ef-addon ef-addon--removal">
-			<input type="checkbox" name="ef_removal" value="1">
-			<span>Add <strong>Removal &amp; Disposal</strong> of your old unit <em>(+&pound;<?php echo esc_html( EF_REMOVAL_FEE ); ?>)</em></span>
-		</label>
-		<details class="ef-addon-toggle">
-			<summary>Extended warranty options</summary>
-			<label class="ef-addon ef-addon--warranty">
-				<input type="checkbox" name="ef_warranty" value="1">
-				<span>Add <strong>12 months extra warranty</strong> <em>(+15%)</em></span>
-			</label>
-		</details>
-	</div>
-	<?php
+	$keys = ef_product_addons( $product->get_id() );
+	if ( ! $keys ) { return; }
+	echo '<div class="ef-addons">';
+	foreach ( $keys as $key ) {
+		$box = '<label class="ef-addon ef-addon--' . esc_attr( $key ) . '"><input type="checkbox" name="ef_' . esc_attr( $key ) . '" value="1"> <span>Add ' . ef_addon_label( $key, $product ) . '</span></label>';
+		if ( 'warranty' === $key ) {
+			$box = '<details class="ef-addon-toggle"><summary>Extended warranty options</summary>' . $box . '</details>';
+		}
+		echo $box; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
+	}
+	echo '</div>';
 }, 15 );
 
-// 4b. capture the options into the cart item data
+// 4b. capture the options into the cart item data (only those the product offers).
 add_filter( 'woocommerce_add_cart_item_data', function ( $data, $product_id ) {
-	if ( ! empty( $_POST['ef_removal'] ) ) { $data['ef_removal'] = 1; }
-	if ( ! empty( $_POST['ef_warranty'] ) ) { $data['ef_warranty'] = 1; }
+	foreach ( ef_product_addons( $product_id ) as $key ) {
+		if ( ! empty( $_POST[ 'ef_' . $key ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- WC add-to-cart request.
+			$data[ 'ef_' . $key ] = 1;
+		}
+	}
 	return $data;
 }, 10, 2 );
 
 // 4c. add-ons as SEPARATE fees in the cart — distinct lines, with VAT applied.
-//     The product price stays untouched (ex-VAT); Removal & Disposal and Warranty
-//     appear as their own rows, and VAT is calculated across everything (product + fees).
+//     The product price stays untouched (ex-VAT); each add-on appears as its own
+//     row (per unit × quantity), and VAT is calculated across everything.
 add_action( 'woocommerce_cart_calculate_fees', function ( $cart ) {
 	if ( is_admin() && ! defined( 'DOING_AJAX' ) ) { return; }
-	$removal_total  = 0.0;
-	$warranty_total = 0.0;
+	$totals = array();
 	foreach ( $cart->get_cart() as $item ) {
 		$qty = max( 1, (int) $item['quantity'] );
-		if ( ! empty( $item['ef_removal'] ) ) {
-			$removal_total += EF_REMOVAL_FEE * $qty;
-		}
-		if ( ! empty( $item['ef_warranty'] ) ) {
-			$base            = (float) $item['data']->get_regular_price();
-			$warranty_total += $base * EF_WARRANTY_RATE * $qty;
+		foreach ( ef_product_addons( $item['product_id'] ) as $key ) {
+			if ( ! empty( $item[ 'ef_' . $key ] ) ) {
+				$totals[ $key ] = ( $totals[ $key ] ?? 0 ) + ef_addon_unit_price( $key, $item['data'] ) * $qty;
+			}
 		}
 	}
 	// add_fee( name, amount, taxable=true, tax_class='' → Standard 20% )
-	if ( $removal_total > 0 ) {
-		$cart->add_fee( __( 'Removal & Disposal', 'eco-fridge-child' ), $removal_total, true, '' );
-	}
-	if ( $warranty_total > 0 ) {
-		$cart->add_fee( __( 'Extended warranty (12 months)', 'eco-fridge-child' ), $warranty_total, true, '' );
+	foreach ( ef_addon_defs() as $key => $def ) {
+		if ( ! empty( $totals[ $key ] ) ) {
+			$cart->add_fee( $def['fee'], $totals[ $key ], true, '' );
+		}
 	}
 }, 20 );
 
 // 4d. mark on the product line which add-ons were chosen (no price — the amount is on the fee line)
 add_filter( 'woocommerce_get_item_data', function ( $items, $cart_item ) {
-	if ( ! empty( $cart_item['ef_removal'] ) ) {
-		$items[] = array( 'key' => 'Removal &amp; Disposal', 'value' => 'Added' );
-	}
-	if ( ! empty( $cart_item['ef_warranty'] ) ) {
-		$items[] = array( 'key' => 'Extended warranty', 'value' => '12 months' );
+	foreach ( ef_addon_defs() as $key => $def ) {
+		if ( ! empty( $cart_item[ 'ef_' . $key ] ) ) {
+			$items[] = array( 'key' => $def['label'], 'value' => 'Added' );
+		}
 	}
 	return $items;
 }, 10, 2 );
 
 // 4e. save the selection as meta on the order line item (the amount stays on the order fees)
 add_action( 'woocommerce_checkout_create_order_line_item', function ( $item, $key, $values ) {
-	if ( ! empty( $values['ef_removal'] ) ) { $item->add_meta_data( 'Removal & Disposal', 'Added', true ); }
-	if ( ! empty( $values['ef_warranty'] ) ) { $item->add_meta_data( 'Extended warranty', '12 months', true ); }
+	foreach ( ef_addon_defs() as $addon => $def ) {
+		if ( ! empty( $values[ 'ef_' . $addon ] ) ) {
+			$item->add_meta_data( $def['fee'], 'Added', true );
+		}
+	}
 }, 10, 3 );
 
+// "Order again" restores the add-ons chosen on the original order.
+add_filter( 'woocommerce_order_again_cart_item_data', function ( $data, $item ) {
+	foreach ( ef_addon_defs() as $addon => $def ) {
+		if ( $item->get_meta( $def['fee'] ) ) {
+			$data[ 'ef_' . $addon ] = 1;
+		}
+	}
+	return $data;
+}, 10, 2 );
+
+// Admin: choose which add-ons a product offers (General tab).
+add_action( 'woocommerce_product_options_general_product_data', function () {
+	global $post;
+	$keys = ef_product_addons( $post->ID );
+	echo '<div class="options_group"><p class="form-field"><label>' . esc_html__( 'Add-ons offered', 'eco-fridge-child' ) . '</label>';
+	foreach ( ef_addon_defs() as $key => $def ) {
+		printf(
+			'<label style="display:block;width:auto;float:none;margin:0 0 4px"><input type="checkbox" name="ef_addons[]" value="%1$s" %2$s> %3$s</label>',
+			esc_attr( $key ),
+			checked( in_array( $key, $keys, true ), true, false ),
+			wp_kses_post( ef_addon_label( $key ) )
+		);
+	}
+	echo '</p></div>';
+} );
+add_action( 'woocommerce_admin_process_product_object', function ( $product ) {
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- WC verifies the product save nonce.
+	$keys = isset( $_POST['ef_addons'] ) ? array_map( 'sanitize_key', (array) wp_unslash( $_POST['ef_addons'] ) ) : array();
+	$product->update_meta_data( '_ef_addons', array_values( array_intersect( array_keys( ef_addon_defs() ), $keys ) ) );
+} );
+
 /* =========================================================================
- * 4f. PER-ITEM add-on checkboxes on the /cart page, so a customer who forgot to
- *     add Removal & Disposal or the 12-month warranty on the product page can
- *     add them here — to a single item or to several. Rendered inside each cart
- *     row (inside the cart form); a change auto-submits and applies per item.
+ * 4f. PER-ITEM add-on checkboxes on the /cart page, so a customer who forgot an
+ *     add-on on the product page can add it here — to a single item or to
+ *     several. Rendered inside each cart row (inside the cart form); a change
+ *     auto-submits and applies per item.
  * ========================================================================= */
 
-// Render the two checkboxes under each cart item's name (inside the cart form).
+// Render the product's add-on checkboxes under each cart item's name (inside the cart form).
 add_action( 'woocommerce_after_cart_item_name', function ( $cart_item, $cart_item_key ) {
-	$key = esc_attr( $cart_item_key );
-	?>
-	<div class="ef-cart-item-addons">
-		<label class="ef-addon ef-addon--removal">
-			<input type="checkbox" name="ef_item_removal[<?php echo $key; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>]" value="1" <?php checked( ! empty( $cart_item['ef_removal'] ) ); ?>>
-			<span>Add <strong>Removal &amp; Disposal</strong> <em>(+&pound;<?php echo esc_html( EF_REMOVAL_FEE ); ?>)</em></span>
-		</label>
-		<label class="ef-addon ef-addon--warranty">
-			<input type="checkbox" name="ef_item_warranty[<?php echo $key; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>]" value="1" <?php checked( ! empty( $cart_item['ef_warranty'] ) ); ?>>
-			<span>Add <strong>12 months warranty</strong> <em>(+15%)</em></span>
-		</label>
-	</div>
-	<?php
+	$keys = ef_product_addons( $cart_item['product_id'] );
+	if ( ! $keys ) { return; }
+	echo '<div class="ef-cart-item-addons">';
+	foreach ( $keys as $key ) {
+		printf(
+			'<label class="ef-addon ef-addon--%1$s"><input type="checkbox" name="ef_item_%1$s[%2$s]" value="1" %3$s> <span>Add %4$s</span></label>',
+			esc_attr( $key ),
+			esc_attr( $cart_item_key ),
+			checked( ! empty( $cart_item[ 'ef_' . $key ] ), true, false ),
+			ef_addon_label( $key, $cart_item['data'] ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
+		);
+	}
+	echo '</div>';
 }, 10, 2 );
 
 /**
@@ -276,13 +388,16 @@ add_action( 'woocommerce_cart_updated', function () {
 	if ( ! wp_verify_nonce( $nonce, 'woocommerce-cart' ) ) { return; }
 	if ( ! WC()->cart ) { return; }
 
-	$done    = true; // set before set_session() to break the cart_updated recursion.
-	$removal = isset( $_POST['ef_item_removal'] ) ? array_map( 'absint', (array) wp_unslash( $_POST['ef_item_removal'] ) ) : array(); // phpcs:ignore
-	$warranty = isset( $_POST['ef_item_warranty'] ) ? array_map( 'absint', (array) wp_unslash( $_POST['ef_item_warranty'] ) ) : array(); // phpcs:ignore
-
+	$done   = true; // set before set_session() to break the cart_updated recursion.
+	$chosen = array();
+	foreach ( array_keys( ef_addon_defs() ) as $addon ) {
+		$chosen[ $addon ] = isset( $_POST[ 'ef_item_' . $addon ] ) ? array_map( 'absint', (array) wp_unslash( $_POST[ 'ef_item_' . $addon ] ) ) : array(); // phpcs:ignore
+	}
 	foreach ( WC()->cart->get_cart() as $key => $item ) {
-		WC()->cart->cart_contents[ $key ]['ef_removal']  = ! empty( $removal[ $key ] ) ? 1 : 0;
-		WC()->cart->cart_contents[ $key ]['ef_warranty'] = ! empty( $warranty[ $key ] ) ? 1 : 0;
+		$allowed = ef_product_addons( $item['product_id'] );
+		foreach ( array_keys( ef_addon_defs() ) as $addon ) {
+			WC()->cart->cart_contents[ $key ][ 'ef_' . $addon ] = ( in_array( $addon, $allowed, true ) && ! empty( $chosen[ $addon ][ $key ] ) ) ? 1 : 0;
+		}
 	}
 	WC()->cart->set_session();
 }, 10 );
