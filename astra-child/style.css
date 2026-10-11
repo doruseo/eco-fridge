@@ -5,7 +5,7 @@ Description: Astra child theme for ECO-Fridge Ltd. Header/footer/mega-menu = NAT
 Author: O2 Digital
 Author URI: https://seo2agency.com/
 Template: astra
-Version: 0.7.1
+Version: 0.7.8
 Text Domain: eco-fridge-child
 */
 
@@ -461,46 +461,49 @@ a:hover, a:focus { color: var(--ef-text); }
 }
 
 /* =========================================================================
-   NATIVE Astra FOOTER — brand style (dark background, like the original)
+   NATIVE Astra FOOTER — brand green like the commercial menu bar and the
+   scroll-to-top button, white text
    (the content = HTML elements in the Footer Builder, editable from the Customizer)
    ========================================================================= */
-/* main row (3 columns): light green background, black text, dark green links */
-.site-primary-footer-wrap { background: #d3ecd0; }
+/* main row (3 columns): brand green background, white text and links */
+.site-primary-footer-wrap { background: var(--ef-brand); }
 .site-footer .ast-builder-html-element,
-.site-footer .ast-builder-html-element p { color: #111; line-height: 1.7; }
-.site-footer .ast-builder-html-element h3 {
-  font-family: var(--ef-font-head);
-  text-transform: uppercase;
-  letter-spacing: .03em;
-  color: #111;
-  font-size: 1.1rem;
-  margin: 0 0 14px;
-}
-.site-footer .ast-builder-html-element a { color: var(--ef-brand-dark); text-decoration: none; font-weight: 600; }
-.site-footer .ast-builder-html-element a:hover { color: #000; text-decoration: underline; }
-.site-footer .ast-builder-html-element ul { list-style: none; margin: 0; padding: 0; }
-.site-footer .ast-builder-html-element li { margin: 0 0 8px; }
-
-/* the "Information" column = Navigation Menu widget (same style as the other columns) */
+.site-footer .ast-builder-html-element p { color: #fff; line-height: 1.7; }
+.site-footer .ast-builder-html-element h3,
 .site-footer .footer-widget-area .widget-title {
   font-family: var(--ef-font-head);
   text-transform: uppercase;
   letter-spacing: .03em;
-  color: #111;
+  color: #fff;
   font-size: 1.1rem;
-  margin: 0 0 14px;
+  margin: 0 0 16px;
+  /* inline-block: the light-green underline follows the column's alignment */
+  display: inline-block;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--ef-brand-light);
 }
+.site-footer .ast-builder-html-element a,
+.site-footer .footer-widget-area a { color: #fff; text-decoration: none; font-weight: 600; }
+.site-footer .ast-builder-html-element a:hover,
+.site-footer .ast-builder-html-element a:focus-visible,
+.site-footer .footer-widget-area a:hover,
+.site-footer .footer-widget-area a:focus-visible { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+.site-footer .ast-builder-html-element ul,
 .site-footer .footer-widget-area ul { list-style: none; margin: 0; padding: 0; }
-.site-footer .footer-widget-area li { margin: 0 0 8px; }
-.site-footer .footer-widget-area a { color: var(--ef-brand-dark); text-decoration: none; font-weight: 600; }
-.site-footer .footer-widget-area a:hover { color: #000; text-decoration: underline; }
+.site-footer .ast-builder-html-element li,
+.site-footer .footer-widget-area li { margin: 0 0 8px; color: #fff; }
 
-/* bottom row (copyright): black background, white text, green links */
-.site-below-footer-wrap { background: #000; color: #fff; }
+/* bottom row (copyright): darker green, white text, light green links */
+.site-below-footer-wrap { background: var(--ef-brand-dark); color: #fff; border-top: 1px solid rgba(255,255,255,.18); }
+.site-below-footer-wrap,
+.site-below-footer-wrap p,
+.site-below-footer-wrap .ast-footer-copyright { color: #fff; }
 .site-below-footer-wrap p { margin: 0; }
-.site-below-footer-wrap a { color: var(--ef-brand-light); text-decoration: underline; }
+.site-below-footer-wrap a { color: #c8e6c9; text-decoration: underline; }
 .site-below-footer-wrap a:hover { color: #fff; }
 .ef-footer-credit { font-size: .82rem; opacity: .9; margin-top: 4px !important; }
+/* The scroll-to-top button is brand green too: a white ring keeps it visible over the footer. */
+#ast-scroll-top { box-shadow: 0 0 0 2px #fff, 0 4px 12px rgba(0,0,0,.18); }
 
 /* =========================================================================
    FiboSearch SEARCH — rectangular with rounded corners, NO magnifier
@@ -626,9 +629,13 @@ div.wpforms-container .wpforms-submit:hover {
 }
 
 /* =========================================================================
-   SUBCATEGORY CAROUSEL (Commercial Fridge / Freezer) — after the short description
+   CATEGORY CAROUSELS — after the short description, before the product grid:
+   "Shop by category" (two type banners) and "Subcategories" (carousel).
+   Large arrows sit over the edges of the track, so they take no width of
+   their own; 3 large cards per view on desktop; every image shown whole.
    ========================================================================= */
-.ef-cat-carousel-wrap { margin: 22px 0 30px; }
+.ef-cat-carousel-wrap { margin: 22px 0 34px; }
+.ef-cat-carousel-wrap .ef-cat-carousel + .ef-cc-heading { margin-top: 30px; }
 .ef-cc-heading {
   font-family: var(--ef-font-head);
   text-transform: uppercase;
@@ -637,44 +644,21 @@ div.wpforms-container .wpforms-submit:hover {
   color: var(--ef-text);
   margin: 0 0 14px;
 }
-/* tier-2 "clouds" (Display/Storage Fridge·Freezer) above the carousel — text pills, no icon */
-.ef-cc-chips { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 18px; }
-.ef-cc-chip {
-  display: inline-block;
-  padding: 9px 22px;
-  border-radius: 999px;
-  background: var(--ef-brand);
-  color: #fff !important;
-  text-decoration: none;
-  font-family: var(--ef-font-head);
-  text-transform: uppercase;
-  letter-spacing: .03em;
-  font-size: .82rem;
-  line-height: 1.2;
-  box-shadow: 0 3px 10px rgba(34,139,34,.22);
-  transition: background .18s ease, transform .18s ease, box-shadow .18s ease;
-}
-.ef-cc-chip:hover {
-  background: var(--ef-brand-dark);
-  color: #fff !important;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(34,139,34,.3);
-}
 
-.ef-cat-carousel { position: relative; padding: 0 46px; }
+.ef-cat-carousel { position: relative; }
 .ef-cc-track {
   display: flex;
-  gap: 16px;
+  gap: 20px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
-  padding: 6px 2px 12px;
+  padding: 6px 2px 14px;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 .ef-cc-track::-webkit-scrollbar { display: none; }
 .ef-cc-card {
-  flex: 0 0 calc((100% - 48px) / 4);   /* 4 carduri pe desktop */
+  flex: 0 0 calc((100% - 40px) / 3);   /* 3 large cards on desktop */
   scroll-snap-align: start;
   display: flex;
   flex-direction: column;
@@ -690,70 +674,85 @@ div.wpforms-container .wpforms-submit:hover {
   box-shadow: 0 12px 26px rgba(0,0,0,.10);
   border-color: var(--ef-brand-light);
 }
+/* Fixed box, image fitted whole inside it (never cropped). */
 .ef-cc-img {
   display: flex; align-items: center; justify-content: center;
-  height: 150px; background: #fff; padding: 14px;
+  height: 240px; min-height: 0; background: #fff; padding: 16px;
 }
-.ef-cc-img img { max-height: 128px; max-width: 100%; width: auto; object-fit: contain; }
+.ef-cc-img img {
+  width: 100%; height: 100%;
+  max-width: 100%; max-height: 100%;
+  object-fit: contain;
+  margin: 0;
+}
 .ef-cc-name {
   display: block; text-align: center;
-  font-family: var(--ef-font-head); font-size: .9rem; line-height: 1.3;
+  font-family: var(--ef-font-head); font-size: 1.02rem; line-height: 1.3;
   color: var(--ef-text);
-  padding: 12px 10px 16px;
+  padding: 14px 12px 18px;
   border-top: 1px solid var(--ef-divider);
   background: #fafafa;
+  margin-top: auto;
   transition: color .18s ease;
 }
 .ef-cc-card:hover .ef-cc-name { color: var(--ef-brand); }
+
+/* Large round arrows over the track's edges (half outside), no reserved gutter. */
 .ef-cc-arrow {
-  position: absolute; top: calc(50% - 4px); transform: translateY(-50%);
-  width: 40px; height: 40px; border-radius: 50%;
-  border: 1px solid var(--ef-border); background: #fff; color: var(--ef-text);
-  font-size: 1.6rem; line-height: 1; cursor: pointer; z-index: 3;
-  box-shadow: 0 4px 12px rgba(0,0,0,.10);
+  position: absolute; top: calc(50% - 7px); transform: translateY(-50%);
+  width: 54px; height: 54px; border-radius: 50%;
+  border: 1px solid var(--ef-border); background: rgba(255,255,255,.96); color: var(--ef-text);
+  font-size: 2.4rem; line-height: 1; cursor: pointer; z-index: 3;
+  box-shadow: 0 6px 18px rgba(0,0,0,.16);
   display: flex; align-items: center; justify-content: center;
+  padding: 0 0 4px;
   transition: background .18s ease, color .18s ease, border-color .18s ease, opacity .18s ease;
 }
 .ef-cc-arrow:hover { background: var(--ef-brand); color: #fff; border-color: var(--ef-brand); }
-.ef-cc-arrow:disabled { opacity: .3; cursor: default; box-shadow: none; }
-.ef-cc-prev { left: 0; } .ef-cc-next { right: 0; }
+.ef-cc-arrow:disabled { opacity: 0; pointer-events: none; }
+.ef-cc-prev { left: -20px; } .ef-cc-next { right: -20px; }
+.ef-cat-carousel.is-static .ef-cc-arrow { display: none; }
+
 @media (max-width: 900px) {
-  .ef-cc-card { flex-basis: calc((100% - 32px) / 3); }
-  .ef-cc-img { height: 132px; }
+  .ef-cc-card { flex-basis: calc((100% - 20px) / 2); }
+  .ef-cc-img { height: 210px; }
+  .ef-cc-prev { left: -8px; } .ef-cc-next { right: -8px; }
 }
-@media (max-width: 640px) {
-  .ef-cat-carousel { padding: 0 32px; }
-  .ef-cc-card { flex-basis: calc((100% - 16px) / 2); }
-  .ef-cc-img { height: 120px; }
-  .ef-cc-name { font-size: .82rem; }
-  .ef-cc-arrow { width: 34px; height: 34px; font-size: 1.3rem; }
+@media (max-width: 520px) {
+  .ef-cc-track { gap: 14px; }
+  .ef-cc-card { flex-basis: 78%; }       /* one large card + a peek of the next */
+  .ef-cc-img { height: 220px; }
+  .ef-cc-name { font-size: .95rem; }
+  .ef-cc-arrow { width: 46px; height: 46px; font-size: 2rem; }
+  .ef-cc-prev { left: 4px; } .ef-cc-next { right: 4px; }
 }
 
-/* Two-column variant (Display Cabinets / Storage Cabinets): 2 cards on desktop
-   and tablet, 1 on mobile. The `--2col` selectors outrank the plain .ef-cc-card
-   rules above, so the per-breakpoint card widths there don't apply here. */
-.ef-cat-carousel--2col .ef-cc-card { flex: 0 0 calc((100% - 16px) / 2); }
-@media (max-width: 640px) {
-  .ef-cat-carousel--2col .ef-cc-card { flex-basis: 100%; }
-}
-/* These cards use wide line-up banners (~2.5:1 to 3.2:1) whose products run to
-   both edges, so cropping to a squarer box would cut the outer products off.
-   The box matches the widest banner instead and the image is fitted whole —
-   the banners sit on white like the card, so the fit leaves no visible bars. */
+/* Two-column variant (the two type banners): 2 cards on desktop and tablet,
+   1 on mobile. These are wide line-up banners (~2.5:1 to 3.2:1) whose products
+   run to both edges, so the box matches the widest banner and the image is fitted
+   whole — the banners sit on white like the card, so the fit leaves no visible bars. */
+.ef-cat-carousel--2col .ef-cc-card { flex: 0 0 calc((100% - 20px) / 2); }
 .ef-cat-carousel--2col .ef-cc-img {
   height: auto;
   aspect-ratio: 3 / 1;
-  min-height: 0;   /* it's a column flex item: without this, min-height:auto lets
-                      the image's own height win and the two cards end up uneven */
   padding: 0;
   overflow: hidden;
 }
-.ef-cat-carousel--2col .ef-cc-img img {
+@media (max-width: 640px) {
+  .ef-cat-carousel--2col .ef-cc-card { flex-basis: 100%; }
+}
+
+/* =========================================================================
+   PRODUCT GRIDS — every product image shown whole inside a square box
+   (WooCommerce thumbnails are uncropped, see migration/33).
+   ========================================================================= */
+.woocommerce ul.products li.product a img,
+.woocommerce-page ul.products li.product a img {
   width: 100%;
-  height: 100%;
-  max-width: none;
-  max-height: none;
+  height: auto;
+  aspect-ratio: 1 / 1;
   object-fit: contain;
+  background: #fff;
 }
 
 /* =========================================================================
@@ -968,14 +967,6 @@ div.wpforms-container .wpforms-submit:hover {
 }
 .ef-addon input { margin-top: 3px; }
 .ef-addon em { color: var(--ef-brand); font-style: normal; font-weight: 700; }
-.ef-addon-toggle summary {
-  cursor: pointer; font-family: var(--ef-font-head); text-transform: uppercase;
-  letter-spacing: .02em; font-size: .85rem; color: var(--ef-brand); padding: 6px 0;
-  list-style: none;
-}
-.ef-addon-toggle summary::-webkit-details-marker { display: none; }
-.ef-addon-toggle summary::before { content: "\25B8 "; }
-.ef-addon-toggle[open] summary::before { content: "\25BE "; }
 
 /* =========================================================================
    CART PAGE (/cart) — classic layout: items on the left, totals on the right
@@ -1065,3 +1056,32 @@ div.wpforms-container .wpforms-submit:hover {
   .ef-seo-content h2 { font-size: 1.3rem; }
   .ef-seo-content h3 { font-size: 1.1rem; }
 }
+
+/* =========================================================================
+   IMAGES IN EDITABLE TEXT — on their own line, with a blank line's space
+   above and below (posts, pages, product descriptions, category texts, FAQ
+   answers). Floated left/right images keep the text beside them and get the
+   blank line below. Component images (logos, cards, sliders, grids) are untouched.
+   ========================================================================= */
+:is(.entry-content, .ef-range-content, .ef-seo-content, .term-description, .woocommerce-product-details__short-description, .woocommerce-Tabs-panel, .efbl-faq__a-inner, .efb-toggle__body)
+  :is(p, h2, h3, h4, h5, h6, td, th, li, dd, .wp-block-html) img:not(.alignleft):not(.alignright):not(.emoji):not(.avatar):not(:is(.efb-logos, .efb-offers, .efb-tiles, .efb-cards, .efb-products, .efb-hero, .efb-cta, .efbl-carousel, .efbl-cats, .efbl-articles, .efbl-reviews) img) {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1.6rem auto;
+}
+:is(.entry-content, .ef-range-content, .ef-seo-content, .term-description, .woocommerce-product-details__short-description, .woocommerce-Tabs-panel, .efbl-faq__a-inner, .efb-toggle__body)
+  :is(figure.wp-block-image, .wp-caption):not(.alignleft):not(.alignright) {
+  margin-top: 1.6rem;
+  margin-bottom: 1.6rem;
+}
+:is(.entry-content, .ef-range-content, .ef-seo-content, .term-description, .woocommerce-product-details__short-description, .woocommerce-Tabs-panel, .efbl-faq__a-inner, .efb-toggle__body)
+  :is(figure.wp-block-image, .wp-caption) img { margin-top: 0; margin-bottom: 0; }
+:is(.entry-content, .ef-range-content, .ef-seo-content, .term-description, .woocommerce-product-details__short-description, .woocommerce-Tabs-panel, .efbl-faq__a-inner, .efb-toggle__body)
+  :is(img, figure, .wp-caption):is(.alignleft, .alignright) {
+  margin-top: .4rem;
+  margin-bottom: 1.6rem;
+}
+/* A link wrapping an image becomes a block too, so the image sits on its own line. */
+:is(.entry-content, .ef-range-content, .ef-seo-content, .term-description, .woocommerce-Tabs-panel, .efbl-faq__a-inner, .efb-toggle__body)
+  :is(p, h2, h3, h4, h5, h6, td, th, li) > a:has(> img:not(.alignleft):not(.alignright)) { display: block; }

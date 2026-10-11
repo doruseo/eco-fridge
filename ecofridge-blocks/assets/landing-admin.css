@@ -1,0 +1,31 @@
+
+.efbl-heading-row th { padding-top: 32px; border-top: 1px solid #c3c4c7; }
+.efbl-heading-row h2 { margin: 0 0 4px; }
+.efbl-heading-row .description { font-weight: 400; max-width: 760px; }
+
+.efbl-order { margin: 0; max-width: 640px; }
+.efbl-order li { display: flex; align-items: center; gap: 10px; margin: 0 0 6px; padding: 8px 10px; background: #fff; border: 1px solid #dcdcde; border-radius: 4px; }
+.efbl-order li strong { flex: 0 0 150px; }
+.efbl-order li input[type="text"] { flex: 1; }
+.efbl-handle { cursor: move; color: #8c8f94; }
+.efbl-order .ui-sortable-placeholder { visibility: visible !important; background: #f0f6fc; border: 1px dashed #72aee6; }
+
+.efbl-faq-item { display: flex; gap: 8px; margin: 0 0 10px; padding: 10px; background: #fff; border: 1px solid #dcdcde; border-radius: 4px; }
+.efbl-faq-fields { flex: 1; display: grid; gap: 6px; }
+.efbl-faq-fields input { font-weight: 600; }
+.efbl-faq-actions { display: flex; flex-direction: column; gap: 2px; }
+.efbl-feature-head { display: flex; gap: 6px; }
+.efbl-feature-head select { flex: 0 0 230px; max-width: 230px; }
+.efbl-feature-head input { flex: 1; font-weight: 600; }
+.efbl-faq-item:first-child [data-efbl-move="-1"],
+.efbl-faq-item:last-child [data-efbl-move="1"] { visibility: hidden; }
+
+.efbl-table-scroll { overflow-x: auto; max-width: 100%; }
+.efbl-table-edit { border-collapse: collapse; }
+.efbl-table-edit td, .efbl-table-edit th { padding: 2px; }
+.efbl-table-edit input[type="text"] { width: 150px; }
+.efbl-table-edit .efbl-head-row input { font-weight: 600; background: #f6f7f7; }
+.efbl-table-edit td:first-child input { font-weight: 600; }
+.efbl-col-tools td { text-align: center; }
+.efbl-table-edit .button-link { color: #b32d2e; }
+.efbl-table-actions { margin: 8px 0 0; }
