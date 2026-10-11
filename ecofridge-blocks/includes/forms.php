@@ -117,7 +117,8 @@ function efb_form_submit( WP_REST_Request $request ) {
 		if ( ! $name ) {
 			continue;
 		}
-		$raw   = isset( $params[ $name ] ) ? wp_unslash( $params[ $name ] ) : '';
+		// REST params are not slashed; anything non-scalar is not a valid field value.
+		$raw   = isset( $params[ $name ] ) && is_scalar( $params[ $name ] ) ? (string) $params[ $name ] : '';
 		$value = 'textarea' === $type ? sanitize_textarea_field( $raw ) : sanitize_text_field( $raw );
 		if ( ! empty( $field['required'] ) && '' === $value ) {
 			/* translators: %s: field label */
