@@ -18,3 +18,8 @@
 .editor-styles-wrapper .efb-search__results { display: none; }
 .editor-styles-wrapper .efb-form input,
 .editor-styles-wrapper .efb-form textarea { pointer-events: none; }
+
+/* Server-rendered previews: links don't navigate in the editor (assets/editor.js
+   → stopPreviewNavigation); hovering shows the target URL. */
+.efb-ssr-preview a,
+.efb-ssr-preview button { cursor: help; }

@@ -2,10 +2,12 @@
 /**
  * Category landing pages — scope and stored data.
  *
- * Applies to the commercial categories: "Commercial Fridge", "Commercial Freezer"
+ * Applies to the commercial categories: the main categories of the Commercial
+ * menu (Display Cabinets, Storage Cabinets, Bakery, Medical, Low Temperature,
+ * Used, Commercial Fridge, Commercial Freezer), the legacy /ranges/ categories,
  * and every category under them. On this site that hierarchy lives in the
- * Commercial menu (the categories themselves are flat), so the tree is read
- * from the menus, plus any real child categories.
+ * Commercial menu (the categories themselves are mostly flat), so the tree is
+ * read from the menus, plus any real child categories.
  *
  * @package EcofridgeBlocks
  */
@@ -18,7 +20,24 @@ defined( 'ABSPATH' ) || exit;
  * @return string[] Slugs.
  */
 function efb_landing_root_slugs() {
-	return (array) apply_filters( 'efb_landing_root_slugs', array( 'commercial-fridge', 'commercial-freezer' ) );
+	return (array) apply_filters(
+		'efb_landing_root_slugs',
+		array(
+			// The main categories of the Commercial menu (green bar)…
+			'display-cabinets',
+			'storage-cabinets',
+			'bakery-cabinets',
+			'medical',
+			'low-temperature-chest-freezers',
+			'graded-units',
+			'commercial-fridge',
+			'commercial-freezer',
+			// …and the legacy /ranges/ categories outside the menu.
+			'deli-displays',
+			'upright-display-cabinets',
+			'heated-display',
+		)
+	);
 }
 
 /**

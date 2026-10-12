@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       ECO-Fridge Blocks
  * Description:       In-house Gutenberg blocks and site features for ECO-Fridge (sections, hero slider, offer cards, client logos, category tiles, product grid, live product search, contact form, spec tables, brochures and videos, commercial category landing pages). Replaces third-party block, search, form and table plugins.
- * Version:           1.1.1
+ * Version:           1.1.2
  * Requires at least: 6.5
  * Requires PHP:      7.4
  * Author:            O2 Digital
@@ -15,7 +15,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'EFB_VERSION', '1.1.1' );
+define( 'EFB_VERSION', '1.1.2' );
 define( 'EFB_FILE', __FILE__ );
 define( 'EFB_DIR', plugin_dir_path( __FILE__ ) );
 define( 'EFB_URL', plugin_dir_url( __FILE__ ) );

@@ -6,7 +6,7 @@
  * The colours live in Astra's Footer Builder (Customizer → Footer Builder →
  * Primary / Below Footer → Background), so they stay editable there:
  *  - primary footer: global colour 0 (#228B22, brand green);
- *  - below footer (copyright): global colour 1 (#1b6f1b, darker green);
+ *  - below footer (copyright): black;
  *  - copyright text: white.
  * Text, headings and links in the footer are white (astra-child/style.css).
  *
@@ -28,7 +28,7 @@ $set_bg = function ( $key, $color ) use ( &$s ) {
 };
 
 $set_bg( 'hb-footer-bg-obj-responsive', 'var(--ast-global-color-0)' );
-$set_bg( 'hbb-footer-bg-obj-responsive', 'var(--ast-global-color-1)' );
+$set_bg( 'hbb-footer-bg-obj-responsive', '#000000' );
 $s['footer-copyright-color'] = 'var(--ast-global-color-4)';
 
 update_option( 'astra-settings', $s );
@@ -42,4 +42,4 @@ if ( function_exists( 'astra_clear_all_assets_cache' ) ) {
 	astra_clear_all_assets_cache();
 }
 
-WP_CLI::success( 'Footer: primary = brand green, below footer = dark green, copyright text white.' );
+WP_CLI::success( 'Footer: primary = brand green, below footer = black, copyright text white.' );

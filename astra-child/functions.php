@@ -44,6 +44,12 @@ require_once get_stylesheet_directory() . '/inc/header-controls.php';
 // Order statuses: the shop's fulfilment flow (Processed / Shipped / Returned).
 require_once get_stylesheet_directory() . '/inc/order-statuses.php';
 
+// Product grids: quantity − / + next to "Add to cart".
+require_once get_stylesheet_directory() . '/inc/shop-loop.php';
+
+// Cart and checkout: trust strip, free delivery wording, continue shopping.
+require_once get_stylesheet_directory() . '/inc/cart-checkout.php';
+
 /**
  * Google fonts 1:1 with the original: Oswald (headings) + Open Sans (body).
  */
