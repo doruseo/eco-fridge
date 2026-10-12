@@ -250,8 +250,12 @@ function ef_addon_label( $key, $product = null ) {
 }
 
 // 4a. fields on the product page: at the top of the cart form, which Astra shows
-//     right under the price — all visible, in the order Removal & Disposal,
-//     Castors, Warranty (above the quantity and Add to cart).
+//     right under the price, in the order Removal & Disposal, Castors, Warranty
+//     (above the quantity and Add to cart). Removal and Castors are visible
+//     checkboxes; the warranty is a collapsed "Warranty" panel (arrow down /
+//     up) with two exclusive options: "Wholesale order" (default, no warranty)
+//     or the 12 months parts warranty. The radio posts ef_warranty = 0 / 1, so
+//     the cart logic below is unchanged.
 add_action( 'woocommerce_before_add_to_cart_button', function () {
 	global $product;
 	if ( ! is_a( $product, 'WC_Product' ) || ! $product->is_purchasable() ) { return; }
@@ -259,7 +263,40 @@ add_action( 'woocommerce_before_add_to_cart_button', function () {
 	if ( ! $keys ) { return; }
 	echo '<div class="ef-addons">';
 	foreach ( $keys as $key ) {
+		if ( 'warranty' === $key ) {
+			continue;
+		}
 		echo '<label class="ef-addon ef-addon--' . esc_attr( $key ) . '"><input type="checkbox" name="ef_' . esc_attr( $key ) . '" value="1"> <span>Add ' . ef_addon_label( $key, $product ) . '</span></label>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
+	}
+	if ( in_array( 'warranty', $keys, true ) ) {
+		?>
+		<details class="ef-addon-group ef-addon-group--warranty">
+			<summary>
+				<svg class="ef-addon-group__chevron" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+				<span class="ef-addon-group__title">Warranty</span>
+				<span class="ef-addon-group__value" data-ef-warranty-value>Wholesale order</span>
+			</summary>
+			<div class="ef-addon-group__body">
+				<label class="ef-addon ef-addon--radio">
+					<input type="radio" name="ef_warranty" value="0" checked data-ef-label="Wholesale order">
+					<span><strong>Wholesale order</strong> - Sold without warranty, as per our terms and conditions</span>
+				</label>
+				<label class="ef-addon ef-addon--radio">
+					<input type="radio" name="ef_warranty" value="1" data-ef-label="12 months parts warranty">
+					<span>Add <?php echo ef_addon_label( 'warranty', $product ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts. ?></span>
+				</label>
+			</div>
+		</details>
+		<script>
+		(function(){
+			var g = document.currentScript.previousElementSibling;
+			var v = g.querySelector('[data-ef-warranty-value]');
+			g.addEventListener('change', function(e){
+				if (e.target.name === 'ef_warranty') { v.textContent = e.target.getAttribute('data-ef-label'); g.classList.toggle('is-added', e.target.value === '1'); }
+			});
+		})();
+		</script>
+		<?php
 	}
 	echo '</div>';
 }, 5 );

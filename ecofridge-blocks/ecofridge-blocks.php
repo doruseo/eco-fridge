@@ -15,7 +15,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'EFB_VERSION', '1.1.2' );
+define( 'EFB_VERSION', '1.1.4' );
 define( 'EFB_FILE', __FILE__ );
 define( 'EFB_DIR', plugin_dir_path( __FILE__ ) );
 define( 'EFB_URL', plugin_dir_url( __FILE__ ) );
@@ -26,6 +26,7 @@ require_once EFB_DIR . 'includes/search.php';
 require_once EFB_DIR . 'includes/forms.php';
 require_once EFB_DIR . 'includes/blocks.php';
 require_once EFB_DIR . 'includes/legacy-urls.php';
+require_once EFB_DIR . 'includes/tag-redirects.php';
 require_once EFB_DIR . 'includes/woocommerce.php';
 require_once EFB_DIR . 'includes/category-landing.php';
 
