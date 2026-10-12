@@ -164,8 +164,32 @@
 		} );
 	}
 
+	/*
+	 * Links, buttons and forms inside a server-rendered preview must not act in
+	 * the editor: a click would leave the page you are editing. Clicks only
+	 * select the block; hovering a link shows where it goes.
+	 */
+	function stopPreviewNavigation( e ) {
+		const target = e.target.closest( 'a, button, input[type="submit"], form' );
+		if ( target ) {
+			e.preventDefault();
+		}
+	}
+	function showPreviewLink( e ) {
+		const link = e.target.closest( 'a[href]' );
+		if ( link && ! link.dataset.efbPreviewTitle ) {
+			link.dataset.efbPreviewTitle = '1';
+			link.title = 'Links to: ' + link.getAttribute( 'href' );
+		}
+	}
+
 	function Preview( props, name, emptyLabel, icon ) {
-		const blockProps = useBlockProps();
+		const blockProps = useBlockProps( {
+			className: 'efb-ssr-preview',
+			onClickCapture: stopPreviewNavigation,
+			onSubmitCapture: stopPreviewNavigation,
+			onMouseOver: showPreviewLink,
+		} );
 		return el(
 			'div',
 			blockProps,

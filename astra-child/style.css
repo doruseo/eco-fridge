@@ -5,7 +5,7 @@ Description: Astra child theme for ECO-Fridge Ltd. Header/footer/mega-menu = NAT
 Author: O2 Digital
 Author URI: https://seo2agency.com/
 Template: astra
-Version: 0.7.8
+Version: 0.8.6
 Text Domain: eco-fridge-child
 */
 
@@ -26,6 +26,9 @@ Text Domain: eco-fridge-child
   --ef-stripe: #f8f9fa;
   --ef-font-body: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --ef-font-head: 'Oswald', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  /* cards (category carousels, product grids): resting + lifted "3D" shadows */
+  --ef-card-shadow: 0 1px 2px rgba(0,0,0,.05);
+  --ef-card-shadow-hover: 0 22px 40px -10px rgba(0,0,0,.28), 0 10px 16px -8px rgba(0,0,0,.16), 0 0 0 1px rgba(34,139,34,.08);
 }
 
 /* =========================================================================
@@ -223,7 +226,13 @@ a:hover, a:focus { color: var(--ef-text); }
   background: #fff;
   box-shadow: 0 2px 10px rgba(0,0,0,.07);
 }
-/* toggle din Customize → „Green Category Bar" → Sticky top header */
+/* Logged in: stick right under the fixed WordPress admin bar (32px; 46px up to
+   782px; below 600px the bar scrolls away), so the header stays whole and fixed
+   instead of sliding under the bar, which looked like a "shrink". */
+.admin-bar .ef-header { top: 32px; }
+@media (max-width: 782px) { .admin-bar .ef-header { top: 46px; } }
+@media (max-width: 600px) { .admin-bar .ef-header { top: 0; } }
+/* toggle in Customize → "Green Category Bar" → Sticky top header */
 .ef-header.ef-nosticky { position: static; }
 .ef-header-inner {
   max-width: 1240px;
@@ -493,8 +502,8 @@ a:hover, a:focus { color: var(--ef-text); }
 .site-footer .ast-builder-html-element li,
 .site-footer .footer-widget-area li { margin: 0 0 8px; color: #fff; }
 
-/* bottom row (copyright): darker green, white text, light green links */
-.site-below-footer-wrap { background: var(--ef-brand-dark); color: #fff; border-top: 1px solid rgba(255,255,255,.18); }
+/* bottom row (copyright): black, white text, light green links */
+.site-below-footer-wrap { background: #000; color: #fff; }
 .site-below-footer-wrap,
 .site-below-footer-wrap p,
 .site-below-footer-wrap .ast-footer-copyright { color: #fff; }
@@ -652,7 +661,7 @@ div.wpforms-container .wpforms-submit:hover {
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
-  padding: 6px 2px 14px;
+  padding: 12px 4px 30px;   /* room for the lifted card and its shadow */
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -664,15 +673,17 @@ div.wpforms-container .wpforms-submit:hover {
   flex-direction: column;
   text-decoration: none;
   background: #fff;
-  border: 1px solid var(--ef-border);
+  border: 1px solid var(--ef-brand-light);
   border-radius: 12px;
   overflow: hidden;
-  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+  box-shadow: var(--ef-card-shadow);
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
 }
-.ef-cc-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 26px rgba(0,0,0,.10);
-  border-color: var(--ef-brand-light);
+.ef-cc-card:hover,
+.ef-cc-card:focus-visible {
+  transform: translateY(-8px);
+  box-shadow: var(--ef-card-shadow-hover);
+  border-color: var(--ef-brand);
 }
 /* Fixed box, image fitted whole inside it (never cropped). */
 .ef-cc-img {
@@ -738,9 +749,58 @@ div.wpforms-container .wpforms-submit:hover {
   padding: 0;
   overflow: hidden;
 }
+/* /shop banners (Commercial Fridge / Freezer): their overview images are ~2:1. */
+.ef-cat-carousel--2col.ef-cat-carousel--wide .ef-cc-img { aspect-ratio: 2 / 1; }
 @media (max-width: 640px) {
   .ef-cat-carousel--2col .ef-cc-card { flex-basis: 100%; }
 }
+
+/* =========================================================================
+   PRODUCT GRIDS — cards with a light green outline that lift with a strong
+   "3D" shadow on hover (same as the category carousels), quantity − / +
+   ========================================================================= */
+.woocommerce ul.products li.product,
+.woocommerce-page ul.products li.product {
+  min-width: 0;   /* grid item: never widen its column (the quantity input's intrinsic width) */
+  border: 1px solid var(--ef-brand-light);
+  border-radius: 12px;
+  padding: 14px 14px 18px !important;
+  background: #fff;
+  box-shadow: var(--ef-card-shadow);
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.woocommerce ul.products li.product:hover,
+.woocommerce-page ul.products li.product:hover,
+.woocommerce ul.products li.product:focus-within {
+  transform: translateY(-8px);
+  box-shadow: var(--ef-card-shadow-hover);
+  border-color: var(--ef-brand);
+  z-index: 2;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ef-cc-card, .woocommerce ul.products li.product { transition: none; }
+  .ef-cc-card:hover, .woocommerce ul.products li.product:hover { transform: none; }
+}
+
+/* Equal-height cards: the quantity + Add to cart row sits at the bottom of each card. */
+.woocommerce ul.products li.product { display: flex; flex-direction: column; }
+.woocommerce ul.products li.product .astra-shop-summary-wrap { display: flex; flex-direction: column; flex: 1 1 auto; }
+.ef-loop-buy { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; margin-top: auto; padding-top: 10px; }
+.ef-loop-buy .button { margin: 0 !important; flex: 1 1 100%; display: inline-flex !important; align-items: center; justify-content: center; text-align: center; }
+.ef-loop-buy .added_to_cart { flex: 0 0 100%; text-align: center; }
+.ef-qty { display: flex; flex: 1 1 100%; min-width: 0; border: 1px solid var(--ef-brand-light); border-radius: 4px; overflow: hidden; background: #fff; }
+.ef-qty__btn {
+  flex: 0 0 36px; width: 36px; min-height: 38px; padding: 0 !important; margin: 0; border: 0 !important; border-radius: 0 !important;
+  background: #eef6ee !important; color: var(--ef-brand) !important;
+  font-size: 18px; font-weight: 700; line-height: 1; cursor: pointer; box-shadow: none !important;
+}
+.ef-qty__btn:hover { background: var(--ef-brand) !important; color: #fff !important; }
+.ef-qty__btn:focus-visible, .ef-qty__input:focus-visible { outline: 2px solid var(--ef-brand); outline-offset: -2px; }
+.ef-qty__input {
+  flex: 1 1 auto; width: auto !important; min-width: 0; max-width: none; min-height: 38px; padding: 0 !important; margin: 0; border: 0 !important; box-shadow: none !important;
+  text-align: center; font-weight: 600; -moz-appearance: textfield; appearance: textfield; background: #fff;
+}
+.ef-qty__input::-webkit-outer-spin-button, .ef-qty__input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
 /* =========================================================================
    PRODUCT GRIDS — every product image shown whole inside a square box
@@ -994,6 +1054,115 @@ div.wpforms-container .wpforms-submit:hover {
 }
 .ef-cart-item-addons .ef-addon input { margin: 0; }
 .ef-cart-item-addons .ef-addon em { font-size: .95em; }
+
+/* =========================================================================
+   CART & CHECKOUT — modern cards with green accents (cart = classic template,
+   checkout = WooCommerce Checkout block), trust strip, clear delivery wording
+   ========================================================================= */
+.ef-trust-strip {
+  list-style: none; margin: 0 0 26px; padding: 14px 18px;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 22px;
+  background: #eef6ee; border: 1px solid var(--ef-brand-light); border-radius: 12px;
+}
+.ef-trust-strip li { display: flex; align-items: center; gap: 12px; margin: 0; line-height: 1.3; }
+.ef-trust-strip__icon {
+  flex: 0 0 42px; height: 42px; border-radius: 50%; background: #fff; color: var(--ef-brand);
+  display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(34,139,34,.15);
+}
+.ef-trust-strip strong { display: block; font-family: var(--ef-font-head); font-weight: 500; letter-spacing: .02em; font-size: .95rem; color: var(--ef-text); }
+.ef-trust-strip small { display: block; color: #5f6b5f; font-size: .8rem; }
+.ef-trust-strip a { color: var(--ef-brand); font-weight: 700; text-decoration: none; }
+@media (max-width: 900px) { .ef-trust-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .ef-trust-strip { grid-template-columns: 1fr; } }
+
+/* Cart table as a card */
+.woocommerce-cart .woocommerce-cart-form .shop_table {
+  border: 1px solid var(--ef-brand-light) !important; border-radius: 12px; overflow: hidden;
+  border-collapse: separate; background: #fff; box-shadow: 0 6px 18px rgba(0,0,0,.05);
+}
+.woocommerce-cart .woocommerce-cart-form .shop_table thead th {
+  background: #eef6ee; font-family: var(--ef-font-head); font-weight: 500;
+  text-transform: uppercase; letter-spacing: .03em; font-size: .85rem; color: var(--ef-text);
+}
+.woocommerce-cart .woocommerce-cart-form .shop_table td { vertical-align: middle; }
+.woocommerce-cart .woocommerce-cart-form .product-name > a { color: var(--ef-text); font-weight: 600; text-decoration: none; }
+.woocommerce-cart .woocommerce-cart-form .product-name > a:hover { color: var(--ef-brand); }
+.woocommerce-cart .woocommerce-cart-form .product-thumbnail img { width: 84px; height: 84px; object-fit: contain; background: #fff; }
+.woocommerce-cart .woocommerce-cart-form .product-subtotal { font-weight: 700; color: var(--ef-text); }
+.woocommerce-cart .woocommerce-cart-form a.remove { color: #9aa3a0 !important; border: 1px solid #d9dfdc; }
+.woocommerce-cart .woocommerce-cart-form a.remove:hover { color: #fff !important; background: #c62828 !important; border-color: #c62828; }
+/* quantity − / + like the product grids */
+.woocommerce-cart .quantity { display: inline-flex; border: 1px solid var(--ef-brand-light); border-radius: 4px; overflow: hidden; background: #fff; }
+.woocommerce-cart .quantity .minus,
+.woocommerce-cart .quantity .plus { background: #eef6ee !important; color: var(--ef-brand) !important; border: 0 !important; font-weight: 700; }
+.woocommerce-cart .quantity .minus:hover,
+.woocommerce-cart .quantity .plus:hover { background: var(--ef-brand) !important; color: #fff !important; }
+.woocommerce-cart .quantity .qty { border: 0 !important; font-weight: 600; }
+.ef-continue-shopping { margin: 16px 0 0; }
+.ef-continue-shopping a { font-family: var(--ef-font-head); text-transform: uppercase; letter-spacing: .03em; color: var(--ef-brand); text-decoration: none; }
+.ef-continue-shopping a:hover { text-decoration: underline; }
+
+/* Cart totals as a card */
+.woocommerce-cart .cart-collaterals .cart_totals {
+  border: 1px solid var(--ef-brand-light) !important; border-radius: 12px; background: #fff;
+  box-shadow: 0 6px 18px rgba(0,0,0,.06); overflow: hidden;
+}
+.woocommerce-cart .cart_totals > h2 {
+  font-family: var(--ef-font-head); text-transform: uppercase; letter-spacing: .03em;
+  background: var(--ef-brand) !important; color: #fff !important; margin: 0 !important; padding: 14px 20px !important;
+  border: 0 !important;
+}
+.woocommerce-cart .cart_totals table { background: #fff; }
+.woocommerce-cart .cart_totals .order-total th,
+.woocommerce-cart .cart_totals .order-total td { font-size: 1.15rem; color: var(--ef-text); border-top: 2px solid var(--ef-brand-light); }
+.ef-free-delivery { color: var(--ef-brand); font-weight: 700; }
+.woocommerce-cart .cart_totals small { color: #6b7280; line-height: 1.4; }
+.woocommerce-cart .wc-proceed-to-checkout .checkout-button {
+  border-radius: 8px; font-size: 1.05rem !important; letter-spacing: .04em;
+  box-shadow: 0 8px 18px -6px rgba(34,139,34,.55); transition: transform .2s ease, box-shadow .2s ease;
+}
+.woocommerce-cart .wc-proceed-to-checkout .checkout-button:hover { transform: translateY(-2px); box-shadow: 0 14px 24px -8px rgba(34,139,34,.6); }
+.woocommerce-cart .wc-proceed-to-checkout .checkout-button::after { content: " \2192"; }
+
+/* Checkout block */
+.wc-block-checkout { --ef-ring: 0 0 0 2px rgba(34,139,34,.25); }
+.wc-block-checkout .wc-block-components-title,
+.wc-block-checkout .wc-block-components-checkout-step__title {
+  font-family: var(--ef-font-head) !important; font-weight: 500 !important; letter-spacing: .02em;
+}
+.wc-block-checkout .wc-block-components-checkout-step__title::before {
+  content: ""; display: inline-block; width: 4px; height: 1em; margin-right: 10px; vertical-align: -2px;
+  background: var(--ef-brand); border-radius: 2px;
+}
+.wc-block-checkout .wc-block-components-text-input input:focus,
+.wc-block-checkout .wc-block-components-combobox .components-combobox-control input:focus,
+.wc-block-checkout .wc-blocks-components-select .wc-blocks-components-select__select:focus,
+.wc-block-checkout .wc-block-components-textarea:focus {
+  border-color: var(--ef-brand) !important; box-shadow: var(--ef-ring) !important; outline: 0;
+}
+.wc-block-checkout .wc-block-components-radio-control__input:checked { border-color: var(--ef-brand) !important; }
+.wc-block-checkout .wc-block-components-radio-control__input:checked::before { background: var(--ef-brand) !important; }
+.wc-block-checkout .wc-block-components-checkbox__input:checked { background: var(--ef-brand) !important; border-color: var(--ef-brand) !important; }
+.wc-block-checkout .wc-block-components-radio-control__option--checked-option-highlighted,
+.wc-block-checkout .wc-block-components-radio-control--highlight-checked::after { box-shadow: inset 0 0 0 2px var(--ef-brand) !important; border-color: var(--ef-brand) !important; border-radius: 8px; }
+.wc-block-checkout .wc-block-components-radio-control-accordion-option--checked-option-highlighted {
+  box-shadow: inset 0 0 0 2px var(--ef-brand) !important; border-radius: 8px;
+}
+.wc-block-checkout .wc-block-components-checkout-place-order-button,
+.wc-block-checkout .wc-block-components-button.contained {
+  background: var(--ef-brand) !important; color: #fff !important; border-radius: 8px !important;
+  font-family: var(--ef-font-head); text-transform: uppercase; letter-spacing: .04em; font-size: 1.05rem;
+  box-shadow: 0 8px 18px -6px rgba(34,139,34,.55);
+}
+.wc-block-checkout .wc-block-components-checkout-place-order-button:hover { background: var(--ef-brand-dark) !important; }
+.wc-block-checkout .wc-block-checkout__sidebar .wp-block-woocommerce-checkout-order-summary-block {
+  border: 1px solid var(--ef-brand-light) !important; border-radius: 12px; overflow: hidden; background: #fff;
+  box-shadow: 0 6px 18px rgba(0,0,0,.06);
+}
+.wc-block-checkout .wc-block-components-order-summary .wc-block-components-order-summary-item__quantity {
+  background: var(--ef-brand); color: #fff; border-color: #fff;
+}
+.wc-block-checkout a { color: var(--ef-brand); }
 
 /* =========================================================================
    HOMEPAGE — rhythm/spacing + long-form SEO content (responsive)

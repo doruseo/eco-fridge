@@ -1,7 +1,7 @@
 <?php
 /**
- * Category landing pages for the commercial categories (Commercial Fridge,
- * Commercial Freezer and every category under them): features, FAQ accordion,
+ * Category landing pages for the commercial categories (the Commercial menu's
+ * main categories, the legacy /ranges/ ones and every category under them): features, FAQ accordion,
  * comparison table, related articles, long description, spare parts, products
  * carousel, related categories, markets and an aggregated reviews wall after the
  * product grid, edited on Products > Categories > Edit.
