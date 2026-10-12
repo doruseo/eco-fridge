@@ -63,7 +63,7 @@ class EF_Subcat_Filter_Widget extends WP_Widget {
 			$is_cur = ( $current && (int) $current->term_id === (int) $t->term_id );
 			echo '<li class="' . ( $is_cur ? 'ef-current' : '' ) . '">'
 				. '<a href="' . esc_url( get_term_link( $t ) ) . '">' . esc_html( $t->name ) . '</a>'
-				. ' <span class="ef-count">(' . (int) $t->count . ')</span></li>';
+				. ' <span class="ef-count">' . (int) $t->count . '</span></li>';
 		}
 		echo '</ul>';
 		echo $args['after_widget']; // phpcs:ignore
@@ -84,6 +84,40 @@ class EF_Subcat_Filter_Widget extends WP_Widget {
 
 add_action( 'widgets_init', function () {
 	register_widget( 'EF_Subcat_Filter_Widget' );
+} );
+
+/**
+ * Layered nav (Width, Height) counts as plain numbers – the CSS shows them as
+ * badges, like the subcategory counts.
+ */
+add_filter( 'woocommerce_layered_nav_term_html', function ( $html, $term, $link, $count ) {
+	$inner = '<span class="title">' . esc_html( $term->name ) . '</span> <span class="count">' . absint( $count ) . '</span>';
+	return $link ? '<a rel="nofollow" href="' . esc_url( $link ) . '">' . $inner . '</a>' : '<span>' . $inner . '</span>';
+}, PHP_INT_MAX, 4 );
+
+/**
+ * Filter panel header ("Filter products") with a "Clear all" link once any
+ * filter is applied (price, width, height…). Printed at the top of the shop
+ * sidebar, inside Astra's filter wrapper.
+ */
+add_action( 'dynamic_sidebar_before', function ( $index ) {
+	if ( 'astra-woo-shop-sidebar' !== $index || is_admin() || ! function_exists( 'is_product_category' ) || ! is_product_category() ) {
+		return;
+	}
+	$active = false;
+	foreach ( array_keys( $_GET ) as $key ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only filter state.
+		if ( 0 === strpos( $key, 'filter_' ) || in_array( $key, array( 'min_price', 'max_price' ), true ) ) {
+			$active = true;
+			break;
+		}
+	}
+	echo '<div class="ef-filters-head"><span class="ef-filters-head__title">'
+		. '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M3 5h18l-7 8v5l-4 2v-7L3 5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>'
+		. 'Filter products</span>';
+	if ( $active ) {
+		echo '<a class="ef-filters-clear" href="' . esc_url( get_term_link( get_queried_object() ) ) . '">Clear all</a>';
+	}
+	echo '</div>';
 } );
 
 /**
@@ -137,21 +171,19 @@ add_action( 'wp_footer', function () {
 	place();
 	var rt; window.addEventListener('resize', function(){ clearTimeout(rt); rt = setTimeout(place, 150); });
 
-	// Dropdown toggle on mobile.
-	function closeAll(){ document.querySelectorAll('#secondary .widget.ef-open').forEach(function(o){ o.classList.remove('ef-open'); }); }
-	document.querySelectorAll('#secondary .widget-title, #secondary .widgettitle').forEach(function(t){
-		t.addEventListener('click', function(e){
-			if(!isMobile()){ return; }
-			var w = t.closest('.widget'); if(!w){ return; }
-			var open = w.classList.contains('ef-open');
-			closeAll();
-			if(!open){ w.classList.add('ef-open'); }
-			e.stopPropagation();
-		});
-	});
+	// Dropdown toggle on mobile. Delegated from the document, so it keeps working
+	// when Astra re-renders or moves the widgets.
+	function closeAll(except){ document.querySelectorAll('#secondary .widget.ef-open').forEach(function(o){ if(o !== except){ o.classList.remove('ef-open'); } }); }
 	document.addEventListener('click', function(ev){
+		var t = ev.target.closest('#secondary .widget-title, #secondary .widgettitle');
+		if(t && isMobile()){
+			var w = t.closest('.widget');
+			closeAll(w);
+			if(w){ w.classList.toggle('ef-open'); }
+			return;
+		}
 		if(ev.target.closest('#secondary .widget')){ return; }
-		closeAll();
+		closeAll(null);
 	});
 })();
 </script>

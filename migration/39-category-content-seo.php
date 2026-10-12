@@ -32,6 +32,32 @@ if ( ! $copy ) {
 	WP_CLI::error( "No category copy found in $dir." );
 }
 
+/*
+ * Extended copy (category-copy/more/*.php): extra long-description sections
+ * and FAQs per category. The sections go in before the closing "Buying from
+ * ECO-Fridge" / "Trade prices" section when there is one, else at the end.
+ */
+foreach ( glob( $dir . '/more/*.php' ) as $file ) {
+	foreach ( (array) require $file as $slug => $more ) {
+		if ( ! isset( $copy[ $slug ] ) ) {
+			WP_CLI::warning( "Extended copy for an unknown category: $slug" );
+			continue;
+		}
+		$long = trim( $copy[ $slug ]['long'] );
+		$add  = trim( $more['long'] ?? '' );
+		if ( '' !== $add ) {
+			$at   = preg_match( '~<h2>(Buying from ECO-Fridge|Trade prices and free delivery)</h2>~', $long, $m, PREG_OFFSET_CAPTURE ) ? $m[0][1] : strlen( $long );
+			$long = rtrim( substr( $long, 0, $at ) ) . "
+
+" . $add . ( $at < strlen( $long ) ? "
+
+" . substr( $long, $at ) : '' );
+		}
+		$copy[ $slug ]['long'] = $long;
+		$copy[ $slug ]['faq']  = array_merge( $copy[ $slug ]['faq'], $more['faq'] ?? array() );
+	}
+}
+
 /* ---------------------------------------------------------------------------
  * Product data helpers.
  * ------------------------------------------------------------------------- */
@@ -143,6 +169,25 @@ $products_of = static function ( WP_Term $t ) {
 /** Comparison table for a category. */
 $table_for = function ( WP_Term $t ) use ( $products_of, $spec, $temps, $money, $fits, $range_txt ) {
 	$children = efb_landing_children( $t->term_id );
+	if ( $children ) {
+		// Subcategory rows, unless at most one subcategory has products and the
+		// category has models of its own outside it (Patisserie Fridges, Counter
+		// Fridges): then a one-row table says little, so list the models.
+		$ids     = static fn( $ps ) => array_map( static fn( $p ) => $p->get_id(), $ps );
+		$own     = $ids( array_filter( $products_of( $t ), static fn( $p ) => $fits( $p, $t ) ) );
+		$covered = array();
+		$stocked = 0;
+		foreach ( $children as $cid ) {
+			$c = get_term( $cid, 'product_cat' );
+			if ( $c && ! is_wp_error( $c ) && ( $cp = $ids( $products_of( $c ) ) ) ) {
+				$covered = array_merge( $covered, $cp );
+				$stocked++;
+			}
+		}
+		if ( $stocked <= 1 && array_diff( $own, $covered ) ) {
+			$children = array();
+		}
+	}
 	if ( $children ) {
 		$head = array( 'Range', 'Temperature', 'Widths', 'Models', 'From' );
 		$rows = array();

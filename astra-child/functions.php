@@ -70,7 +70,8 @@ add_action( 'wp_enqueue_scripts', function () {
 		'eco-fridge-child',
 		get_stylesheet_uri(),
 		array( 'astra-theme-css' ),
-		wp_get_theme()->get( 'Version' )
+		// Cache-bust on every edit, so browsers never keep a stale stylesheet.
+		wp_get_theme()->get( 'Version' ) . '.' . filemtime( get_stylesheet_directory() . '/style.css' )
 	);
 }, 15 );
 

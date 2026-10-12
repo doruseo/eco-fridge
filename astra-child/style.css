@@ -18,6 +18,8 @@ Text Domain: eco-fridge-child
   --ef-brand: var(--ast-global-color-0, #228B22);      /* forest brand green */
   --ef-brand-dark: var(--ast-global-color-1, #1b6f1b); /* hover */
   --ef-brand-light: #81c784;                            /* light green (tile hover border) */
+  --ef-brand-deep: #18673a;     /* darker, cooler green: commercial menu bar, 3-column footer, scroll-to-top */
+  --ef-brand-deep-hover: #11502d;
   --ef-bg: var(--ast-global-color-5, #ffffff);
   --ef-text: var(--ast-global-color-3, #333);
   --ef-meta: #9fa6b4;
@@ -108,29 +110,126 @@ a:hover, a:focus { color: var(--ef-text); }
 /* =========================================================================
    FILTER SIDEBAR on category archives (left)
    ========================================================================= */
-#secondary .widget,
-.astra-woo-shop-sidebar .widget { margin-bottom: 28px; }
-#secondary .widget-title,
-#secondary .widgettitle {
-  font-family: var(--ef-font-head);
-  text-transform: uppercase;
-  letter-spacing: .02em;
-  font-size: 1rem;
-  color: var(--ef-text);
-  border-bottom: 2px solid var(--ef-border);
-  padding-bottom: 8px;
-  margin-bottom: 12px;
-}
-/* filtrul de sub-categorii (contextual) */
+/* Shared look (desktop + the mobile dropdown panels): rows with a hover tint,
+   count badges, custom checkboxes on the attribute filters, a styled slider. */
 .ef-filter-cats { list-style: none; margin: 0; padding: 0; }
-.ef-filter-cats li { margin: 0 0 7px; line-height: 1.35; }
-.ef-filter-cats a { color: var(--ef-text); text-decoration: none; }
-.ef-filter-cats a:hover { color: var(--ef-brand); }
-.ef-filter-cats li.ef-current > a { color: var(--ef-brand); font-weight: 700; }
-.ef-filter-cats .ef-count { color: var(--ef-meta); font-size: .82em; }
-/* active "reset" button on layered nav */
-#secondary .woocommerce-widget-layered-nav-list__item--chosen a,
-#secondary .chosen a { font-weight: 700; }
+.ef-filter-cats li { margin: 0; }
+.ef-filter-cats a,
+#secondary .woocommerce-widget-layered-nav-list .woocommerce-widget-layered-nav-list__item a {
+  display: flex; align-items: center; gap: 10px;
+  margin: 0 0 2px; padding: 7px 10px; border: 0; border-radius: 8px;
+  color: var(--ef-text); font-size: .9rem; line-height: 1.3; text-decoration: none;
+  transition: background-color .15s ease, color .15s ease;
+}
+.ef-filter-cats a:hover,
+#secondary .woocommerce-widget-layered-nav-list .woocommerce-widget-layered-nav-list__item a:hover {
+  background: #f1f8f1; color: var(--ef-brand-dark); border: 0;
+}
+.ef-filter-cats li { display: flex; align-items: center; position: relative; }
+.ef-filter-cats li > a { flex: 1 1 auto; padding-right: 46px; }
+.ef-filter-cats .ef-count,
+#secondary .woocommerce-widget-layered-nav-list .count {
+  margin-left: auto; min-width: 26px; padding: 1px 8px; border-radius: 999px;
+  background: #eef1f4; color: #6b7480; font-size: .72rem; font-weight: 600; text-align: center;
+}
+.ef-filter-cats .ef-count { position: absolute; right: 10px; pointer-events: none; }
+.ef-filter-cats li.ef-current > a {
+  background: #e8f5e9; color: var(--ef-brand-dark); font-weight: 700;
+  box-shadow: inset 3px 0 0 var(--ef-brand);
+}
+.ef-filter-cats li.ef-current .ef-count { background: var(--ef-brand); color: #fff; }
+
+/* attribute filters (Width, Height): full-width rows with a custom checkbox */
+#secondary .woocommerce-widget-layered-nav-list { margin: 0; padding: 0; list-style: none; }
+#secondary .woocommerce-widget-layered-nav-list .woocommerce-widget-layered-nav-list__item { display: block; margin: 0; }
+#secondary .woocommerce-widget-layered-nav-list__item a::before {
+  content: ""; flex: 0 0 18px; height: 18px; box-sizing: border-box;
+  margin: 0 !important; border: 1.5px solid #c3cad3; border-radius: 5px; background: #fff center / 12px no-repeat;
+  font-family: inherit !important;
+  transition: background-color .15s ease, border-color .15s ease;
+}
+#secondary .woocommerce-widget-layered-nav-list__item a:hover::before { border-color: var(--ef-brand); }
+#secondary .woocommerce-widget-layered-nav-list__item.chosen a,
+#secondary .woocommerce-widget-layered-nav-list__item--chosen a { color: var(--ef-brand-dark); font-weight: 600; border: 0; }
+#secondary .woocommerce-widget-layered-nav-list__item.chosen a::before,
+#secondary .woocommerce-widget-layered-nav-list__item--chosen a::before {
+  background-color: var(--ef-brand); border-color: var(--ef-brand);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2l2.3 2.3 4.7-5' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+#secondary .woocommerce-widget-layered-nav-list__item.chosen .count { background: var(--ef-brand); color: #fff; }
+
+/* price filter: slim track, round handles, value pills, full-width button */
+#secondary .widget_price_filter .price_slider_wrapper .ui-widget-content,
+#secondary .widget_price_filter .ui-slider {
+  height: 4px; margin: 16px 9px 18px; border: 0; border-radius: 4px; background: #e3e8ee;
+}
+#secondary .widget_price_filter .ui-slider .ui-slider-range { background: var(--ef-brand); border-radius: 4px; }
+#secondary .widget_price_filter .ui-slider .ui-slider-handle {
+  top: -7px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%;
+  background: #fff; border: 2px solid var(--ef-brand); box-shadow: 0 2px 6px rgba(0,0,0,.18);
+  cursor: grab; outline: none;
+}
+#secondary .widget_price_filter .ui-slider .ui-slider-handle:focus-visible { box-shadow: 0 0 0 4px rgba(34,139,34,.25); }
+#secondary .widget_price_filter .price_slider_amount {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px; text-align: left;
+}
+#secondary .widget_price_filter .price_slider_amount .price_label {
+  order: -1; width: 100%; float: none; font-size: .82rem; color: var(--ef-meta);
+}
+#secondary .widget_price_filter .price_label .from,
+#secondary .widget_price_filter .price_label .to {
+  display: inline-block; margin: 0 2px; padding: 2px 8px; border-radius: 6px;
+  background: #f1f8f1; border: 1px solid #cfe8d0; color: var(--ef-text); font-weight: 700;
+}
+#secondary .widget_price_filter .price_slider_amount .button {
+  float: none; width: 100%; margin: 0; padding: 9px 14px; border-radius: 8px;
+  font-size: .85rem; letter-spacing: .04em;
+}
+#secondary .widget_price_filter .price_slider_amount .clear { display: none; }
+
+/* —— DESKTOP (≥922px): the filters sit in one card panel —— */
+@media (min-width: 922px) {
+  /* a wider sidebar column, so the panel has room for its rows */
+  .ast-left-sidebar #secondary { width: 25%; padding-right: 28px; }
+  .ast-left-sidebar #primary { width: 75%; padding-left: 32px; }
+  #secondary .sidebar-main {
+    background: #fff; border: 1px solid var(--ef-brand-light); border-radius: 14px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 12px 28px -16px rgba(0,0,0,.18);
+    padding: 4px 16px 6px; margin-bottom: 28px;
+  }
+  #secondary .ast-filter-wrap { margin: 0; padding: 0; }
+  #secondary .ast-filter-wrap > .widget,
+  .astra-off-canvas-sidebar .ast-filter-wrap .widget,
+  .ast-filter-wrap .ast-woo-sidebar-widget.widget {
+    margin: 0; padding: 16px 0; border-bottom: 1px solid var(--ef-divider);
+  }
+  #secondary .ast-filter-wrap > .widget:last-child { border-bottom: 0; }
+  body #secondary .ast-filter-wrap .widget-title,
+  body #secondary .ast-filter-wrap .widgettitle {
+    display: flex; align-items: center; gap: 8px;
+    font-family: var(--ef-font-head) !important; font-size: .95rem !important; font-weight: 600; line-height: 1.2;
+    text-transform: uppercase; letter-spacing: .06em; color: var(--ef-text);
+    border: 0; padding: 0; margin: 0 0 10px;
+  }
+  body #secondary .ast-filter-wrap .widget-title::before,
+  body #secondary .ast-filter-wrap .widgettitle::before {
+    content: ""; flex: 0 0 4px; width: 4px; height: 14px; border-radius: 2px; background: var(--ef-brand);
+  }
+  .ef-filters-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 14px 0 12px; border-bottom: 1px solid var(--ef-divider);
+  }
+}
+.ef-filters-head__title {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--ef-font-head); font-size: 1.05rem; letter-spacing: .02em; color: var(--ef-text);
+}
+.ef-filters-head__title svg { color: var(--ef-brand); }
+.ef-filters-clear {
+  font-size: .78rem; font-weight: 600; color: var(--ef-brand); text-decoration: none;
+  border: 1px solid var(--ef-brand-light); border-radius: 999px; padding: 3px 10px; white-space: nowrap;
+}
+.ef-filters-clear:hover { background: var(--ef-brand); border-color: var(--ef-brand); color: #fff; }
 
 /* —— MOBILE/TABLET (≤921px): filters = small HORIZONTAL bar, moved (via JS)
    after the category description, right before the product grid. —— */
@@ -140,14 +239,20 @@ a:hover, a:focus { color: var(--ef-text); }
   /* the REAL container of the filter widgets (Astra puts them in .ast-filter-wrap) */
   #secondary .ast-filter-wrap {
     display: flex !important;
-    flex-wrap: nowrap;                 /* all titles on a single horizontal line */
+    flex-wrap: wrap;                   /* filter buttons wrap onto a second row if needed */
     align-items: center;
     justify-content: flex-start;
-    gap: 4px;
+    gap: 6px;
     margin: 2px 0 14px;
     padding: 0;
     overflow: visible;                 /* do NOT clip the dropdowns that drop below the bar */
   }
+  .ef-filters-head { display: flex; flex: 0 0 auto; order: 99; }
+  body #secondary .ast-filter-wrap .widget-title,
+  body #secondary .ast-filter-wrap .widgettitle {
+    font-family: var(--ef-font-body) !important; font-size: .8rem !important; letter-spacing: 0;
+  }
+  .ef-filters-head__title { display: none; }
   #secondary .ast-filter-wrap > .widget { margin: 0 !important; padding: 0 !important; position: relative; flex: 0 0 auto; width: auto; border: 0; }
   /* the TITLE (button) = very small, so they all fit horizontally */
   #secondary .widget-title,
@@ -155,10 +260,11 @@ a:hover, a:focus { color: var(--ef-text); }
     margin: 0;
     border: 1px solid var(--ef-brand-light);
     border-radius: 6px;
-    padding: 3px 12px 3px 6px;
+    padding: 6px 24px 6px 12px;
+    border-radius: 999px;
     background: #fff;
     cursor: pointer;
-    font-size: .45rem;
+    font-size: .74rem;
     font-weight: 600;
     line-height: 1.2;
     letter-spacing: 0;
@@ -170,8 +276,8 @@ a:hover, a:focus { color: var(--ef-text); }
   #secondary .widget-title::after,
   #secondary .widgettitle::after {
     content: "\25BE"; /* ▾ */
-    position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
-    color: var(--ef-brand); font-size: .6em; pointer-events: none;
+    position: absolute; right: 9px; top: 50%; transform: translateY(-50%);
+    color: var(--ef-brand); font-size: .8em; pointer-events: none;
   }
   #secondary .widget.ef-open .widget-title::after,
   #secondary .widget.ef-open .widgettitle::after { content: "\25B4"; /* ▴ */ }
@@ -188,7 +294,10 @@ a:hover, a:focus { color: var(--ef-text); }
     visibility: visible; opacity: 1; pointer-events: auto;
   }
   /* the last filters open the dropdown to the left so it doesn't run off-screen */
-  #secondary .widget:nth-child(n+3) > *:not(.widget-title):not(.widgettitle) { left: auto; right: 0; }
+  /* the panel spans the whole filter bar (the buttons may wrap onto two rows) */
+  #secondary .ast-filter-wrap { position: relative; }
+  #secondary .ast-filter-wrap > .widget { position: static !important; }
+  #secondary .widget > *:not(.widget-title):not(.widgettitle) { left: 0; right: 0; min-width: 0; max-width: none; }
 }
 
 /* Product grid card — subtle border like the original */
@@ -249,7 +358,7 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-row1-right { display: flex; align-items: center; gap: 24px; }
 
 /* —— row 2 (brand bar) —— */
-.ef-header-row2 { background: var(--ef-brand); }
+.ef-header-row2 { background: var(--ef-brand-deep); }
 .ef-header-row2 .ef-header-inner { justify-content: space-between; gap: 16px; min-height: 46px; position: relative; }
 
 /* —— nav-uri —— */
@@ -475,7 +584,10 @@ a:hover, a:focus { color: var(--ef-text); }
    (the content = HTML elements in the Footer Builder, editable from the Customizer)
    ========================================================================= */
 /* main row (3 columns): brand green background, white text and links */
-.site-primary-footer-wrap { background: var(--ef-brand); }
+.site-primary-footer-wrap,
+.site-primary-footer-wrap[data-section="section-primary-footer-builder"] {
+  background-color: var(--ef-brand-deep); border-top-color: var(--ef-brand-deep);
+}
 .site-footer .ast-builder-html-element,
 .site-footer .ast-builder-html-element p { color: #fff; line-height: 1.7; }
 .site-footer .ast-builder-html-element h3,
@@ -508,11 +620,19 @@ a:hover, a:focus { color: var(--ef-text); }
 .site-below-footer-wrap p,
 .site-below-footer-wrap .ast-footer-copyright { color: #fff; }
 .site-below-footer-wrap p { margin: 0; }
-.site-below-footer-wrap a { color: #c8e6c9; text-decoration: underline; }
-.site-below-footer-wrap a:hover { color: #fff; }
+/* links: light green, no underline; on hover they turn white and a thin
+   light-green line grows under them (no bold → the text doesn't shift) */
+.site-below-footer-wrap a {
+  color: #a5d6a7; font-weight: 600; text-decoration: none;
+  background: linear-gradient(var(--ef-brand-light), var(--ef-brand-light)) left bottom / 0 1px no-repeat;
+  padding-bottom: 1px; transition: color .2s ease, background-size .25s ease;
+}
+.site-below-footer-wrap a:hover,
+.site-below-footer-wrap a:focus-visible { color: #fff; background-size: 100% 1px; text-decoration: none; }
 .ef-footer-credit { font-size: .82rem; opacity: .9; margin-top: 4px !important; }
 /* The scroll-to-top button is brand green too: a white ring keeps it visible over the footer. */
-#ast-scroll-top { box-shadow: 0 0 0 2px #fff, 0 4px 12px rgba(0,0,0,.18); }
+#ast-scroll-top { box-shadow: 0 0 0 2px var(--ef-brand-light), 0 4px 12px rgba(0,0,0,.18); background-color: var(--ef-brand-deep) !important; }
+#ast-scroll-top:hover { background-color: var(--ef-brand-deep-hover) !important; }
 
 /* =========================================================================
    FiboSearch SEARCH — rectangular with rounded corners, NO magnifier
@@ -993,7 +1113,7 @@ div.wpforms-container .wpforms-submit:hover {
 .ef-back-link { max-width: 1200px; margin: 0 auto 10px; padding: 8px 0; }
 .ef-back-link a {
   font-family: var(--ef-font-head); text-transform: uppercase; letter-spacing: .02em;
-  font-size: .85rem; color: var(--ef-meta); text-decoration: none;
+  font-size: .85rem; color: #111; text-decoration: none; transition: color .15s ease;
 }
 .ef-back-link a:hover { color: var(--ef-brand); }
 
@@ -1022,11 +1142,87 @@ div.wpforms-container .wpforms-submit:hover {
 .ef-addons { margin: 14px 0 18px; }
 .ef-addon {
   display: flex; align-items: flex-start; gap: 10px; cursor: pointer;
-  padding: 12px 14px; border: 1px solid var(--ef-border); border-radius: 4px;
+  padding: 12px 14px; border: 1px solid var(--ef-brand-light); border-radius: 4px;
   margin-bottom: 8px; background: #fff; line-height: 1.4;
 }
 .ef-addon input { margin-top: 3px; }
 .ef-addon em { color: var(--ef-brand); font-style: normal; font-weight: 700; }
+
+/* Product page: all options in ONE light-green frame, rows divided by fine
+   lines; the warranty options inside have no frames of their own. */
+form.cart .ef-addons {
+  border: 1px solid var(--ef-brand-light); border-radius: 8px; overflow: hidden; background: #fff;
+}
+form.cart .ef-addons > .ef-addon,
+form.cart .ef-addons > .ef-addon-group {
+  margin: 0; border: 0; border-radius: 0; box-shadow: none; border-bottom: 1px solid #e3efe3;
+}
+form.cart .ef-addons > :last-child { border-bottom: 0; }
+form.cart .ef-addons > .ef-addon:hover,
+form.cart .ef-addons > .ef-addon-group > summary:hover { background: #f6fbf6; }
+form.cart .ef-addons > .ef-addon-group[open] { border-color: #e3efe3; box-shadow: none; }
+form.cart .ef-addon-group__body { gap: 2px; padding: 0 14px 10px 36px; }
+form.cart .ef-addon-group__body .ef-addon--radio {
+  border: 0; border-radius: 6px; padding: 8px 10px; background: transparent; align-items: center;
+}
+form.cart .ef-addon-group__body .ef-addon--radio:hover { background: #f6fbf6; }
+form.cart .ef-addon-group__body .ef-addon--radio:has(input:checked) { background: #ebf6eb; }
+form.cart .ef-addon-group__body .ef-addon--radio input { margin-top: 0; }
+
+/* Warranty: a collapsed panel (arrow down → up) with two exclusive options */
+.ef-addon-group {
+  border: 1px solid var(--ef-brand-light); border-radius: 4px; background: #fff;
+  margin-bottom: 8px; transition: border-color .2s ease, box-shadow .2s ease;
+}
+.ef-addon-group[open] { border-color: var(--ef-brand); box-shadow: 0 6px 18px -10px rgba(0,0,0,.25); }
+.ef-addon-group > summary {
+  display: flex; align-items: center; gap: 10px; padding: 12px 14px;
+  cursor: pointer; list-style: none; user-select: none; line-height: 1.4;
+}
+.ef-addon-group > summary::-webkit-details-marker { display: none; }
+.ef-addon-group > summary:focus-visible { outline: 2px solid var(--ef-brand); outline-offset: 2px; }
+.ef-addon-group__title { font-weight: 700; }
+.ef-addon-group__value {
+  margin-left: auto; font-size: .82rem; color: var(--ef-meta);
+  background: var(--ef-stripe); border-radius: 999px; padding: 2px 10px;
+}
+.ef-addon-group.is-added .ef-addon-group__value { color: #fff; background: var(--ef-brand); }
+.ef-addon-group__chevron { flex: 0 0 auto; margin-left: -2px; color: var(--ef-brand); transition: transform .2s ease; }
+.ef-addon-group[open] .ef-addon-group__chevron { transform: rotate(180deg); }
+.ef-addon-group__body { padding: 0 14px 12px; display: grid; gap: 8px; }
+.ef-addon-group .ef-addon { margin: 0; }
+.ef-addon--radio { transition: border-color .15s ease, background-color .15s ease; }
+.ef-addon--radio:has(input:checked) { border-color: var(--ef-brand); background: #f3faf3; }
+.ef-addon--radio input { accent-color: var(--ef-brand); }
+.ef-addon input[type="checkbox"] { accent-color: var(--ef-brand); }
+.ef-addon:hover { border-color: var(--ef-brand); }
+
+/* Product page quantity (Astra's − / + links): same look as the grid's .ef-qty */
+.single-product form.cart .quantity {
+  display: inline-flex; align-items: stretch; width: auto; border: 1px solid var(--ef-brand-light);
+  border-radius: 4px; overflow: hidden; background: #fff;
+}
+.single-product form.cart .quantity .minus,
+.single-product form.cart .quantity .plus {
+  display: flex; align-items: center; justify-content: center; flex: 0 0 36px; width: 36px; min-height: 38px;
+  padding: 0 !important; margin: 0; border: 0 !important; border-radius: 0 !important;
+  background: #eef6ee !important; color: var(--ef-brand) !important;
+  font-size: 18px; font-weight: 700; line-height: 1; text-decoration: none; box-shadow: none !important;
+}
+.single-product form.cart .quantity .minus:hover,
+.single-product form.cart .quantity .plus:hover { background: var(--ef-brand) !important; color: #fff !important; }
+.single-product form.cart .quantity .qty {
+  flex: 1 1 auto; width: auto !important; min-width: 0; min-height: 38px; padding: 0 !important; margin: 0;
+  border: 0 !important; box-shadow: none !important; text-align: center; font-weight: 600;
+  -moz-appearance: textfield; appearance: textfield; background: #fff;
+}
+.single-product form.cart .quantity .screen-reader-text { position: absolute !important; }
+.single-product form.cart .quantity .qty { flex: 0 0 64px; width: 64px !important; max-width: 64px; }
+.single-product form.cart .single_add_to_cart_button {
+  min-height: 40px; display: inline-flex; align-items: center; justify-content: center;
+}
+.single-product form.cart .quantity .qty::-webkit-outer-spin-button,
+.single-product form.cart .quantity .qty::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
 /* =========================================================================
    CART PAGE (/cart) — classic layout: items on the left, totals on the right
