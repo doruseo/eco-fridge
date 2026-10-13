@@ -119,6 +119,11 @@ foreach ( array( 'category', 'post_tag', 'product_cat', 'product_tag', 'market' 
 	}
 }
 $sitemap['authors_sitemap'] = 'off'; // no author archives (as before: includes/sitemaps.php).
+// Attachment pages are off on this site (they redirect to the file), so their
+// sitemap would only list redirects.
+if ( ! get_option( 'wp_attachment_pages_enabled' ) ) {
+	$sitemap['pt_attachment_sitemap'] = 'off';
+}
 // Yoast kept attachment pages and indexed empty archives; so did this site.
 $general['attachment_redirect_urls'] = 'off';
 $rm_tit['noindex_empty_taxonomies']  = 'off';
