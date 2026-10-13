@@ -37,7 +37,7 @@ $efb_wrapper = get_block_wrapper_attributes(
 					<span class="efb-offer__label"><?php echo esc_html( $efb_item['label'] ); ?></span>
 				<?php endif; ?>
 				<span class="efb-offer__image">
-					<?php echo efb_image( $efb_item['imageId'] ?? 0, $efb_item['imageUrl'] ?? '', $efb_item['imageAlt'] ?? '', 'medium_large' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+					<?php echo efb_image( $efb_item['imageId'] ?? 0, $efb_item['imageUrl'] ?? '', $efb_item['imageAlt'] ?? '', 'medium_large', array( 'loading' => 'eager', 'sizes' => '(max-width: 767px) 70vw, 300px' ) ); // offers open the page: no lazy loading, a ~300px file // phpcs:ignore WordPress.Security.EscapeOutput ?>
 				</span>
 			</a>
 			<div class="efb-offer__footer">

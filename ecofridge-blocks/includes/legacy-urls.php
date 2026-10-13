@@ -41,6 +41,14 @@ add_action(
 				'labels'            => array(
 					'name'          => __( 'Markets', 'ecofridge-blocks' ),
 					'singular_name' => __( 'Market', 'ecofridge-blocks' ),
+					'menu_name'     => __( 'Markets', 'ecofridge-blocks' ),
+					'all_items'     => __( 'All Markets', 'ecofridge-blocks' ),
+					'edit_item'     => __( 'Edit Market', 'ecofridge-blocks' ),
+					'view_item'     => __( 'View Market', 'ecofridge-blocks' ),
+					'update_item'   => __( 'Update Market', 'ecofridge-blocks' ),
+					'add_new_item'  => __( 'Add New Market', 'ecofridge-blocks' ),
+					'search_items'  => __( 'Search Markets', 'ecofridge-blocks' ),
+					'back_to_items' => __( '&larr; Go to Markets', 'ecofridge-blocks' ),
 				),
 				'public'            => true,
 				'hierarchical'      => true,
@@ -111,6 +119,19 @@ add_filter(
 );
 
 /**
+ * The original site's redirects and 410 Gone URLs (includes/legacy-redirect-map.php).
+ *
+ * @return array{redirect:array<string,string>, gone:string[]}
+ */
+function efb_legacy_redirect_map() {
+	static $map = null;
+	if ( null === $map ) {
+		$map = (array) require EFB_DIR . 'includes/legacy-redirect-map.php';
+	}
+	return $map;
+}
+
+/**
  * 301 old/duplicate paths to the canonical one:
  *  - /product-category/<path>/ of a category whose original base is /range/ etc.
  *  - /category/blog/ and /category/uncategorized/ (linked from the original theme).
@@ -133,6 +154,20 @@ add_action(
 		if ( isset( $redirects[ trailingslashit( $path ) ] ) && is_404() ) {
 			wp_safe_redirect( home_url( $redirects[ trailingslashit( $path ) ] ), 301 );
 			exit;
+		}
+		// The original site's own redirects (and its 410 Gone URLs), for paths
+		// that don't exist here or only match a media file by name (e.g. /multidecks/
+		// would open Multidecks.jpg) – backlinks and bookmarks keep working.
+		if ( is_404() || is_attachment() ) {
+			$legacy = efb_legacy_redirect_map();
+			$key    = false !== strpos( basename( $path ), '.' ) ? $path : trailingslashit( $path );
+			if ( isset( $legacy['redirect'][ $key ] ) ) {
+				wp_safe_redirect( home_url( $legacy['redirect'][ $key ] ), 301 );
+				exit;
+			}
+			if ( is_404() && in_array( $key, $legacy['gone'], true ) ) {
+				status_header( 410 ); // the 404 template still renders
+			}
 		}
 		if ( preg_match( '~^/category/(blog|uncategorized)/?$~', $path, $m ) ) {
 			wp_safe_redirect( home_url( '/' . $m[1] . '/' ), 301 );
@@ -185,23 +220,4 @@ add_filter(
 		$path = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_parse_url( esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ), PHP_URL_PATH ) : '';
 		return preg_match( '~^/(market|range|ranges|condition|brochure|video)/~', $path ) ? false : $guess;
 	}
-);
-
-/**
- * Show the market archive's products with the shop layout: an intro from the
- * matching /markets/<slug>/ page link when the market has no products.
- */
-add_action(
-	'woocommerce_no_products_found',
-	static function () {
-		if ( ! is_tax( 'market' ) ) {
-			return;
-		}
-		$term = get_queried_object();
-		$page = get_page_by_path( 'markets/' . $term->slug );
-		if ( $page ) {
-			echo '<p><a class="efb-button" href="' . esc_url( get_permalink( $page ) ) . '">' . esc_html( sprintf( /* translators: %s: market name */ __( 'Refrigeration for %s', 'ecofridge-blocks' ), $term->name ) ) . '</a></p>';
-		}
-	},
-	20
 );

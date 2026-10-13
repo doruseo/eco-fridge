@@ -74,7 +74,7 @@
 	pointer-events: none;
 }
 .efb-section__inner { position: relative; margin: 0 auto; }
-.efb-section--boxed > .efb-section__inner { max-width: var(--efb-max, 1240px); }
+.efb-section--boxed > .efb-section__inner { max-width: var(--efb-max, 1240px) !important; } /* Astra's page-builder layout resets max-width on content children */
 .efb-section--narrow > .efb-section__inner { max-width: 820px; }
 .efb-section--full { padding-left: 0; padding-right: 0; }
 .efb-section__inner > :first-child { margin-top: 0; }
@@ -171,7 +171,7 @@
 	font-family: var(--efb-font-body);
 	font-weight: 700;
 	font-size: clamp(1.1rem, 1.8vw, 1.5rem);
-	color: var(--efb-label, #f00);
+	color: var(--efb-label, #d10000); /* 5.6:1 on white */
 	text-decoration: underline;
 	text-align: center;
 }

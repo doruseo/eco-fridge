@@ -41,6 +41,12 @@ class EF_Subcat_Filter_Widget extends WP_Widget {
 
 		$terms = get_terms( array( 'taxonomy' => 'product_cat', 'parent' => $parent, 'hide_empty' => true ) );
 
+		// product tag / market page → the categories its products belong to
+		if ( is_tax( array( 'product_tag', 'market' ) ) && function_exists( 'efb_landing_tag_categories' ) ) {
+			$ids   = efb_landing_tag_categories( get_queried_object_id(), 12 );
+			$terms = $ids ? get_terms( array( 'taxonomy' => 'product_cat', 'include' => $ids, 'hide_empty' => true ) ) : array();
+		}
+
 		// no taxonomy children (e.g. Commercial Fridge/Freezer) → the child categories from
 		// the COMMERCIAL MENU (secondary_menu), same as the carousel
 		if ( ( is_wp_error( $terms ) || empty( $terms ) ) && $current && function_exists( 'ef_commercial_menu_children' ) ) {
@@ -101,7 +107,7 @@ add_filter( 'woocommerce_layered_nav_term_html', function ( $html, $term, $link,
  * sidebar, inside Astra's filter wrapper.
  */
 add_action( 'dynamic_sidebar_before', function ( $index ) {
-	if ( 'astra-woo-shop-sidebar' !== $index || is_admin() || ! function_exists( 'is_product_category' ) || ! is_product_category() ) {
+	if ( 'astra-woo-shop-sidebar' !== $index || is_admin() || ! function_exists( 'is_product_category' ) || ! ( is_product_category() || is_tax( array( 'product_tag', 'market' ) ) ) ) {
 		return;
 	}
 	$active = false;
@@ -121,14 +127,14 @@ add_action( 'dynamic_sidebar_before', function ( $index ) {
 } );
 
 /**
- * Show the filter sidebar ONLY on product category archives (/product-category/…).
- * Everywhere else — shop, cart, checkout, account, single product, product tags —
+ * Show the filter sidebar ONLY on product category, product tag and market archives.
+ * Everywhere else — shop, cart, checkout, account, single product —
  * force a no-sidebar layout so the filter widgets never leak onto those pages
  * (and the cart/checkout get the full content width).
  */
 add_filter( 'astra_page_layout', function ( $layout ) {
 	if ( is_admin() ) { return $layout; }
-	if ( function_exists( 'is_product_category' ) && is_product_category() ) {
+	if ( function_exists( 'is_product_category' ) && ( is_product_category() || is_tax( array( 'product_tag', 'market' ) ) ) ) {
 		return 'left-sidebar';
 	}
 	if ( ( function_exists( 'is_woocommerce' ) && is_woocommerce() )
@@ -144,6 +150,26 @@ add_filter( 'astra_page_layout', function ( $layout ) {
  * On mobile/tablet: the sidebar filters become inline dropdown buttons (see CSS).
  * The JS only toggles the panels; it loads only on shop archives.
  */
+
+/**
+ * Mobile: move the filter bar above the product grid as soon as the sidebar
+ * has been parsed (inline, right after it), before the page is first painted –
+ * moving it from the footer script shifted the whole grid (layout shift).
+ */
+add_action( 'astra_content_bottom', function () {
+	if ( ! function_exists( 'is_product_category' ) || ! ( is_product_category() || is_shop() || is_product_taxonomy() ) ) { return; }
+	?>
+<script>
+(function(){
+	if(!window.matchMedia('(max-width: 921px)').matches){ return; }
+	var sec = document.getElementById('secondary'), primary = document.getElementById('primary');
+	if(!sec || !primary){ return; }
+	var anchor = primary.querySelector('.woocommerce-result-count') || primary.querySelector('.woocommerce-ordering') || primary.querySelector('ul.products');
+	if(anchor){ anchor.parentNode.insertBefore(sec, anchor); }
+})();
+</script>
+	<?php
+}, 1 );
 add_action( 'wp_footer', function () {
 	if ( ! function_exists( 'is_product_category' ) ) { return; }
 	if ( ! ( is_product_category() || is_shop() || is_product_taxonomy() ) ) { return; }

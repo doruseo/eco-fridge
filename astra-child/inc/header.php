@@ -71,7 +71,7 @@ function ef_hdr_icon( $it ) {
 function ef_hdr_tile( $it ) {
 	$icon = ef_hdr_icon( $it );
 	return '<a class="ef-mega-tile" href="' . esc_url( $it->url ) . '">'
-		. '<span class="ef-mega-tile-img">' . ( $icon ? '<img src="' . esc_url( $icon ) . '" alt="' . esc_attr( $it->title ) . '" loading="lazy" />' : '' ) . '</span>'
+		. '<span class="ef-mega-tile-img">' . ( $icon ? '<img src="' . esc_url( $icon ) . '"' . ( function_exists( 'efb_img_size_attrs' ) ? efb_img_size_attrs( $icon ) : '' ) . ' alt="' . esc_attr( $it->title ) . '" loading="lazy" />' : '' ) . '</span>'
 		. '<span class="ef-mega-tile-name">' . esc_html( $it->title ) . '</span></a>';
 }
 
@@ -102,7 +102,7 @@ function ef_hdr_mega( $top, $by ) {
 		$icon = ef_hdr_icon( $c );
 		$out .= '<div class="ef-mega-col">';
 		$out .= '<a class="ef-mega-head" href="' . esc_url( $c->url ) . '">';
-		if ( $icon ) { $out .= '<span class="ef-mega-head-img"><img src="' . esc_url( $icon ) . '" alt="" loading="lazy" /></span>'; }
+		if ( $icon ) { $out .= '<span class="ef-mega-head-img"><img src="' . esc_url( $icon ) . '"' . ( function_exists( 'efb_img_size_attrs' ) ? efb_img_size_attrs( $icon ) : '' ) . ' alt="" loading="lazy" /></span>'; }
 		$out .= '<span class="ef-mega-head-txt">' . esc_html( $c->title ) . '</span>';
 		$out .= '</a>';
 

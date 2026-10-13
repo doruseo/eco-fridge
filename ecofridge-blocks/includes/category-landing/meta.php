@@ -62,7 +62,7 @@ function efb_landing_label( $term_id ) {
 	if ( isset( $labels[ (int) $term_id ] ) ) {
 		return $labels[ (int) $term_id ];
 	}
-	$term = get_term( (int) $term_id, 'product_cat' );
+	$term = get_term( (int) $term_id );
 	return $term && ! is_wp_error( $term ) ? $term->name : '';
 }
 
@@ -133,13 +133,79 @@ function efb_landing_tree_data() {
 }
 
 /**
- * Whether a category gets the landing page sections.
+ * Taxonomies whose every term gets the landing page too (product tags: the
+ * intent pages, e.g. "Stainless Steel Fridges & Freezers") and markets
+ * (/markets/<slug>/, e.g. "Café/Coffee Shop").
  *
- * @param int $term_id Category ID.
+ * @return string[]
+ */
+function efb_landing_tag_taxonomies() {
+	return (array) apply_filters( 'efb_landing_tag_taxonomies', array( 'product_tag', 'market' ) );
+}
+
+/**
+ * Whether a term is a landing tag (not a category).
+ *
+ * @param int $term_id Term ID.
+ * @return bool
+ */
+function efb_landing_is_tag( $term_id ) {
+	$term = get_term( (int) $term_id );
+	return $term && ! is_wp_error( $term ) && in_array( $term->taxonomy, efb_landing_tag_taxonomies(), true );
+}
+
+/**
+ * Whether the current request is a product category or landing tag archive.
+ *
+ * @return bool
+ */
+function efb_landing_is_archive() {
+	return is_product_category() || ( is_tax( efb_landing_tag_taxonomies() ) );
+}
+
+/**
+ * Whether a category (or tag) gets the landing page sections.
+ *
+ * @param int $term_id Category or tag ID.
  * @return bool
  */
 function efb_landing_applies( $term_id ) {
-	return (bool) apply_filters( 'efb_landing_applies', isset( efb_landing_tree()[ (int) $term_id ] ), (int) $term_id );
+	$applies = isset( efb_landing_tree()[ (int) $term_id ] ) || efb_landing_is_tag( $term_id );
+	return (bool) apply_filters( 'efb_landing_applies', $applies, (int) $term_id );
+}
+
+/**
+ * Categories of a tag's products, the most relevant first, so a tag page links
+ * to the categories instead of competing with them. Root categories are left
+ * out (too broad); a category ranks higher the more of the tag's products it
+ * holds and the larger the share of its own products that carry the tag – so
+ * "Serve Over Counters" (4 of 4) beats "Glass Front Fridges" (4 of 43).
+ *
+ * @param int $term_id Tag ID.
+ * @param int $limit   Maximum number of categories.
+ * @return int[]
+ */
+function efb_landing_tag_categories( $term_id, $limit = 8 ) {
+	$tree   = efb_landing_tree();
+	$counts = array();
+	foreach ( EFB_Landing_Reviews::product_ids( (int) $term_id ) as $pid ) {
+		foreach ( wp_get_post_terms( $pid, 'product_cat', array( 'fields' => 'ids' ) ) as $id ) {
+			if ( ! empty( $tree[ (int) $id ] ) ) { // In the commercial tree and not a root.
+				$counts[ (int) $id ] = ( $counts[ (int) $id ] ?? 0 ) + 1;
+			}
+		}
+	}
+	$scores = array();
+	foreach ( $counts as $id => $n ) {
+		$total         = (int) get_term_meta( $id, 'product_count_product_cat', true );
+		$total         = max( $n, $total ? $total : (int) get_term( $id, 'product_cat' )->count );
+		$scores[ $id ] = $n * $n / $total;
+		if ( efb_landing_children( $id ) ) {
+			$scores[ $id ] /= 4; // Parent categories after the specific ones.
+		}
+	}
+	arsort( $scores );
+	return array_slice( array_keys( $scores ), 0, $limit );
 }
 
 /**
@@ -239,6 +305,11 @@ final class EFB_Landing_Meta {
 		$data['order']     = $order;
 		$data['titles']    = array_merge( self::default_titles(), (array) $data['titles'] );
 		$data['long_desc'] = (string) get_term_meta( $term_id, self::long_desc_key(), true );
+		if ( efb_landing_is_tag( $term_id ) ) {
+			// Tags have no subcategories and no spare parts range of their own.
+			$data['products_carousel'] = false;
+			$data['parts']             = false;
+		}
 
 		return $data;
 	}

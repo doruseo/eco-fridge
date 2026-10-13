@@ -69,7 +69,7 @@ $efb_wrapper = get_block_wrapper_attributes(
 			<a class="efb-tile" href="<?php echo esc_url( $efb_link ); ?>">
 				<span class="efb-tile__image">
 					<?php if ( $efb_img ) : ?>
-						<img src="<?php echo esc_url( $efb_img ); ?>" alt="<?php echo esc_attr( $efb_term->name ); ?>" loading="lazy" decoding="async" />
+						<img src="<?php echo esc_url( $efb_img ); ?>"<?php echo efb_img_size_attrs( $efb_img ); // phpcs:ignore WordPress.Security.EscapeOutput ?> alt="<?php echo esc_attr( $efb_term->name ); ?>" loading="lazy" decoding="async" />
 					<?php endif; ?>
 				</span>
 				<span class="efb-tile__name"><?php echo esc_html( $efb_term->name ); ?></span>

@@ -15,23 +15,34 @@ Text Domain: eco-fridge-child
 :root {
   /* Tied to the Astra global palette (editable in Customizer → Global → Colors);
      fallback = the original eco-fridge palette if Astra isn't loaded. */
-  --ef-brand: var(--ast-global-color-0, #228B22);      /* forest brand green */
+  --ef-brand: var(--ast-global-color-0, #1f821f);      /* brand green (4.9:1 on white) */
   --ef-brand-dark: var(--ast-global-color-1, #1b6f1b); /* hover */
   --ef-brand-light: #81c784;                            /* light green (tile hover border) */
   --ef-brand-deep: #18673a;     /* darker, cooler green: commercial menu bar, 3-column footer, scroll-to-top */
   --ef-brand-deep-hover: #11502d;
   --ef-bg: var(--ast-global-color-5, #ffffff);
   --ef-text: var(--ast-global-color-3, #333);
-  --ef-meta: #9fa6b4;
+  --ef-meta: #6b7280;        /* 4.8:1 on white (WCAG AA) */
   --ef-border: var(--ast-global-color-7, #e5e7eb);
   --ef-divider: #eee;
   --ef-stripe: #f8f9fa;
-  --ef-font-body: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  --ef-font-head: 'Oswald', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --ef-font-body: 'Open Sans', 'Open Sans Fallback', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --ef-font-head: 'Oswald', 'Oswald Fallback', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   /* cards (category carousels, product grids): resting + lifted "3D" shadows */
   --ef-card-shadow: 0 1px 2px rgba(0,0,0,.05);
   --ef-card-shadow-hover: 0 22px 40px -10px rgba(0,0,0,.28), 0 10px 16px -8px rgba(0,0,0,.16), 0 0 0 1px rgba(34,139,34,.08);
 }
+
+/* Local fallbacks sized like the web fonts, so text keeps its size while
+   Oswald / Open Sans load (no layout shift when they swap in). */
+@font-face { font-family: 'Oswald Fallback'; src: local('Arial Narrow'), local('ArialNarrow'), local('Arial'); size-adjust: 81%; ascent-override: 146%; descent-override: 35%; line-gap-override: 0%; }
+@font-face { font-family: 'Open Sans Fallback'; src: local('Arial'); size-adjust: 105%; ascent-override: 101%; descent-override: 28%; line-gap-override: 0%; }
+
+/* The green category bar stays on one line while the fonts load (it wrapped
+   with the wider fallback font, then jumped back: a large layout shift). */
+.ef-cat-nav .ef-menu { flex-wrap: nowrap; }
+.ef-cat-nav .ef-menu > li > a { white-space: nowrap; }
+
 
 /* =========================================================================
    TIPOGRAFIE — Oswald (titluri) + Open Sans (body), ca originalul
@@ -130,7 +141,7 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-filter-cats .ef-count,
 #secondary .woocommerce-widget-layered-nav-list .count {
   margin-left: auto; min-width: 26px; padding: 1px 8px; border-radius: 999px;
-  background: #eef1f4; color: #6b7480; font-size: .72rem; font-weight: 600; text-align: center;
+  background: #eef1f4; color: #4b5563; font-size: .72rem; font-weight: 600; text-align: center;
 }
 .ef-filter-cats .ef-count { position: absolute; right: 10px; pointer-events: none; }
 .ef-filter-cats li.ef-current > a {
@@ -372,7 +383,9 @@ a:hover, a:focus { color: var(--ef-text); }
 }
 .ef-primary-nav .ef-menu a { color: var(--ef-text); padding: 8px 12px; font-size: .9rem; }
 .ef-primary-nav .ef-menu a:hover { color: var(--ef-brand); }
-.ef-cat-nav .ef-menu > li > a { color: #fff; padding: 12px 13px; font-size: .8rem; }
+.ef-cat-nav .ef-menu > li > a { color: #fff; padding: 12px 13px; font-size: .8rem; line-height: 19px; } /* fixed line box: no height change when the web font swaps in */
+/* narrow desktops: the one-line green bar still fits next to the cart */
+@media (min-width: 993px) and (max-width: 1120px) { .ef-cat-nav .ef-menu > li > a { padding-left: 8px; padding-right: 8px; } }
 .ef-cat-nav .ef-menu > li > a:hover { background: rgba(0,0,0,.14); }
 
 /* simple dropdowns (row 1: Contact → About/Support/Cookie/Markets, Markets → …) */
@@ -1088,22 +1101,6 @@ div.wpforms-container .wpforms-submit:hover {
 }
 
 /* =========================================================================
-   BLOG POSTS (single post) — 1000px width + featured image below the title
-   ========================================================================= */
-.single-post .site-content > .ast-container {
-  max-width: 1000px;
-}
-.ef-single-featured {
-  margin: 22px 0 8px;
-}
-.ef-single-featured img {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: 4px;
-}
-
-/* =========================================================================
    SINGLE PRODUCT PAGE
    ========================================================================= */
 .ef-price { font-family: var(--ef-font-head); }
@@ -1450,3 +1447,33 @@ form.cart .ef-addon-group__body .ef-addon--radio input { margin-top: 0; }
 /* A link wrapping an image becomes a block too, so the image sits on its own line. */
 :is(.entry-content, .ef-range-content, .ef-seo-content, .term-description, .woocommerce-Tabs-panel, .efbl-faq__a-inner, .efb-toggle__body)
   :is(p, h2, h3, h4, h5, h6, td, th, li) > a:has(> img:not(.alignleft):not(.alignright)) { display: block; }
+
+/* Links inside running text are underlined, not told apart by colour alone
+   (accessibility: link-in-text-block). */
+:is(.efbl-long-desc, .efbl-faq__a-inner, .ef-range-content, .term-description) p a:not(.button):not(.efb-button) {
+  text-decoration: underline;
+  text-decoration-color: var(--ef-brand-light);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+/* Text contrast (WCAG AA 4.5:1): Astra/WooCommerce greys and faded text on
+   shop pages, the red offer labels. */
+.woocommerce nav.woocommerce-breadcrumb,
+.woocommerce-page nav.woocommerce-breadcrumb { color: #5f6b66; }
+.woocommerce .ast-woo-product-category,
+.ast-woo-product-category { color: #5f6b66 !important; opacity: 1 !important; }
+.woocommerce .ef-price del,
+.ef-price del { color: #6b7280 !important; opacity: 1 !important; }
+.efb-offers .efb-offer__label { color: #d10000; }
+.efbl-table th a { color: var(--ef-brand-deep); }
+.woocommerce nav.woocommerce-breadcrumb a,
+.woocommerce-page nav.woocommerce-breadcrumb a { color: var(--ef-brand-deep); text-decoration: underline; text-decoration-color: var(--ef-brand-light); text-underline-offset: 3px; }
+.ef-tc-note a,
+.ef-product-notes a,
+:is(.efbl-long-desc, .efbl-faq__a-inner, .ef-range-content, .term-description) li a:not(.button) { text-decoration: underline; text-underline-offset: 2px; }
+
+/* Cart: the add-ons are edited with the checkboxes under the product name, so
+   the "Removal & Disposal: Added" item data below them is not repeated there
+   (it still shows at checkout, in the order and in the emails). */
+.woocommerce-cart-form .product-name .ef-cart-item-addons ~ dl.variation { display: none; }

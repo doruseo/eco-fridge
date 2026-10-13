@@ -344,10 +344,36 @@ add_action( 'woocommerce_archive_description', function () {
 	echo '</section>';
 }, 15 );
 
-/** Carousel navigation JS (category archives with a carousel, and /shop). */
+/**
+ * [ef_home_categories] — the four main ranges as a carousel (home page):
+ * Commercial Fridges, Commercial Freezers, Display Cabinets, Storage Cabinets.
+ * Each card shows the category's own image, whole.
+ */
+add_shortcode( 'ef_home_categories', function () {
+	$cards = array();
+	foreach ( array(
+		'commercial-fridge'  => 'Commercial Fridges',
+		'commercial-freezer' => 'Commercial Freezers',
+		'display-cabinets'   => 'Display Cabinets',
+		'storage-cabinets'   => 'Storage Cabinets',
+	) as $slug => $title ) {
+		$t    = get_term_by( 'slug', $slug, 'product_cat' );
+		$card = $t ? ef_category_card( $t->term_id, $title ) : null;
+		if ( $card ) { $cards[] = $card; }
+	}
+	if ( ! $cards ) { return ''; }
+	$GLOBALS['ef_cc_used'] = true; // the footer prints the carousel script
+	ob_start();
+	echo '<div class="ef-cat-carousel-wrap ef-home-cats">';
+	ef_render_category_carousel( $cards );
+	echo '</div>';
+	return ob_get_clean();
+} );
+
+/** Carousel navigation JS (category archives with a carousel, /shop and [ef_home_categories]). */
 add_action( 'wp_footer', function () {
 	$ok = false;
-	if ( ef_is_shop_page() ) {
+	if ( ef_is_shop_page() || ! empty( $GLOBALS['ef_cc_used'] ) ) {
 		$ok = true;
 	} elseif ( function_exists( 'is_product_category' ) && is_product_category() ) {
 		$term = get_queried_object();
@@ -362,7 +388,7 @@ add_action( 'wp_footer', function () {
 		var prev = cc.querySelector('.ef-cc-prev'), next = cc.querySelector('.ef-cc-next');
 		if(!track){ return; }
 		function step(){
-			var card = track.querySelector('.ef-cc-card');
+			var card = track.querySelector('.ef-cc-card, .ef-cc-slide');
 			var gap = parseInt(getComputedStyle(track).columnGap || getComputedStyle(track).gap || 16, 10) || 16;
 			return card ? (card.offsetWidth + gap) : 260;
 		}
