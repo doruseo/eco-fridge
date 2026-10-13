@@ -20,13 +20,13 @@ final class EFB_Landing_Reviews {
 		add_action( 'wp_ajax_nopriv_efb_landing_reviews', array( $this, 'ajax' ) );
 
 		// Anything that can change which reviews/products belong to a category invalidates the cache.
-		foreach ( array( 'comment_post', 'edit_comment', 'wp_set_comment_status', 'deleted_comment', 'save_post_product', 'edited_product_cat', 'delete_product_cat' ) as $hook ) {
+		foreach ( array( 'comment_post', 'edit_comment', 'wp_set_comment_status', 'deleted_comment', 'save_post_product', 'edited_product_cat', 'delete_product_cat', 'edited_product_tag', 'delete_product_tag', 'edited_market', 'delete_market' ) as $hook ) {
 			add_action( $hook, array( 'EFB_Landing_Meta', 'bump_cache' ) );
 		}
 		add_action(
 			'set_object_terms',
 			function ( $object_id, $terms, $tt_ids, $taxonomy ) {
-				if ( 'product_cat' === $taxonomy ) {
+				if ( 'product_cat' === $taxonomy || in_array( $taxonomy, efb_landing_tag_taxonomies(), true ) ) {
 					EFB_Landing_Meta::bump_cache();
 				}
 			},
@@ -57,7 +57,7 @@ final class EFB_Landing_Reviews {
 					'no_found_rows'  => true,
 					'tax_query'      => array( // phpcs:ignore WordPress.DB.SlowDBQuery
 						array(
-							'taxonomy'         => 'product_cat',
+							'taxonomy'         => efb_landing_is_tag( $term_id ) ? get_term( (int) $term_id )->taxonomy : 'product_cat',
 							'terms'            => $term_id,
 							'include_children' => true,
 						),
@@ -294,7 +294,7 @@ final class EFB_Landing_Reviews {
 		$sort    = sanitize_key( $_GET['sort'] ?? 'newest' );
 		// phpcs:enable
 
-		$term = get_term( $term_id, 'product_cat' );
+		$term = get_term( $term_id );
 		if ( ! $term || is_wp_error( $term ) || ! efb_landing_applies( $term_id ) || ! EFB_Landing_Meta::get( $term_id )['reviews'] ) {
 			wp_send_json_error( null, 404 );
 		}

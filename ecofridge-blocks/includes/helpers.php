@@ -116,3 +116,18 @@ function efb_relative_url( $url ) {
 	}
 	return $url;
 }
+
+/**
+ * width/height attributes for an image URL whose file name carries its size
+ * (WordPress' "-300x630.jpg" thumbnails), so the browser reserves the space
+ * before the image loads. Empty string when the name has no size.
+ *
+ * @param string $url Image URL.
+ * @return string
+ */
+function efb_img_size_attrs( $url ) {
+	if ( preg_match( '~-(\d{2,4})x(\d{2,4})\.(?:jpe?g|png|gif|webp|avif)$~i', (string) wp_parse_url( $url, PHP_URL_PATH ), $m ) ) {
+		return ' width="' . (int) $m[1] . '" height="' . (int) $m[2] . '"';
+	}
+	return '';
+}

@@ -4,7 +4,7 @@
    so they follow Customizer → Global Colors.
    ========================================================================== */
 .efbl {
-	--efbl-brand: var(--efb-brand, #228b22);
+	--efbl-brand: var(--efb-brand, var(--ef-brand, #1f821f));
 	--efbl-brand-dark: var(--efb-brand-dark, #1b6f1b);
 	--efbl-brand-light: var(--efb-brand-light, #81c784);
 	--efbl-tint: #eef6ee;              /* light green surface */

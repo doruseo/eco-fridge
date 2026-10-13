@@ -4,7 +4,9 @@
  * main categories, the legacy /ranges/ ones and every category under them): features, FAQ accordion,
  * comparison table, related articles, long description, spare parts, products
  * carousel, related categories, markets and an aggregated reviews wall after the
- * product grid, edited on Products > Categories > Edit.
+ * product grid, edited on Products > Categories > Edit. Product tags get the
+ * same landing page (edited on Products > Tags > Edit), with "Shop by category"
+ * cards linking to the categories of their products.
  *
  * Also turns the category "Description" into a rich-text "Short description"
  * editor on every product category.

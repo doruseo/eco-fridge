@@ -33,14 +33,14 @@ final class EFB_Landing_Frontend {
 	public static function register_assets() {
 		wp_register_style( 'efb-landing', EFB_URL . 'assets/landing.css', array(), EFB_VERSION );
 		wp_register_script( 'efb-landing', EFB_URL . 'assets/landing.js', array(), EFB_VERSION, true );
-		if ( is_product_category() && efb_landing_applies( get_queried_object_id() ) ) {
+		if ( efb_landing_is_archive() && efb_landing_applies( get_queried_object_id() ) ) {
 			wp_enqueue_style( 'efb-landing' );
 			wp_enqueue_script( 'efb-landing' );
 		}
 	}
 
 	public function setup() {
-		if ( ! is_product_category() || ! efb_landing_applies( get_queried_object_id() ) ) {
+		if ( ! efb_landing_is_archive() || ! efb_landing_applies( get_queried_object_id() ) ) {
 			return;
 		}
 		$term = get_queried_object();
@@ -213,10 +213,10 @@ final class EFB_Landing_Frontend {
 		if ( false === strpos( $title, EFB_Landing_Meta::CATEGORY_TOKEN ) ) {
 			return $title;
 		}
-		if ( is_product_category() && (int) $term_id === get_queried_object_id() ) {
+		if ( efb_landing_is_archive() && (int) $term_id === get_queried_object_id() ) {
 			$name = html_entity_decode( wp_strip_all_tags( woocommerce_page_title( false ) ), ENT_QUOTES, 'UTF-8' );
 		} else {
-			$term = get_term( (int) $term_id, 'product_cat' );
+			$term = get_term( (int) $term_id );
 			$name = $term && ! is_wp_error( $term ) ? $term->name : '';
 		}
 		return trim( preg_replace( '/\s+/', ' ', str_replace( EFB_Landing_Meta::CATEGORY_TOKEN, $name, $title ) ) );
@@ -293,13 +293,20 @@ final class EFB_Landing_Frontend {
 		return $html . '</ul>';
 	}
 
-	/** Cards for the other categories under the same parent. Root categories get none. */
+	/**
+	 * Cards for the other categories under the same parent (root categories get
+	 * none); on a tag, the categories its products belong to.
+	 */
 	private static function related_categories( $term_id ) {
-		$tree = efb_landing_tree();
-		if ( empty( $tree[ $term_id ] ) ) {
-			return '';
+		if ( efb_landing_is_tag( $term_id ) ) {
+			$siblings = efb_landing_tag_categories( $term_id );
+		} else {
+			$tree = efb_landing_tree();
+			if ( empty( $tree[ $term_id ] ) ) {
+				return '';
+			}
+			$siblings = array_values( array_diff( efb_landing_children( $tree[ $term_id ] ), array( $term_id ) ) );
 		}
-		$siblings = array_values( array_diff( efb_landing_children( $tree[ $term_id ] ), array( $term_id ) ) );
 		$siblings = apply_filters( 'efb_landing_related_categories', $siblings, $term_id );
 
 		$items = '';
@@ -343,6 +350,11 @@ final class EFB_Landing_Frontend {
 				'sort_column' => 'menu_order,post_title',
 			)
 		);
+		// On a market page, the other markets only.
+		$current = is_tax( 'market' ) && function_exists( 'efb_market_page' ) ? efb_market_page( get_queried_object() ) : null;
+		if ( $current ) {
+			$pages = array_values( array_filter( $pages, static fn( $p ) => $p->ID !== $current->ID ) );
+		}
 		if ( ! $pages ) {
 			return '';
 		}
@@ -360,6 +372,7 @@ final class EFB_Landing_Frontend {
 			array(
 				'type'           => 'pages',
 				'parent'         => $parent->ID,
+				'exclude'        => $current ? $current->ID : '',
 				'limit'          => 100,
 				'columns'        => 4,
 				'columns_tablet' => 2,

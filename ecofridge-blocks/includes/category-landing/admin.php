@@ -1,6 +1,6 @@
 <?php
 /**
- * Category landing pages — fields on Products > Categories > Edit.
+ * Category landing pages — fields on Products > Categories > Edit (and Products > Tags > Edit).
  *
  *  - every product category: the plain "Description" textarea becomes a
  *    rich-text "Short description" editor (the text under the title, above the products);
@@ -14,9 +14,11 @@ defined( 'ABSPATH' ) || exit;
 final class EFB_Landing_Admin {
 
 	public function __construct() {
-		add_action( 'product_cat_edit_form_fields', array( $this, 'render_short_description' ), 1 );
-		add_action( 'product_cat_edit_form_fields', array( $this, 'render_fields' ), 20 );
-		add_action( 'edited_product_cat', array( $this, 'save' ) );
+		foreach ( array_merge( array( 'product_cat' ), efb_landing_tag_taxonomies() ) as $taxonomy ) {
+			add_action( $taxonomy . '_edit_form_fields', array( $this, 'render_short_description' ), 1 );
+			add_action( $taxonomy . '_edit_form_fields', array( $this, 'render_fields' ), 20 );
+			add_action( 'edited_' . $taxonomy, array( $this, 'save' ) );
+		}
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), 20 );
 		add_action( 'wp_ajax_efb_landing_search_posts', array( $this, 'search_posts' ) );
 		add_action( 'wp_ajax_efb_landing_search_parts', array( 'EFB_Landing_Parts', 'ajax_search' ) );
@@ -35,7 +37,7 @@ final class EFB_Landing_Admin {
 
 	public function enqueue( $hook ) {
 		$screen = get_current_screen();
-		if ( 'term.php' !== $hook || ! $screen || 'product_cat' !== $screen->taxonomy ) {
+		if ( 'term.php' !== $hook || ! $screen || ! in_array( $screen->taxonomy, array_merge( array( 'product_cat' ), efb_landing_tag_taxonomies() ), true ) ) {
 			return;
 		}
 
@@ -83,7 +85,7 @@ final class EFB_Landing_Admin {
 				<?php
 				// The $term passed here is escaped for the edit context, so read the raw value.
 				wp_editor(
-					(string) get_term_field( 'description', $term->term_id, 'product_cat', 'raw' ),
+					(string) get_term_field( 'description', $term->term_id, $term->taxonomy, 'raw' ),
 					'efb_short_description',
 					array(
 						'textarea_name' => 'description',
@@ -113,7 +115,7 @@ final class EFB_Landing_Admin {
 		?>
 		<tr class="efbl-heading-row">
 			<th colspan="2">
-				<h2><?php esc_html_e( 'Category landing page', 'ecofridge-blocks' ); ?></h2>
+				<h2><?php echo esc_html( 'market' === $term->taxonomy ? __( 'Market landing page', 'ecofridge-blocks' ) : ( efb_landing_is_tag( $term->term_id ) ? __( 'Tag landing page', 'ecofridge-blocks' ) : __( 'Category landing page', 'ecofridge-blocks' ) ) ); ?></h2>
 				<p class="description"><?php esc_html_e( 'Page layout: short description → subcategory carousel → products → content sections (in the order below) → related categories → markets → reviews. Empty sections are not shown. The content sections appear on the first page of the category only.', 'ecofridge-blocks' ); ?></p>
 			</th>
 		</tr>

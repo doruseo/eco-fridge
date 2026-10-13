@@ -5,7 +5,7 @@
  * Hosts ONLY the logic that doesn't express cleanly in Astra Pro / Gutenberg:
  *  - "from-price" / £POA pricing on products (product meta)
  *  - delivery notes + T&C + add-ons on the product page (Woo hook, in inc/woo-single.php)
- *  - legacy order number, featured image on the blog, [ef_subcats] shortcode
+ *  - legacy order number, [ef_subcats] shortcode
  *
  * Content blocks (sections, slider, offers, logos, tiles, search, forms, spec
  * tables…) live in the ECO-Fridge Blocks plugin, not in the theme.
@@ -50,6 +50,12 @@ require_once get_stylesheet_directory() . '/inc/shop-loop.php';
 // Cart and checkout: trust strip, free delivery wording, continue shopping.
 require_once get_stylesheet_directory() . '/inc/cart-checkout.php';
 
+// Blog: /blog/, topic categories, tags and articles (templates: home.php, category.php, tag.php, single-post.php).
+require_once get_stylesheet_directory() . '/inc/blog.php';
+
+// Content pages (home, About Us, legal pages): their stylesheet.
+require_once get_stylesheet_directory() . '/inc/pages.php';
+
 /**
  * Google fonts 1:1 with the original: Oswald (headings) + Open Sans (body).
  */
@@ -61,6 +67,18 @@ add_action( 'wp_enqueue_scripts', function () {
 		null
 	);
 }, 5 );
+
+/**
+ * Connect early to Google Fonts (CSS on fonts.googleapis.com, files on
+ * fonts.gstatic.com), so the fonts start downloading sooner.
+ */
+add_filter( 'wp_resource_hints', function ( $urls, $relation ) {
+	if ( 'preconnect' === $relation ) {
+		$urls[] = 'https://fonts.googleapis.com';
+		$urls[] = array( 'href' => 'https://fonts.gstatic.com', 'crossorigin' => 'anonymous' );
+	}
+	return $urls;
+}, 10, 2 );
 
 /**
  * Load the child theme style after the Astra parent's.
@@ -96,22 +114,6 @@ function ef_sort_terms_by_order( $terms ) {
 	} );
 	return $terms;
 }
-
-/**
- * Featured image on blog posts (single post), shown AFTER the title +
- * meta details, before the content. Modern Astra doesn't render it by default
- * in the `ast-dynamic-single-post-structure` structure (only title+meta), and
- * the native "single-image" variant sets it as a background — so we render it
- * here, on `astra_single_post_banner_after` (right after title+meta, in the header).
- */
-add_action( 'astra_single_post_banner_after', function () {
-	if ( ! is_singular( 'post' ) || ! has_post_thumbnail() ) {
-		return;
-	}
-	echo '<div class="ef-single-featured">'
-		. get_the_post_thumbnail( get_the_ID(), 'large', array( 'loading' => 'eager' ) )
-		. '</div>';
-}, 10 );
 
 /**
  * A product category's image: the category thumbnail, falling back to the

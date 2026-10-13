@@ -68,3 +68,19 @@ add_action( 'wp_footer', function () {
 </script>
 	<?php
 }, 30 );
+
+/**
+ * Products that can't be added to the basket (out of stock…) show "View details"
+ * instead of WooCommerce's generic "Read more" (descriptive link text).
+ */
+add_filter( 'woocommerce_product_add_to_cart_text', function ( $text, $product ) {
+	return ( $product && ! ( $product->is_purchasable() && $product->is_in_stock() ) ) ? __( 'View details', 'eco-fridge-child' ) : $text;
+}, 20, 2 );
+
+/** Its accessible name matches the visible "View details" text. */
+add_filter( 'woocommerce_product_add_to_cart_description', function ( $description, $product ) {
+	return ( $product && ! ( $product->is_purchasable() && $product->is_in_stock() ) )
+		/* translators: %s: product name */
+		? sprintf( __( 'View details of &ldquo;%s&rdquo;', 'eco-fridge-child' ), $product->get_name() )
+		: $description;
+}, 20, 2 );
