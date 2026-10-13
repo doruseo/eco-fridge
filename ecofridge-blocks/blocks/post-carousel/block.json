@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "category": "ecofridge",
+  "textdomain": "ecofridge-blocks",
+  "editorScript": "efb-editor",
+  "editorStyle": "efb-editor",
+  "style": "efb-blocks",
+  "render": "file:./render.php",
+  "name": "efb/post-carousel",
+  "title": "Blog Carousel",
+  "description": "The latest blog articles as a carousel of cards, with a button to the blog.",
+  "icon": "slides",
+  "attributes": {
+    "count": {
+      "type": "number",
+      "default": 8
+    },
+    "category": {
+      "type": "number",
+      "default": 0
+    },
+    "buttonText": {
+      "type": "string",
+      "default": "View all articles"
+    }
+  },
+  "supports": {
+    "html": false,
+    "anchor": true,
+    "align": [
+      "wide",
+      "full"
+    ],
+    "spacing": {
+      "margin": true
+    }
+  }
+}

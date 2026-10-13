@@ -69,6 +69,12 @@
 
 /* ---- home page --------------------------------------------------------- */
 .ef-home-ranges .ef-cc-heading { margin-top: 0; }
+/* "Shop by range": 4 cards in view on desktop (3 on small laptops, 2 on tablets) */
+.ef-home-cats .ef-cc-card { flex-basis: calc((100% - 60px) / 4); }
+.ef-home-cats .ef-cc-img { height: 210px; }
+@media (max-width: 1100px) { .ef-home-cats .ef-cc-card { flex-basis: calc((100% - 40px) / 3); } }
+@media (max-width: 900px) { .ef-home-cats .ef-cc-card { flex-basis: calc((100% - 20px) / 2); } }
+@media (max-width: 520px) { .ef-home-cats .ef-cc-card { flex-basis: 78%; } .ef-home-cats .ef-cc-img { height: 220px; } }
 .entry-content .ef-home-cats a.ef-cc-card { text-decoration: none; } /* beats Astra's .ast-single-post .entry-content a */
 
 /* market buttons */
@@ -286,9 +292,9 @@
 .ef-home-intro h2.ef-home-intro__title::after { content: ""; position: absolute; left: 0; bottom: 0; width: 56px; height: 4px; border-radius: 2px; background: var(--ef-brand); }
 .ef-home-intro p { font-size: 16px; line-height: 1.75; color: #2c3a32; }
 .entry-content .ef-home-intro p a { color: var(--ef-brand-deep); font-weight: 700; text-decoration-color: var(--ef-brand-light); text-underline-offset: 3px; }
-.ef-home-intro p.ef-home-shopnow { margin: 22px 0 0; }
-.entry-content .ef-home-shopnow a.ef-btn { text-decoration: none; min-height: 50px; padding: 12px 34px; font-size: 16px; background: var(--ef-brand-deep); border-color: var(--ef-brand-deep); color: #fff !important; }
-.entry-content .ef-home-shopnow a.ef-btn:hover { background: var(--ef-brand-deep-hover); border-color: var(--ef-brand-deep-hover); }
+.ef-home-intro .ef-home-shopnow { margin: 22px 0 0; }
+.entry-content .ef-home-shopnow .wp-block-button__link { display: inline-flex; align-items: center; justify-content: center; min-height: 50px; padding: 12px 34px; border-radius: 999px; border: 2px solid var(--ef-brand-deep); background: var(--ef-brand-deep); color: #fff !important; font-size: 16px; font-weight: 700; text-decoration: none; transition: background .2s, border-color .2s, transform .2s; }
+.entry-content .ef-home-shopnow .wp-block-button__link:hover { background: var(--ef-brand-deep-hover); border-color: var(--ef-brand-deep-hover); transform: translateY(-1px); }
 
 /* client logos: an even grid of white tiles, colour on hover */
 .ef-home-clients .efb-logos__list { gap: 14px; }
@@ -334,7 +340,8 @@
 }
 @media (max-width: 781px) {
   .ef-home-hero h1.ef-home-hero__title { margin-bottom: 14px; }
-  .entry-content .ef-home-shopnow a.ef-btn { width: 100%; }
+  .ef-home-shopnow .wp-block-button { width: 100%; }
+  .entry-content .ef-home-shopnow .wp-block-button__link { width: 100%; }
   .ef-home-intro__media { min-height: 240px; }
   .ef-home-intro p.ef-home-intro__badge { left: 12px; bottom: 12px; padding: 8px 12px; max-width: 150px; font-size: 12px; }
   .ef-home-intro__badge strong { font-size: 26px; }

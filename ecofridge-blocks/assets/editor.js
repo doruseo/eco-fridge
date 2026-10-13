@@ -892,4 +892,167 @@
 			);
 		},
 	} );
+
+	/* ------------------------------------------------------------------ */
+	/* Range carousel                                                      */
+	/* ------------------------------------------------------------------ */
+	dynamic( 'efb/range-carousel', {
+		edit( props ) {
+			const { attributes: a, setAttributes } = props;
+			return el(
+				Fragment,
+				null,
+				el(
+					InspectorControls,
+					null,
+					el(
+						PanelBody,
+						{ title: 'Cards' },
+						el( 'p', { className: 'components-base-control__help' }, 'Each card links to a product category and shows its image, unless you choose another one.' ),
+						el( Repeater, {
+							items: a.items,
+							onChange: ( v ) => setAttributes( { items: v } ),
+							titleKey: 'title',
+							itemLabel: 'Card',
+							newItem: { categoryId: 0, title: '', imageId: 0, imageUrl: '' },
+							fields: [
+								{ key: 'categoryId', label: 'Category', type: 'select', options: [ { value: '', label: '— Choose —' } ].concat( data.categories.map( ( c ) => ( { value: String( c.value ), label: c.label } ) ) ) },
+								{ key: 'title', label: 'Label (optional – the category name otherwise)' },
+								{ type: 'image', label: 'Image (optional)', keys: { id: 'imageId', url: 'imageUrl' } },
+							],
+						} )
+					)
+				),
+				Preview( props, 'efb/range-carousel', 'Range Carousel', 'images-alt2' )
+			);
+		},
+	} );
+
+	/* ------------------------------------------------------------------ */
+	/* Market buttons                                                      */
+	/* ------------------------------------------------------------------ */
+	dynamic( 'efb/market-buttons', {
+		edit( props ) {
+			const { attributes: a, setAttributes } = props;
+			const byLabel = {};
+			( data.markets || [] ).forEach( ( m ) => { byLabel[ m.label ] = m.value; } );
+			return el(
+				Fragment,
+				null,
+				el(
+					InspectorControls,
+					null,
+					el(
+						PanelBody,
+						{ title: 'Markets' },
+						el( 'p', { className: 'components-base-control__help' }, 'One button per market, from Products → Markets. Add or rename markets there.' ),
+						el( FormTokenField, {
+							label: 'Hide these markets',
+							value: ( data.markets || [] ).filter( ( m ) => ( a.exclude || [] ).includes( m.value ) ).map( ( m ) => m.label ),
+							suggestions: ( data.markets || [] ).map( ( m ) => m.label ),
+							onChange: ( tokens ) => setAttributes( { exclude: tokens.map( ( t ) => byLabel[ t ] ).filter( Boolean ) } ),
+							__experimentalExpandOnFocus: true,
+						} )
+					)
+				),
+				Preview( props, 'efb/market-buttons', 'Market Buttons', 'store' )
+			);
+		},
+	} );
+
+	/* ------------------------------------------------------------------ */
+	/* Blog carousel                                                       */
+	/* ------------------------------------------------------------------ */
+	dynamic( 'efb/post-carousel', {
+		edit( props ) {
+			const { attributes: a, setAttributes } = props;
+			return el(
+				Fragment,
+				null,
+				el(
+					InspectorControls,
+					null,
+					el(
+						PanelBody,
+						{ title: 'Articles' },
+						el( RangeControl, { label: 'Number of articles', min: 3, max: 12, value: a.count, onChange: ( v ) => setAttributes( { count: v } ) } ),
+						el( SelectControl, {
+							label: 'Blog category',
+							value: String( a.category || 0 ),
+							options: [ { value: '0', label: 'All categories' } ].concat( ( data.blogCategories || [] ).map( ( c ) => ( { value: String( c.value ), label: c.label } ) ) ),
+							onChange: ( v ) => setAttributes( { category: parseInt( v, 10 ) || 0 } ),
+						} ),
+						el( TextControl, { label: 'Button text (empty = no button)', value: a.buttonText, onChange: ( v ) => setAttributes( { buttonText: v } ) } )
+					)
+				),
+				Preview( props, 'efb/post-carousel', 'Blog Carousel', 'slides' )
+			);
+		},
+	} );
+
+	/* ------------------------------------------------------------------ */
+	/* Help box                                                            */
+	/* ------------------------------------------------------------------ */
+	dynamic( 'efb/help-box', {
+		edit( props ) {
+			const { attributes: a, setAttributes } = props;
+			return el(
+				Fragment,
+				null,
+				el(
+					InspectorControls,
+					null,
+					el(
+						PanelBody,
+						{ title: 'Content' },
+						el( TextControl, { label: 'Title', value: a.title, onChange: ( v ) => setAttributes( { title: v } ) } ),
+						el( TextareaControl, { label: 'Text', value: a.text, onChange: ( v ) => setAttributes( { text: v } ) } )
+					),
+					el(
+						PanelBody,
+						{ title: 'Buttons' },
+						el( TextControl, { label: 'First button – text', value: a.primaryText, onChange: ( v ) => setAttributes( { primaryText: v } ) } ),
+						el( TextControl, { label: 'First button – link', value: a.primaryUrl, onChange: ( v ) => setAttributes( { primaryUrl: v } ) } ),
+						el( TextControl, { label: 'Second button – text', value: a.secondaryText, onChange: ( v ) => setAttributes( { secondaryText: v } ) } ),
+						el( TextControl, { label: 'Second button – link (tel:… for a phone number)', value: a.secondaryUrl, onChange: ( v ) => setAttributes( { secondaryUrl: v } ) } )
+					)
+				),
+				Preview( props, 'efb/help-box', 'Help Box', 'format-chat' )
+			);
+		},
+	} );
+
+	/* ------------------------------------------------------------------ */
+	/* Highlights                                                          */
+	/* ------------------------------------------------------------------ */
+	dynamic( 'efb/highlights', {
+		edit( props ) {
+			const { attributes: a, setAttributes } = props;
+			return el(
+				Fragment,
+				null,
+				el(
+					InspectorControls,
+					null,
+					el(
+						PanelBody,
+						{ title: 'Boxes' },
+						el( Repeater, {
+							items: a.items,
+							onChange: ( v ) => setAttributes( { items: v } ),
+							titleKey: 'strong',
+							itemLabel: 'Box',
+							newItem: { icon: 'check', strong: '', text: '' },
+							fields: [
+								{ key: 'icon', label: 'Icon', type: 'select', options: data.highlightIcons || [] },
+								{ key: 'strong', label: 'Bold lead (e.g. Free delivery)' },
+								{ key: 'text', label: 'Text after it (e.g. to UK mainland addresses)' },
+							],
+						} )
+					)
+				),
+				Preview( props, 'efb/highlights', 'Highlights', 'awards' )
+			);
+		},
+	} );
 } )( window.wp );

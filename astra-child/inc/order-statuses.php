@@ -6,6 +6,7 @@
  *   Processing → order picked up
  *   Processed  → order processed, ready for delivery
  *   Shipped    → order out for delivery
+ *   On hold    → order waiting (e.g. for payment by bank transfer)
  *   Complete   → order delivered
  *   Cancelled  → order cancelled
  *   Failed     → payment failed / error placing the order (items go back to the cart)
@@ -13,8 +14,9 @@
  *   Refunded   → order refunded
  *
  * Processed / Shipped / Returned are registered here; the rest are core WooCommerce
- * statuses, relabelled and reordered to match the flow. On hold is removed — it has
- * no place in this flow.
+ * statuses, relabelled and reordered to match the flow: Processed and Shipped right
+ * after Processing, then the other statuses. On hold stays – existing orders use it
+ * and bank transfer payments are put on hold.
  *
  * @package Eco-Fridge-Child
  */
@@ -48,7 +50,7 @@ add_action( 'init', function () {
 }, 9 );
 
 /* =========================================================================
- * 2. THE LIST — order the statuses along the flow, relabel, drop On hold.
+ * 2. THE LIST — order the statuses along the flow, relabel.
  * ========================================================================= */
 add_filter( 'wc_order_statuses', function ( $statuses ) {
 	$flow = array(
@@ -56,6 +58,7 @@ add_filter( 'wc_order_statuses', function ( $statuses ) {
 		'wc-processing' => 'Processing', // picked up
 		'wc-processed'  => 'Processed',  // ready for delivery
 		'wc-shipped'    => 'Shipped',    // out for delivery
+		'wc-on-hold'    => 'On hold',    // waiting (e.g. bank transfer)
 		'wc-completed'  => 'Complete',   // delivered
 		'wc-cancelled'  => 'Cancelled',
 		'wc-failed'     => 'Failed',
@@ -65,7 +68,7 @@ add_filter( 'wc_order_statuses', function ( $statuses ) {
 
 	// Keep any status a plugin added that we don't know about, at the end.
 	foreach ( $statuses as $key => $label ) {
-		if ( ! isset( $flow[ $key ] ) && 'wc-on-hold' !== $key ) {
+		if ( ! isset( $flow[ $key ] ) ) {
 			$flow[ $key ] = $label;
 		}
 	}
@@ -84,6 +87,13 @@ add_filter( 'wc_order_statuses', function ( $statuses ) {
 add_filter( 'woocommerce_order_is_paid_statuses', function ( $statuses ) {
 	return array_merge( $statuses, array( 'processed', 'shipped' ) );
 } );
+
+/**
+ * Stock: an order moved straight to Processed or Shipped (e.g. from Pending) has its
+ * stock reduced like on Processing / Complete. WooCommerce does it once per order.
+ */
+add_action( 'woocommerce_order_status_processed', 'wc_maybe_reduce_stock_levels' );
+add_action( 'woocommerce_order_status_shipped', 'wc_maybe_reduce_stock_levels' );
 
 /** Reports count the fulfilled statuses alongside processing/completed. */
 add_filter( 'woocommerce_reports_order_statuses', function ( $statuses ) {
@@ -107,6 +117,30 @@ $ef_bulk = function ( $actions ) {
 };
 add_filter( 'bulk_actions-woocommerce_page_wc-orders', $ef_bulk );
 add_filter( 'bulk_actions-edit-shop_order', $ef_bulk );
+
+/**
+ * The "Change status to …" entries in the same order as the status list
+ * (Processing, Processed, Shipped, …), after the other bulk actions.
+ */
+$ef_bulk_order = function ( $actions ) {
+	$marks = array();
+	foreach ( array_keys( wc_get_order_statuses() ) as $status ) {
+		$key = 'mark_' . substr( $status, 3 );
+		if ( isset( $actions[ $key ] ) ) {
+			$marks[ $key ] = $actions[ $key ];
+			unset( $actions[ $key ] );
+		}
+	}
+	foreach ( $actions as $key => $label ) { // unknown mark_* entries keep their place after ours.
+		if ( 0 === strpos( $key, 'mark_' ) ) {
+			$marks[ $key ] = $label;
+			unset( $actions[ $key ] );
+		}
+	}
+	return $actions + $marks;
+};
+add_filter( 'bulk_actions-woocommerce_page_wc-orders', $ef_bulk_order, 99 );
+add_filter( 'bulk_actions-edit-shop_order', $ef_bulk_order, 99 );
 
 /**
  * Status pills in the orders list: WooCommerce styles only its own statuses, so the

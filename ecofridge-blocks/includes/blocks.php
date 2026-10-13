@@ -103,12 +103,30 @@ add_action(
 				}
 			}
 		}
+		$blog_cats = array();
+		foreach ( (array) get_categories( array( 'hide_empty' => false ) ) as $c ) {
+			if ( $c instanceof WP_Term && 'uncategorized' !== $c->slug ) {
+				$blog_cats[] = array(
+					'value' => $c->term_id,
+					'label' => html_entity_decode( $c->name ) . ' (' . $c->count . ')',
+				);
+			}
+		}
+		$icons = array();
+		foreach ( efb_highlight_icons() as $key => $icon ) {
+			$icons[] = array(
+				'value' => $key,
+				'label' => $icon['label'],
+			);
+		}
 		wp_add_inline_script(
 			'efb-editor',
 			'window.efbData = ' . wp_json_encode(
 				array(
-					'categories' => $cats,
-					'markets'    => $markets,
+					'categories'     => $cats,
+					'markets'        => $markets,
+					'blogCategories' => $blog_cats,
+					'highlightIcons' => $icons,
 				)
 			) . ';',
 			'before'

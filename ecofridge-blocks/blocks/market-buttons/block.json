@@ -1,0 +1,31 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "category": "ecofridge",
+  "textdomain": "ecofridge-blocks",
+  "editorScript": "efb-editor",
+  "editorStyle": "efb-editor",
+  "style": "efb-blocks",
+  "render": "file:./render.php",
+  "name": "efb/market-buttons",
+  "title": "Market Buttons",
+  "description": "Buttons linking to every market landing page (Products → Markets).",
+  "icon": "store",
+  "attributes": {
+    "exclude": {
+      "type": "array",
+      "default": []
+    }
+  },
+  "supports": {
+    "html": false,
+    "anchor": true,
+    "align": [
+      "wide",
+      "full"
+    ],
+    "spacing": {
+      "margin": true
+    }
+  }
+}
