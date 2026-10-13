@@ -1,0 +1,51 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "category": "ecofridge",
+  "textdomain": "ecofridge-blocks",
+  "editorScript": "efb-editor",
+  "editorStyle": "efb-editor",
+  "style": "efb-blocks",
+  "render": "file:./render.php",
+  "name": "efb/help-box",
+  "title": "Help Box",
+  "description": "Green box with a title, a short text and two buttons (e.g. contact and phone).",
+  "icon": "format-chat",
+  "attributes": {
+    "title": {
+      "type": "string",
+      "default": "Need help choosing the right fridge?"
+    },
+    "text": {
+      "type": "string",
+      "default": "Our team has over 30 years’ experience in commercial refrigeration. Tell us about your business and we’ll recommend the right equipment for your space and budget."
+    },
+    "primaryText": {
+      "type": "string",
+      "default": "Contact our team"
+    },
+    "primaryUrl": {
+      "type": "string",
+      "default": "/contact-us/"
+    },
+    "secondaryText": {
+      "type": "string",
+      "default": "Call 01280 811411"
+    },
+    "secondaryUrl": {
+      "type": "string",
+      "default": "tel:01280811411"
+    }
+  },
+  "supports": {
+    "html": false,
+    "anchor": true,
+    "align": [
+      "wide",
+      "full"
+    ],
+    "spacing": {
+      "margin": true
+    }
+  }
+}

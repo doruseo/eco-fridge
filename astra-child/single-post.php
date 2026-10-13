@@ -154,7 +154,9 @@ get_header();
 		if ( comments_open() || get_comments_number() ) {
 			comments_template();
 		}
-		echo ef_blog_schema( $ef_post ); // phpcs:ignore WordPress.Security.EscapeOutput
+		if ( ! defined( 'RANK_MATH_VERSION' ) ) { // Rank Math prints its own BlogPosting + BreadcrumbList.
+			echo ef_blog_schema( $ef_post ); // phpcs:ignore WordPress.Security.EscapeOutput
+		}
 	endwhile;
 	?>
 	</main>

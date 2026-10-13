@@ -26,9 +26,9 @@ function ef_blog_is_blog() {
 }
 
 add_action( 'wp_enqueue_scripts', function () {
-	// Also the home page (blog carousel) and pages with the [ef_help_cta] box.
+	// Also pages with the blog cards / help box blocks (or the [ef_help_cta] shortcode).
 	$post = is_singular() ? get_post() : null;
-	if ( ! ef_blog_is_blog() && ! is_front_page() && ! ( $post && has_shortcode( $post->post_content, 'ef_help_cta' ) ) ) { return; }
+	if ( ! ef_blog_is_blog() && ! is_front_page() && ! ( function_exists( 'ef_page_has_theme_blocks' ) && ef_page_has_theme_blocks() ) && ! ( $post && has_shortcode( $post->post_content, 'ef_help_cta' ) ) ) { return; }
 	$file = get_stylesheet_directory() . '/assets/blog.css';
 	wp_enqueue_style( 'ef-blog', get_stylesheet_directory_uri() . '/assets/blog.css', array( 'eco-fridge-child' ), (string) filemtime( $file ) );
 }, 20 );
@@ -160,19 +160,30 @@ add_filter( 'document_title_parts', function ( $parts ) {
 	return $parts;
 }, 20 );
 
-/** Meta description on the blog index and topic pages (no SEO plugin yet). */
-add_action( 'wp_head', function () {
-	if ( defined( 'WPSEO_VERSION' ) || defined( 'RANK_MATH_VERSION' ) ) { return; }
+/**
+ * Meta description of the blog index, topic pages and articles: the topic's
+ * introduction or the article's summary (printed by the theme without an SEO
+ * plugin; with Rank Math it fills in where no description was written).
+ *
+ * @return string
+ */
+function ef_blog_meta_description() {
 	if ( is_home() || is_category() ) {
 		$heading = ef_blog_heading();
 		$desc    = $heading['intro'];
 	} elseif ( is_singular( 'post' ) ) {
 		$desc = ef_blog_summary( get_queried_object(), 30 );
 	} else {
-		return;
+		return '';
 	}
+	return $desc ? wp_html_excerpt( wp_strip_all_tags( $desc ), 158, '…' ) : '';
+}
+
+add_action( 'wp_head', function () {
+	if ( defined( 'WPSEO_VERSION' ) || defined( 'RANK_MATH_VERSION' ) ) { return; }
+	$desc = ef_blog_meta_description();
 	if ( $desc ) {
-		echo '<meta name="description" content="' . esc_attr( wp_html_excerpt( wp_strip_all_tags( $desc ), 158, '…' ) ) . '">' . "\n";
+		echo '<meta name="description" content="' . esc_attr( $desc ) . '">' . "\n";
 	}
 }, 2 );
 

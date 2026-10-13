@@ -1,0 +1,56 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "category": "ecofridge",
+  "textdomain": "ecofridge-blocks",
+  "editorScript": "efb-editor",
+  "editorStyle": "efb-editor",
+  "style": "efb-blocks",
+  "render": "file:./render.php",
+  "name": "efb/range-carousel",
+  "title": "Range Carousel",
+  "description": "Carousel of product category cards (image + name) with big arrows.",
+  "icon": "images-alt2",
+  "attributes": {
+    "items": {
+      "type": "array",
+      "default": [
+        {
+          "categoryId": 90,
+          "title": "Commercial Fridges",
+          "imageId": 0,
+          "imageUrl": ""
+        },
+        {
+          "categoryId": 91,
+          "title": "Commercial Freezers",
+          "imageId": 0,
+          "imageUrl": ""
+        },
+        {
+          "categoryId": 44,
+          "title": "Display Cabinets",
+          "imageId": 0,
+          "imageUrl": ""
+        },
+        {
+          "categoryId": 45,
+          "title": "Storage Cabinets",
+          "imageId": 0,
+          "imageUrl": ""
+        }
+      ]
+    }
+  },
+  "supports": {
+    "html": false,
+    "anchor": true,
+    "align": [
+      "wide",
+      "full"
+    ],
+    "spacing": {
+      "margin": true
+    }
+  }
+}

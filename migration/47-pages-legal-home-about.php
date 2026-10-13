@@ -7,10 +7,11 @@
  *    migration/page-copy/ (UK GDPR policy with a cookie table; clear B2B terms
  *    matching the shop: optional warranty, Removal & Disposal, returns page);
  *  - home page: a new top (page-copy/home-top.html): the H1 with four
- *    highlights, the offers, a [ef_home_categories] carousel (Commercial
+ *    highlights (efb/highlights), the offers, an efb/range-carousel (Commercial
  *    Fridges / Freezers, Display / Storage Cabinets), the intro beside a photo
  *    and the client logos; then "Our commercial refrigeration equipment" and
- *    the rest kept, then market buttons and a blog carousel
+ *    the rest kept, then market buttons and a blog carousel (efb/market-buttons,
+ *    efb/post-carousel)
  *    (page-copy/home-markets-blog.html), and the long closing text replaced by
  *    a short guide (page-copy/home-bottom.html);
  *  - /about-us/: the same text, laid out in sections with local images
@@ -73,9 +74,13 @@ if ( $home ) {
 		WP_CLI::error( 'Home page markers not found – content changed?' );
 	}
 	$end     += strlen( '<!-- /wp:efb/section -->' );
-	$carousel = "\n\n<!-- wp:efb/section {\"paddingTop\":8,\"paddingBottom\":24,\"className\":\"ef-home-ranges\"} -->\n"
+	$carousel = "\n\n<!-- wp:efb/section {\"bgColor\":\"#eef7f0\",\"paddingTop\":36,\"paddingBottom\":20,\"className\":\"ef-home-ranges\"} -->\n"
 		. "<!-- wp:heading {\"className\":\"ef-cc-heading\"} -->\n<h2 class=\"wp-block-heading ef-cc-heading\">Shop by range</h2>\n<!-- /wp:heading -->\n\n"
-		. "<!-- wp:shortcode -->\n[ef_home_categories]\n<!-- /wp:shortcode -->\n<!-- /wp:efb/section -->";
+		. "<!-- wp:efb/range-carousel /-->\n<!-- /wp:efb/section -->";
+	// Keep the "Shop by range" section as edited in the editor (e.g. images picked by the client).
+	if ( preg_match( '~<!-- wp:efb/section \{[^}]*"className":"ef-home-ranges"\} -->.*?<!-- /wp:efb/section -->~s', $home->post_content, $edited ) ) {
+		$carousel = "\n\n" . $edited[0];
+	}
 	// The top of the page (page-copy/home-top.html): a hero with the H1, the
 	// special offers, the intro text beside a photo and the client logos, taken
 	// from the original blocks; then "Our commercial refrigeration equipment".
@@ -93,7 +98,7 @@ if ( $home ) {
 			'{{OFFERS}}' => $offers[0],
 			'{{INTRO}}'  => $intro,
 			'{{LOGOS}}'  => $logos[0],
-			'{{RANGES}}' => $carousel, // "Shop by range" right under the offers
+			'{{RANGES}}' => $carousel, // "Shop by range" right under the offers, on pale green
 		)
 	)
 		. "\n<!-- wp:efb/section {\"paddingTop\":40,\"paddingBottom\":16,\"className\":\"ef-home-equipment\"} -->\n" . $equipment . "\n<!-- /wp:efb/section -->";

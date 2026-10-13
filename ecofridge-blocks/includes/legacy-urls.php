@@ -132,6 +132,47 @@ function efb_legacy_redirect_map() {
 }
 
 /**
+ * Whether Rank Math's Redirections module handles redirects.
+ *
+ * @return bool
+ */
+function efb_rank_math_redirections() {
+	return class_exists( '\RankMath\Helper' ) && \RankMath\Helper::is_module_active( 'redirections' );
+}
+
+/**
+ * Rank Math: redirections whose source has a query string (old static-site
+ * URLs such as /products.php?category_id=52). Rank Math finds them by the full
+ * request URI but then re-checks the path alone, so they would never fire;
+ * their old parameters are not passed on to the new page either.
+ */
+add_filter(
+	'rank_math/redirection/redirection_match',
+	static function ( $match, $redirection ) {
+		if ( $match || ! is_array( $redirection ) || empty( $redirection['sources'] ) || ! class_exists( '\RankMath\Redirections\DB' ) ) {
+			return $match;
+		}
+		$full = \RankMath\Redirections\Redirection::get_full_uri();
+		return false !== strpos( $full, '?' ) && \RankMath\Redirections\DB::compare_sources( maybe_unserialize( $redirection['sources'] ), $full );
+	},
+	10,
+	2
+);
+add_filter(
+	'rank_math/redirection/add_query_string',
+	static function ( $add, $redirection ) {
+		foreach ( (array) maybe_unserialize( $redirection['sources'] ?? array() ) as $source ) {
+			if ( false !== strpos( (string) ( $source['pattern'] ?? '' ), '?' ) ) {
+				return false;
+			}
+		}
+		return $add;
+	},
+	10,
+	2
+);
+
+/**
  * 301 old/duplicate paths to the canonical one:
  *  - /product-category/<path>/ of a category whose original base is /range/ etc.
  *  - /category/blog/ and /category/uncategorized/ (linked from the original theme).
@@ -158,7 +199,9 @@ add_action(
 		// The original site's own redirects (and its 410 Gone URLs), for paths
 		// that don't exist here or only match a media file by name (e.g. /multidecks/
 		// would open Multidecks.jpg) – backlinks and bookmarks keep working.
-		if ( is_404() || is_attachment() ) {
+		// With Rank Math's Redirections module on, they live there (migration 52)
+		// and are managed in Rank Math → Redirections instead.
+		if ( ( is_404() || is_attachment() ) && ! efb_rank_math_redirections() ) {
 			$legacy = efb_legacy_redirect_map();
 			$key    = false !== strpos( basename( $path ), '.' ) ? $path : trailingslashit( $path );
 			if ( isset( $legacy['redirect'][ $key ] ) ) {

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "category": "ecofridge",
+  "textdomain": "ecofridge-blocks",
+  "editorScript": "efb-editor",
+  "editorStyle": "efb-editor",
+  "style": "efb-blocks",
+  "render": "file:./render.php",
+  "name": "efb/highlights",
+  "title": "Highlights",
+  "description": "Row of highlight boxes, each with an icon, a bold lead and a short text.",
+  "icon": "awards",
+  "attributes": {
+    "items": {
+      "type": "array",
+      "default": [
+        {
+          "icon": "truck",
+          "strong": "Free delivery",
+          "text": "to UK mainland addresses"
+        },
+        {
+          "icon": "star",
+          "strong": "Over 30 years",
+          "text": "in commercial refrigeration"
+        },
+        {
+          "icon": "tag",
+          "strong": "Trade prices",
+          "text": ", shown excluding VAT"
+        },
+        {
+          "icon": "shield",
+          "strong": "Trusted",
+          "text": "by Costa, Caffè Nero & more"
+        }
+      ]
+    }
+  },
+  "supports": {
+    "html": false,
+    "anchor": true,
+    "align": [
+      "wide",
+      "full"
+    ],
+    "spacing": {
+      "margin": true
+    }
+  }
+}

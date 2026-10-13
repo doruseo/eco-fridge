@@ -131,3 +131,22 @@ function efb_img_size_attrs( $url ) {
 	}
 	return '';
 }
+
+/**
+ * Icons of the Highlights block (24×24 SVG paths), by key.
+ *
+ * @return array<string, array{label:string, path:string}>
+ */
+function efb_highlight_icons() {
+	return array(
+		'truck'  => array( 'label' => 'Delivery truck', 'path' => 'M3 6h11v9h2.2l2.3-4H21v6h-1.3a2.5 2.5 0 0 1-4.9 0H9.7a2.5 2.5 0 0 1-4.9 0H3zm14.3 6.5L16 15h4v-2.5zM7.3 16.3a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm10 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z' ),
+		'star'   => array( 'label' => 'Star', 'path' => 'M12 2l2.9 6.1 6.6.8-4.9 4.6 1.3 6.5L12 16.8 6.1 20l1.3-6.5L2.5 8.9l6.6-.8z' ),
+		'tag'    => array( 'label' => 'Price tag', 'path' => 'M4 4h9l7 7-9 9-7-7zm4.5 3a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z' ),
+		'shield' => array( 'label' => 'Shield (trust)', 'path' => 'M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5zm-1 13.6l6-6-1.4-1.4-4.6 4.6-2.1-2.1L7.5 12z' ),
+		'check'  => array( 'label' => 'Tick', 'path' => 'M9 16.2l-3.5-3.5L4 14.2l5 5 11-11-1.4-1.4z' ),
+		'phone'  => array( 'label' => 'Phone', 'path' => 'M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.6 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.6 3.6a1 1 0 0 1-.25 1z' ),
+		'clock'  => array( 'label' => 'Clock', 'path' => 'M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20zm1 5h-2v6l5 3 1-1.7-4-2.3z' ),
+		'leaf'   => array( 'label' => 'Leaf (eco)', 'path' => 'M17 8C8 10 5.9 16.2 3.8 21.3l1.9.7 1-2.3c.5.2 1 .3 1.3.3C19 20 22 3 22 3c-1 2-8 2.3-13 3.3S2 11.5 2 13.5 3.8 17.3 3.8 17.3C7 8 17 8 17 8z' ),
+		'tools'  => array( 'label' => 'Tools (service)', 'path' => 'M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z' ),
+	);
+}
