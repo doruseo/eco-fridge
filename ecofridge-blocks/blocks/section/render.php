@@ -23,6 +23,11 @@ $efb_style = efb_style_vars(
 		'--efb-pb'       => (int) $attributes['paddingBottom'] . 'px',
 		'--efb-pt-m'     => (int) $attributes['paddingTopMobile'] . 'px',
 		'--efb-pb-m'     => (int) $attributes['paddingBottomMobile'] . 'px',
+		// Left / right: -1 = the default gutter (20px, 16px on mobile, 0 when full width).
+		'--efb-pl'       => $attributes['paddingLeft'] >= 0 ? (int) $attributes['paddingLeft'] . 'px' : '',
+		'--efb-pr'       => $attributes['paddingRight'] >= 0 ? (int) $attributes['paddingRight'] . 'px' : '',
+		'--efb-pl-m'     => $attributes['paddingLeftMobile'] >= 0 ? (int) $attributes['paddingLeftMobile'] . 'px' : '',
+		'--efb-pr-m'     => $attributes['paddingRightMobile'] >= 0 ? (int) $attributes['paddingRightMobile'] . 'px' : '',
 		'--efb-max'      => 'boxed' === $efb_width ? (int) $attributes['maxWidth'] . 'px' : '',
 		'--efb-bg-image' => $efb_bg ? 'url("' . esc_url_raw( $efb_bg ) . '")' : '',
 		'--efb-overlay'  => $attributes['overlay'] ? ( (int) $attributes['overlay'] / 100 ) : '',

@@ -24,6 +24,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // Single product page logic + add-ons (price +VAT/POA, notes, warranty, removal).
 require_once get_stylesheet_directory() . '/inc/woo-single.php';
+// Product page: price with VAT, Model, Brand, finance badge, feature icons, tabs.
+require_once get_stylesheet_directory() . '/inc/product-details.php';
 
 // Custom 2-row header (logo/utility/search + mega categories/icons/cart),
 // driven 100% by the authoritative WP menu (Primary Menu #342). Footer/banner stay native.

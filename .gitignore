@@ -19,6 +19,10 @@ wp-config.php
 *.key
 *.pem
 id_ed25519*
+# Payment gateway credentials kept next to the project
+AG LlOYDS CARDNET.txt
+*[Cc][Aa][Rr][Dd][Nn][Ee][Tt]*.txt
+*credentials*
 
 # Arhive plugin/temă premium (mari, redistribuire licențiată)
 *.zip

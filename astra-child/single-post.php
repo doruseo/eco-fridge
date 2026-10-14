@@ -35,11 +35,11 @@ get_header();
 						<span aria-hidden="true">›</span><a href="<?php echo esc_url( get_term_link( $ef_topic ) ); ?>"><?php echo esc_html( $ef_topic->name ); ?></a>
 					<?php endif; ?>
 				</nav>
-				<?php if ( $ef_topic ) : ?>
-					<a class="ef-chip" href="<?php echo esc_url( get_term_link( $ef_topic ) ); ?>"><?php echo esc_html( $ef_topic->name ); ?></a>
-				<?php endif; ?>
 				<h1 class="ef-post-hero__title"><?php the_title(); ?></h1>
 				<div class="ef-post-meta">
+					<?php if ( $ef_topic ) : ?>
+						<a class="ef-chip" href="<?php echo esc_url( get_term_link( $ef_topic ) ); ?>"><?php echo esc_html( $ef_topic->name ); ?></a>
+					<?php endif; ?>
 					<span class="ef-post-meta__author">
 						<span class="ef-post-meta__avatar" aria-hidden="true">EF</span>
 						By <a href="<?php echo esc_url( home_url( '/about-us/' ) ); ?>">ECO-Fridge</a>
@@ -76,7 +76,7 @@ get_header();
 					<div class="ef-help-card">
 						<p class="ef-help-card__title">Need expert advice?</p>
 						<p>Talk to our team about the right fridge or freezer for your business.</p>
-						<a class="ef-btn" href="tel:01280811411">Call 01280 811411</a>
+						<a class="ef-btn" href="<?php echo esc_url( home_url( '/contact-us/' ) ); ?>">Contact us</a>
 						<a class="ef-help-card__link" href="<?php echo esc_url( home_url( '/shop/' ) ); ?>">Browse the shop →</a>
 					</div>
 				</aside>

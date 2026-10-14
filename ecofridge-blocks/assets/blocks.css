@@ -57,8 +57,8 @@
 	color: var(--efb-color, inherit);
 	padding-top: var(--efb-pt, 48px);
 	padding-bottom: var(--efb-pb, 48px);
-	padding-left: 20px;
-	padding-right: 20px;
+	padding-left: var(--efb-pl, 20px);
+	padding-right: var(--efb-pr, 20px);
 }
 .efb-section.has-bg-image {
 	background-image: var(--efb-bg-image);
@@ -76,11 +76,11 @@
 .efb-section__inner { position: relative; margin: 0 auto; }
 .efb-section--boxed > .efb-section__inner { max-width: var(--efb-max, 1240px) !important; } /* Astra's page-builder layout resets max-width on content children */
 .efb-section--narrow > .efb-section__inner { max-width: 820px; }
-.efb-section--full { padding-left: 0; padding-right: 0; }
+.efb-section--full { padding-left: var(--efb-pl, 0); padding-right: var(--efb-pr, 0); }
 .efb-section__inner > :first-child { margin-top: 0; }
 .efb-section__inner > :last-child { margin-bottom: 0; }
 @media (max-width: 767px) {
-	.efb-section { padding-top: var(--efb-pt-m, 28px); padding-bottom: var(--efb-pb-m, 28px); padding-left: 16px; padding-right: 16px; }
+	.efb-section { padding-top: var(--efb-pt-m, 28px); padding-bottom: var(--efb-pb-m, 28px); padding-left: var(--efb-pl-m, 16px); padding-right: var(--efb-pr-m, 16px); }
 }
 
 /* ---------- Hero slider ---------- */

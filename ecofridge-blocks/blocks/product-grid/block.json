@@ -9,7 +9,7 @@
   "render": "file:./render.php",
   "name": "efb/product-grid",
   "title": "Product Grid",
-  "description": "Products from a category with image, title and \u201cFrom \u00a3X +VAT\u201d price.",
+  "description": "Products from a category with image, title and “From £X +VAT” price.",
   "icon": "products",
   "attributes": {
     "category": {
@@ -53,7 +53,13 @@
       "full"
     ],
     "spacing": {
-      "margin": true
+      "margin": true,
+      "padding": true
+    },
+    "color": {
+      "background": true,
+      "text": true,
+      "link": true
     }
   }
 }

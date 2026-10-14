@@ -1,6 +1,6 @@
 <?php
 /**
- * Customer "order shipped" email — plain text.
+ * The shop's order-status emails (Processed, Shipped, company notices) — plain text.
  *
  * @package Eco-Fridge-Child
  */
@@ -11,9 +11,12 @@ echo "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n";
 echo esc_html( wp_strip_all_tags( $email_heading ) );
 echo "\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n\n";
 
-echo sprintf( 'Hi %s,', esc_html( $order->get_billing_first_name() ) ) . "\n\n";
-echo "Good news — your order is on its way to you.\n\n";
-echo "Here's a reminder of what's coming:\n\n";
+if ( $greeting ) {
+	echo ( $order->get_billing_first_name() ? sprintf( 'Hi %s,', esc_html( $order->get_billing_first_name() ) ) : 'Hi,' ) . "\n\n";
+}
+foreach ( $intro as $ef_paragraph ) {
+	echo esc_html( $ef_paragraph ) . "\n\n";
+}
 
 /*
  * @hooked WC_Emails::order_details() Shows the order details table.

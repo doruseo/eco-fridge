@@ -53,6 +53,9 @@ add_shortcode( 'ef_home_markets', function () {
  */
 function ef_page_meta_description() {
 	if ( is_home() || is_category() || is_singular( 'post' ) || is_paged() ) { return ''; }
+	// Cart, checkout and account pages are noindex – and rendering their content here
+	// (in <head>) would run the WooCommerce shortcodes early and use up their notices.
+	if ( function_exists( 'is_cart' ) && ( is_cart() || is_checkout() || is_account_page() ) ) { return ''; }
 	$desc = '';
 	if ( is_front_page() ) {
 		$desc = 'ECO-Fridge supplies commercial fridges, freezers and display cabinets for cafés, shops, restaurants and caterers across the UK – trade prices, free UK mainland delivery and over 30 years of expert advice.';
@@ -71,7 +74,7 @@ function ef_page_meta_description() {
 		$desc = 'Shop commercial fridges, freezers, display cabinets and storage cabinets online at trade prices, with free delivery to UK mainland addresses.';
 	} elseif ( is_singular() ) {
 		$post = get_queried_object();
-		$desc = has_excerpt( $post ) ? $post->post_excerpt : ( preg_match( '~<p[^>]*>(.*?)</p>~is', apply_filters( 'the_content', $post->post_content ), $m ) ? $m[1] : '' );
+		$desc = has_excerpt( $post ) ? $post->post_excerpt : ( preg_match( '~<p[^>]*>(.*?)</p>~is', apply_filters( 'the_content', strip_shortcodes( $post->post_content ) ), $m ) ? $m[1] : '' );
 	}
 	$desc = trim( preg_replace( '/[\s\x{00A0}]+/u', ' ', html_entity_decode( wp_strip_all_tags( strip_shortcodes( (string) $desc ) ), ENT_QUOTES, 'UTF-8' ) ) );
 	return '' !== $desc ? wp_html_excerpt( $desc, 158, '…' ) : '';

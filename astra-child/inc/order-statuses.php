@@ -161,24 +161,33 @@ add_action( 'admin_head', function () {
 } );
 
 /* =========================================================================
- * 5. EMAILS — "Order shipped" for the customer.
+ * 5. EMAILS — one email for each step of the flow.
+ *
+ *   Customer: order received (core: Processing for card payments, On hold for
+ *   bank transfer) → Processing (core) → Processed → Shipped → Complete (core),
+ *   or Cancelled / Refunded / Failed (core).
+ *   Company: new paid or bank-transfer order (core "New order") → Shipped →
+ *   Complete.
  * ========================================================================= */
 
 /**
- * Route the Shipped transition through WC_Emails, so the email is queued and sent in
- * the background exactly like the core ones instead of blocking the request that
- * changed the status.
+ * Route the Processed / Shipped transitions through WC_Emails, so their emails are
+ * queued and sent like the core ones instead of blocking the request that changed
+ * the status.
  */
 add_filter( 'woocommerce_email_actions', function ( $actions ) {
+	$actions[] = 'woocommerce_order_status_processed';
 	$actions[] = 'woocommerce_order_status_shipped';
 	return $actions;
 } );
 
-/** Register the email so it appears under WooCommerce → Settings → Emails. */
+/** Register the emails so they appear under WooCommerce → Settings → Emails. */
 add_filter( 'woocommerce_email_classes', function ( $emails ) {
-	require_once __DIR__ . '/emails/class-ef-email-customer-shipped-order.php';
-	if ( class_exists( 'EF_Email_Customer_Shipped_Order' ) ) {
-		$emails['EF_Email_Customer_Shipped_Order'] = new EF_Email_Customer_Shipped_Order();
+	require_once __DIR__ . '/emails/class-ef-email-order-status.php';
+	foreach ( array( 'EF_Email_Customer_Processed_Order', 'EF_Email_Customer_Shipped_Order', 'EF_Email_Admin_Shipped_Order', 'EF_Email_Admin_Completed_Order' ) as $class ) {
+		if ( class_exists( $class ) ) {
+			$emails[ $class ] = new $class();
+		}
 	}
 	return $emails;
 } );

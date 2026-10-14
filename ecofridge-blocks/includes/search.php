@@ -40,7 +40,9 @@ add_action(
  * @return WP_REST_Response
  */
 function efb_search_rest( WP_REST_Request $request ) {
-	$term = trim( (string) $request->get_param( 's' ) );
+	// Long strings are never product searches; capping them also keeps junk
+	// requests from filling the cache with one entry each.
+	$term = mb_substr( trim( (string) $request->get_param( 's' ) ), 0, 60 );
 	if ( mb_strlen( $term ) < 2 ) {
 		return rest_ensure_response( array( 'categories' => array(), 'products' => array(), 'total' => 0 ) );
 	}

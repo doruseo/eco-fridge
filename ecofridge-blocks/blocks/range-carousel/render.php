@@ -3,8 +3,9 @@
  * Range carousel block — product category cards (whole image + name) in the
  * theme's category carousel (big round arrows; script printed by the theme).
  *
- * Each card: a category, an optional label (the category name otherwise) and
- * an optional image (the category's own image otherwise).
+ * Each card: a category, an optional label (the category name otherwise), an
+ * optional image (the category's own image otherwise) and the number of models
+ * in the range (subcategories included).
  *
  * @var array $attributes Block attributes.
  *
@@ -30,10 +31,15 @@ foreach ( (array) $attributes['items'] as $efb_item ) {
 	} else {
 		$efb_img = efb_term_image_url( $efb_term->term_id );
 	}
+	// WooCommerce's own count includes the subcategories' products.
+	$efb_count   = get_term_meta( $efb_term->term_id, 'product_count_product_cat', true );
+	$efb_count   = '' !== $efb_count ? (int) $efb_count : (int) $efb_term->count;
 	$efb_cards[] = array(
 		'title' => '' !== trim( (string) ( $efb_item['title'] ?? '' ) ) ? $efb_item['title'] : $efb_term->name,
 		'link'  => is_wp_error( $efb_link ) ? '#' : $efb_link,
 		'img'   => $efb_img,
+		/* translators: %d: number of products */
+		'meta'  => $efb_count ? sprintf( _n( '%d model', '%d models', $efb_count, 'ecofridge-blocks' ), $efb_count ) : __( 'View range', 'ecofridge-blocks' ),
 	);
 }
 if ( ! $efb_cards ) {
@@ -45,7 +51,7 @@ $GLOBALS['ef_cc_used'] = true; // the theme prints the carousel script in the fo
 <div <?php echo get_block_wrapper_attributes( array( 'class' => 'ef-cat-carousel-wrap ef-home-cats' ) ); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 	<?php
 	if ( function_exists( 'ef_render_category_carousel' ) ) {
-		ef_render_category_carousel( $efb_cards );
+		ef_render_category_carousel( $efb_cards, 'ranges' );
 	} else {
 		echo '<div class="ef-cat-carousel"><div class="ef-cc-track" role="list">';
 		foreach ( $efb_cards as $efb_card ) {

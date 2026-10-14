@@ -197,6 +197,9 @@
 				block: name,
 				attributes: props.attributes,
 				httpMethod: 'POST',
+				// Colour and spacing (block supports) are applied by the wrapper above;
+				// leaving them out of the server preview avoids applying them twice.
+				skipBlockSupportAttributes: true,
 				EmptyResponsePlaceholder: () => el( Placeholder, { icon, label: emptyLabel, instructions: 'Use the block settings in the sidebar to add content.' } ),
 			} )
 		);
@@ -218,6 +221,8 @@
 					'--efb-color': a.textColor || undefined,
 					'--efb-pt': a.paddingTop + 'px',
 					'--efb-pb': a.paddingBottom + 'px',
+					'--efb-pl': a.paddingLeft >= 0 ? a.paddingLeft + 'px' : undefined,
+					'--efb-pr': a.paddingRight >= 0 ? a.paddingRight + 'px' : undefined,
 					'--efb-max': a.contentWidth === 'boxed' ? a.maxWidth + 'px' : undefined,
 					'--efb-bg-image': bg ? 'url("' + bg + '")' : undefined,
 					'--efb-overlay': a.overlay ? a.overlay / 100 : undefined,
@@ -269,7 +274,20 @@
 						el( RangeControl, { label: 'Padding top (desktop)', min: 0, max: 200, value: a.paddingTop, onChange: ( v ) => setAttributes( { paddingTop: v } ) } ),
 						el( RangeControl, { label: 'Padding bottom (desktop)', min: 0, max: 200, value: a.paddingBottom, onChange: ( v ) => setAttributes( { paddingBottom: v } ) } ),
 						el( RangeControl, { label: 'Padding top (mobile)', min: 0, max: 150, value: a.paddingTopMobile, onChange: ( v ) => setAttributes( { paddingTopMobile: v } ) } ),
-						el( RangeControl, { label: 'Padding bottom (mobile)', min: 0, max: 150, value: a.paddingBottomMobile, onChange: ( v ) => setAttributes( { paddingBottomMobile: v } ) } )
+						el( RangeControl, { label: 'Padding bottom (mobile)', min: 0, max: 150, value: a.paddingBottomMobile, onChange: ( v ) => setAttributes( { paddingBottomMobile: v } ) } ),
+						// Left / right: reset = the default gutter (20px desktop, 16px mobile, 0 full width).
+						[ [ 'paddingLeft', 'Padding left (desktop)' ], [ 'paddingRight', 'Padding right (desktop)' ], [ 'paddingLeftMobile', 'Padding left (mobile)' ], [ 'paddingRightMobile', 'Padding right (mobile)' ] ].map( ( [ key, label ] ) =>
+							el( RangeControl, {
+								key,
+								label,
+								help: a[ key ] >= 0 ? undefined : 'Default',
+								min: 0,
+								max: 200,
+								allowReset: true,
+								value: a[ key ] >= 0 ? a[ key ] : undefined,
+								onChange: ( v ) => setAttributes( { [ key ]: undefined === v || null === v ? -1 : v } ),
+							} )
+						)
 					),
 					el( PanelColorSettings, {
 						title: 'Colours',
