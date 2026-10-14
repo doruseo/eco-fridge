@@ -15,7 +15,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'EFB_VERSION', '1.5.0' );
+define( 'EFB_VERSION', '1.5.7' );
 define( 'EFB_FILE', __FILE__ );
 define( 'EFB_DIR', plugin_dir_path( __FILE__ ) );
 define( 'EFB_URL', plugin_dir_url( __FILE__ ) );
