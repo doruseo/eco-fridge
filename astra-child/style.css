@@ -551,18 +551,6 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-header-cart .woocommerce-mini-cart-item a.remove.remove_from_cart_button:hover { background: #111; color: #fff !important; }
 .ef-header-cart .woocommerce-mini-cart-item a.remove.remove_from_cart_button:hover svg { fill: #fff !important; color: #fff !important; }
 
-/* steppere cantitate +/− : NEGRE, clare */
-.ef-mini-qty { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; }
-.ef-mini-qty button {
-  width: 24px; height: 24px; padding: 0; line-height: 1;
-  border: 1px solid #111; background: #fff; color: #111;
-  border-radius: 4px; font-size: 15px; font-weight: 700; cursor: pointer;
-  display: inline-flex; align-items: center; justify-content: center;
-}
-.ef-mini-qty button:hover { background: #111; color: #fff; }
-.ef-mini-qty button[disabled] { opacity: .4; cursor: default; }
-.ef-mini-qty button[disabled]:hover { background: #fff; color: #111; }
-.ef-mini-qty .ef-mini-qty-val { min-width: 26px; text-align: center; font-weight: 700; color: #111; }
 /* cart info: "N items / £Total" */
 .ef-cart-info { display: inline-flex; flex-direction: column; line-height: 1.15; color: #fff; font-family: var(--ef-font-head); }
 .ef-cart-count { font-size: .68rem; text-transform: uppercase; letter-spacing: .02em; opacity: .95; }
