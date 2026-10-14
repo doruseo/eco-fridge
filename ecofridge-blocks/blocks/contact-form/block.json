@@ -45,7 +45,13 @@
     "html": false,
     "anchor": true,
     "spacing": {
-      "margin": true
+      "margin": true,
+      "padding": true
+    },
+    "color": {
+      "background": true,
+      "text": true,
+      "link": true
     }
   },
   "viewScript": "efb-form",

@@ -1,10 +1,19 @@
 <?php
 /**
- * Customer "order shipped" email — HTML.
+ * The shop's order-status emails (Processed, Shipped, company notices) — HTML.
  *
- * Not a WooCommerce core template override: this belongs to the child theme's own
- * `customer_shipped_order` email (inc/emails/class-ef-email-customer-shipped-order.php)
- * and is modelled on WooCommerce's customer-completed-order.php.
+ * Not a WooCommerce core template override: it belongs to the child theme's own
+ * emails (inc/emails/class-ef-email-order-status.php) and is modelled on
+ * WooCommerce's customer-completed-order.php.
+ *
+ * @var WC_Order $order
+ * @var string   $email_heading
+ * @var string[] $intro         Paragraphs above the order details.
+ * @var bool     $greeting      "Hi <name>," first (customer emails).
+ * @var string   $additional_content
+ * @var bool     $sent_to_admin
+ * @var bool     $plain_text
+ * @var WC_Email $email
  *
  * @package Eco-Fridge-Child
  */
@@ -20,17 +29,20 @@ $ef_email_improvements = class_exists( '\Automattic\WooCommerce\Utilities\Featur
 do_action( 'woocommerce_email_header', $email_heading, $email ); ?>
 
 <?php echo $ef_email_improvements ? '<div class="email-introduction">' : ''; ?>
+<?php if ( $greeting ) : ?>
 <p>
-<?php
-if ( ! empty( $order->get_billing_first_name() ) ) {
-	printf( 'Hi %s,', esc_html( $order->get_billing_first_name() ) );
-} else {
-	echo 'Hi,';
-}
-?>
+	<?php
+	if ( ! empty( $order->get_billing_first_name() ) ) {
+		printf( 'Hi %s,', esc_html( $order->get_billing_first_name() ) );
+	} else {
+		echo 'Hi,';
+	}
+	?>
 </p>
-<p>Good news — your order is on its way to you.</p>
-<p>Here's a reminder of what's coming:</p>
+<?php endif; ?>
+<?php foreach ( $intro as $ef_paragraph ) : ?>
+<p><?php echo esc_html( $ef_paragraph ); ?></p>
+<?php endforeach; ?>
 <?php echo $ef_email_improvements ? '</div>' : ''; ?>
 
 <?php

@@ -275,8 +275,7 @@ function ef_blog_cta() {
 	return '<aside class="ef-blog-cta">'
 		. '<div class="ef-blog-cta__text"><p class="ef-blog-cta__title">Need help choosing the right fridge?</p>'
 		. '<p>Our team has over 30 years’ experience in commercial refrigeration. Tell us about your business and we’ll recommend the right equipment for your space and budget.</p></div>'
-		. '<div class="ef-blog-cta__actions"><a class="ef-btn ef-btn--light" href="' . esc_url( home_url( '/contact-us/' ) ) . '">Contact our team</a>'
-		. '<a class="ef-btn ef-btn--ghost" href="tel:01280811411">Call 01280 811411</a></div>'
+		. '<div class="ef-blog-cta__actions"><a class="ef-btn ef-btn--light" href="' . esc_url( home_url( '/contact-us/' ) ) . '">Contact us</a></div>'
 		. '</aside>';
 }
 
@@ -466,3 +465,47 @@ add_action( 'edited_category', function ( $term_id ) {
 	if ( ! current_user_can( 'manage_categories' ) || ! isset( $_POST['ef_h1'] ) ) { return; }
 	update_term_meta( $term_id, 'ef_h1', sanitize_text_field( wp_unslash( $_POST['ef_h1'] ) ) );
 } );
+
+/**
+ * "Also read" boxes in articles (group block .ef-also-read, migration 61): each
+ * link becomes a card with the article's image, topic and current title. Links
+ * that are not articles (pages, categories) keep their own text and a placeholder.
+ */
+add_filter( 'render_block_core/group', function ( $html, $block ) {
+	if ( false === strpos( (string) ( $block['attrs']['className'] ?? '' ), 'ef-also-read' ) ) {
+		return $html;
+	}
+	if ( ! preg_match_all( '~<a\s[^>]*href="([^"]+)"[^>]*>(.*?)</a>~is', $html, $links, PREG_SET_ORDER ) ) {
+		return $html;
+	}
+
+	$cards = '';
+	foreach ( $links as $link ) {
+		$url   = html_entity_decode( $link[1] );
+		$title = wp_strip_all_tags( $link[2] );
+		$topic = null;
+		$img   = '';
+		$id    = url_to_postid( 0 === strpos( $url, '/' ) ? home_url( $url ) : $url );
+		if ( $id ) {
+			$url   = get_permalink( $id );
+			$title = get_the_title( $id );
+			$topic = 'post' === get_post_type( $id ) ? ef_blog_topic( $id ) : null;
+			if ( has_post_thumbnail( $id ) ) {
+				$img = get_the_post_thumbnail( $id, 'thumbnail', array( 'loading' => 'lazy', 'alt' => '' ) );
+			}
+		}
+		$cards .= '<li><a class="ef-also-read__card" href="' . esc_url( $url ) . '">'
+			. '<span class="ef-also-read__img">' . ( $img ? $img : ef_blog_placeholder() ) . '</span>'
+			. '<span class="ef-also-read__text">'
+			. ( $topic ? '<span class="ef-also-read__topic">' . esc_html( $topic->name ) . '</span>' : '' )
+			. '<span class="ef-also-read__title">' . esc_html( $title ) . '</span></span>'
+			. '<span class="ef-also-read__go" aria-hidden="true"></span>'
+			. '</a></li>';
+	}
+
+	$single = 1 === count( $links ) ? ' ef-also-read--single' : '';
+	return '<aside class="ef-also-read' . $single . '" aria-label="Also read">'
+		. '<p class="ef-also-read__label"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5a.5.5 0 0 0 0 1H20v2H6.5A2.5 2.5 0 0 1 4 19.5v-15zM6.5 4a.5.5 0 0 0-.5.5v12.55c.16-.03.33-.05.5-.05H18V4H6.5z"/></svg>Also read</p>'
+		. '<ul class="ef-also-read__list">' . $cards . '</ul>'
+		. '</aside>';
+}, 10, 2 );

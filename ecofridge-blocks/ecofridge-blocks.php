@@ -15,12 +15,13 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'EFB_VERSION', '1.4.0' );
+define( 'EFB_VERSION', '1.5.0' );
 define( 'EFB_FILE', __FILE__ );
 define( 'EFB_DIR', plugin_dir_path( __FILE__ ) );
 define( 'EFB_URL', plugin_dir_url( __FILE__ ) );
 
 require_once EFB_DIR . 'includes/helpers.php';
+require_once EFB_DIR . 'includes/security.php';
 require_once EFB_DIR . 'includes/post-types.php';
 require_once EFB_DIR . 'includes/search.php';
 require_once EFB_DIR . 'includes/forms.php';
@@ -31,6 +32,8 @@ require_once EFB_DIR . 'includes/markets.php';
 require_once EFB_DIR . 'includes/blog.php';
 require_once EFB_DIR . 'includes/sitemaps.php';
 require_once EFB_DIR . 'includes/woocommerce.php';
+require_once EFB_DIR . 'includes/abandoned-carts.php';
+require_once EFB_DIR . 'includes/merchant-center.php';
 require_once EFB_DIR . 'includes/category-landing.php';
 
 register_activation_hook(

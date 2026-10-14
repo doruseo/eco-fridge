@@ -68,10 +68,57 @@
 }
 
 /* ---- home page --------------------------------------------------------- */
-.ef-home-ranges .ef-cc-heading { margin-top: 0; }
-/* "Shop by range": 4 cards in view on desktop (3 on small laptops, 2 on tablets) */
-.ef-home-cats .ef-cc-card { flex-basis: calc((100% - 60px) / 4); }
-.ef-home-cats .ef-cc-img { height: 210px; }
+/* "Shop by range": a dark green band (the category menu bar colour) with a
+   left-aligned header and "View all products" on the right, so it reads as a
+   section of its own between the special offers and the intro text (both on white). */
+.ef-home-ranges .ef-home-ranges__head {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px 32px;
+  margin: 0 0 14px;
+}
+.ef-home-ranges .ef-home-ranges__intro > * { margin: 0; }
+.ef-home-ranges .ef-home-ranges__head h2.ef-cc-heading { color: #fff; text-align: left; margin: 0; }
+.ef-home-ranges .ef-home-ranges__all { margin: 0; flex: 0 0 auto; }
+.ef-home-ranges .ef-home-ranges__all a {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 18px; border: 1px solid rgba(255,255,255,.55); border-radius: 6px;
+  color: #fff; text-decoration: none;
+  font-family: var(--ef-font-head); font-size: 14px; letter-spacing: .04em; text-transform: uppercase;
+  transition: background .2s, color .2s, border-color .2s;
+}
+.ef-home-ranges .ef-home-ranges__all a::after { content: "\2192"; }
+.ef-home-ranges .ef-home-ranges__all a:hover { background: #fff; color: var(--ef-brand-deep); border-color: #fff; }
+
+/* range cards: white, rounded (25px), no green border, image on light grey,
+   name + number of models on the left and a round arrow on the right */
+.ef-home-cats .ef-cc-card { flex-basis: calc((100% - 60px) / 4); border: 0; border-radius: 25px; box-shadow: 0 10px 24px -14px rgba(0,0,0,.55); }
+.ef-home-cats .ef-cc-card:hover,
+.ef-home-cats .ef-cc-card:focus-visible { transform: translateY(-6px); box-shadow: 0 18px 34px -14px rgba(0,0,0,.6); }
+.ef-home-cats .ef-cc-img { height: 210px; background: #f3f5f4; }
+.ef-home-cats .ef-cc-img img { mix-blend-mode: multiply; } /* the white photo backgrounds blend into the grey */
+.ef-home-cats .ef-cc-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 14px 20px 18px; margin-top: auto; background: #fff;
+}
+.ef-home-cats .ef-cc-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ef-home-cats .ef-cc-name {
+  padding: 0; border: 0; background: none; margin: 0; text-align: left;
+  text-transform: uppercase; letter-spacing: .03em; font-size: 1rem;
+}
+.ef-home-cats .ef-cc-meta { font-size: 13px; color: #666; }
+.ef-home-cats .ef-cc-go {
+  flex: 0 0 34px; width: 34px; height: 34px; border-radius: 50%;
+  border: 1.5px solid var(--ef-brand); color: var(--ef-brand);
+  display: flex; align-items: center; justify-content: center;
+  transition: background .2s, color .2s;
+}
+.ef-home-cats .ef-cc-go::before { content: "\2192"; font-size: 16px; line-height: 1; }
+.ef-home-cats .ef-cc-card:hover .ef-cc-go { background: var(--ef-brand); color: #fff; }
+/* the carousel arrows sit on the dark band */
+.ef-home-ranges .ef-cc-arrow { border-color: transparent; }
+@media (max-width: 767px) {
+  .ef-home-ranges .ef-home-ranges__head { flex-direction: column; align-items: center; text-align: center; }
+  .ef-home-ranges .ef-home-ranges__head h2.ef-cc-heading { text-align: center; }
+}
 @media (max-width: 1100px) { .ef-home-cats .ef-cc-card { flex-basis: calc((100% - 40px) / 3); } }
 @media (max-width: 900px) { .ef-home-cats .ef-cc-card { flex-basis: calc((100% - 20px) / 2); } }
 @media (max-width: 520px) { .ef-home-cats .ef-cc-card { flex-basis: 78%; } .ef-home-cats .ef-cc-img { height: 220px; } }
@@ -372,6 +419,11 @@
 .ef-about h3.wp-block-heading { font-family: var(--ef-font-head); font-size: 26px; font-weight: 600; text-transform: none; letter-spacing: 0; color: #1d2a22; margin: 0 0 12px; }
 .ef-about a { color: var(--ef-brand-deep); text-decoration: underline; text-decoration-color: var(--ef-brand-light); text-underline-offset: 3px; }
 .ef-about a:hover { color: var(--ef-brand); }
+/* History, People, Range: the green background runs to the screen edges (the page content is boxed);
+   a clipped shadow paints it without making the page scroll sideways */
+.ef-about--history,
+.ef-about--people,
+.ef-about--range { box-shadow: 0 0 0 100vmax var(--efb-bg); clip-path: inset(0 -100vmax); }
 .ef-about .ef-about-cols { gap: 48px; margin-bottom: 0; }
 .ef-about p.ef-about-lead { font-size: 19px; line-height: 1.65; color: #1d2a22; }
 .ef-about-card {

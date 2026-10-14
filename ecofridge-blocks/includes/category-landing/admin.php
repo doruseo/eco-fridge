@@ -244,7 +244,7 @@ final class EFB_Landing_Admin {
 			<td>
 				<label><input type="checkbox" name="efbl[markets]" value="1" <?php checked( $d['markets'] ); ?>> <?php esc_html_e( 'Show a carousel of the market pages (the child pages of /markets/), below the related categories', 'ecofridge-blocks' ); ?></label>
 				<p><input type="text" class="regular-text" name="efbl[titles][markets]" value="<?php echo esc_attr( $d['titles']['markets'] ); ?>" placeholder="<?php esc_attr_e( 'No heading', 'ecofridge-blocks' ); ?>" aria-label="<?php esc_attr_e( 'Refrigeration markets heading', 'ecofridge-blocks' ); ?>"></p>
-				<p class="description"><?php esc_html_e( 'Uses the DF Carousel plugin, which must be active.', 'ecofridge-blocks' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Card carousel when the market pages have featured images (placeholder for those without), otherwise links as buttons.', 'ecofridge-blocks' ); ?></p>
 			</td>
 		</tr>
 

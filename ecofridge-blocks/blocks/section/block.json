@@ -60,6 +60,22 @@
       "type": "number",
       "default": 28
     },
+    "paddingLeft": {
+      "type": "number",
+      "default": -1
+    },
+    "paddingRight": {
+      "type": "number",
+      "default": -1
+    },
+    "paddingLeftMobile": {
+      "type": "number",
+      "default": -1
+    },
+    "paddingRightMobile": {
+      "type": "number",
+      "default": -1
+    },
     "textAlign": {
       "type": "string",
       "default": ""

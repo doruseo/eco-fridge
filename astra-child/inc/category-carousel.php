@@ -190,8 +190,8 @@ function ef_category_carousel_data( $term ) {
 /**
  * Prints one carousel of cards.
  *
- * @param array[]         $cards   Cards (title, link, img).
- * @param string|string[] $variant Modifier(s): '2col' (two banners), 'wide' (2:1 banner box).
+ * @param array[]         $cards   Cards (title, link, img; optional meta = a sub-line under the title).
+ * @param string|string[] $variant Modifier(s): '2col' (two banners), 'wide' (2:1 banner box), 'ranges' (home page ranges).
  */
 function ef_render_category_carousel( $cards, $variant = '' ) {
 	$classes = 'ef-cat-carousel';
@@ -204,7 +204,15 @@ function ef_render_category_carousel( $cards, $variant = '' ) {
 	foreach ( $cards as $c ) {
 		echo '<a class="ef-cc-card" role="listitem" href="' . esc_url( $c['link'] ) . '">';
 		echo '<span class="ef-cc-img">' . ( $c['img'] ? '<img src="' . esc_url( $c['img'] ) . '" alt="' . esc_attr( $c['title'] ) . '" loading="lazy" />' : '' ) . '</span>';
-		echo '<span class="ef-cc-name">' . esc_html( $c['title'] ) . '</span>';
+		if ( isset( $c['meta'] ) ) {
+			// footer with a sub-line (e.g. the number of models) and a "go" arrow
+			echo '<span class="ef-cc-foot"><span class="ef-cc-text">';
+			echo '<span class="ef-cc-name">' . esc_html( $c['title'] ) . '</span>';
+			echo '<span class="ef-cc-meta">' . esc_html( $c['meta'] ) . '</span>';
+			echo '</span><span class="ef-cc-go" aria-hidden="true"></span></span>';
+		} else {
+			echo '<span class="ef-cc-name">' . esc_html( $c['title'] ) . '</span>';
+		}
 		echo '</a>';
 	}
 	echo '</div>';

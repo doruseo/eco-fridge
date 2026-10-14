@@ -33,7 +33,13 @@
       "full"
     ],
     "spacing": {
-      "margin": true
+      "margin": true,
+      "padding": true
+    },
+    "color": {
+      "background": true,
+      "text": true,
+      "link": true
     }
   }
 }

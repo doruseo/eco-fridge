@@ -7,7 +7,7 @@
  * block saved in that post, so it cannot be tampered with.
  *
  * Spam protection: honeypot field, minimum fill time (measured client-side),
- * per-IP rate limit.
+ * per-IP and site-wide rate limits, link filter (spam is stored, not emailed).
  * Every submission is stored as an `efb_entry` post (Form Entries in the admin)
  * so nothing is lost when email delivery fails.
  *
@@ -15,6 +15,9 @@
  */
 
 defined( 'ABSPATH' ) || exit;
+
+const EFB_FORM_MAX_PER_HOUR = 30; // all forms together, from all visitors.
+const EFB_FORM_MAX_LINKS    = 2;  // links allowed in a message field.
 
 add_action(
 	'rest_api_init',
@@ -98,10 +101,12 @@ function efb_form_submit( WP_REST_Request $request ) {
 	if ( $elapsed < 3 ) {
 		return new WP_Error( 'efb_form_fast', __( 'Please take a moment to complete the form and try again.', 'ecofridge-blocks' ), array( 'status' => 429 ) );
 	}
-	$ip       = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+	$ip       = efb_client_ip();
 	$rate_key = 'efb_rl_' . md5( $ip );
 	$count    = (int) get_transient( $rate_key );
-	if ( $count >= 5 ) {
+	// Site-wide cap: a botnet using many IP addresses still cannot flood the inbox.
+	$site_count = (int) get_transient( 'efb_rl_site' );
+	if ( $count >= 5 || $site_count >= EFB_FORM_MAX_PER_HOUR ) {
 		return new WP_Error( 'efb_form_rate', __( 'Too many submissions. Please try again in a few minutes.', 'ecofridge-blocks' ), array( 'status' => 429 ) );
 	}
 
@@ -110,6 +115,7 @@ function efb_form_submit( WP_REST_Request $request ) {
 	$values   = array();
 	$errors   = array();
 	$reply_to = '';
+	$is_spam  = false;
 	foreach ( $fields as $field ) {
 		$name  = sanitize_key( $field['name'] ?? '' );
 		$label = $field['label'] ?? $name;
@@ -131,6 +137,11 @@ function efb_form_submit( WP_REST_Request $request ) {
 		if ( 'email' === $type && is_email( $value ) && ! $reply_to ) {
 			$reply_to = $value;
 		}
+		// Link spam: links never belong in the short fields (name, company, phone),
+		// and a real enquiry rarely carries more than a couple.
+		if ( ! in_array( $type, array( 'email', 'url' ), true ) && preg_match_all( '~https?://|www\.|\[url~i', $value ) > ( 'textarea' === $type ? EFB_FORM_MAX_LINKS : 0 ) ) {
+			$is_spam = true;
+		}
 		$values[ $label ] = $value;
 	}
 	if ( $errors ) {
@@ -138,6 +149,7 @@ function efb_form_submit( WP_REST_Request $request ) {
 	}
 
 	set_transient( $rate_key, $count + 1, 10 * MINUTE_IN_SECONDS );
+	set_transient( 'efb_rl_site', $site_count + 1, HOUR_IN_SECONDS );
 
 	// Store the entry.
 	$first = reset( $values );
@@ -145,13 +157,22 @@ function efb_form_submit( WP_REST_Request $request ) {
 		array(
 			'post_type'   => 'efb_entry',
 			'post_status' => 'private',
-			'post_title'  => sprintf( '%s — %s', $attrs['formName'] ?? __( 'Contact form', 'ecofridge-blocks' ), $first ? $first : __( '(no name)', 'ecofridge-blocks' ) ),
+			'post_title'  => ( $is_spam ? '[Spam] ' : '' ) . sprintf( '%s — %s', $attrs['formName'] ?? __( 'Contact form', 'ecofridge-blocks' ), $first ? $first : __( '(no name)', 'ecofridge-blocks' ) ),
 		)
 	);
 	if ( $entry && ! is_wp_error( $entry ) ) {
 		update_post_meta( $entry, '_efb_values', $values );
 		update_post_meta( $entry, '_efb_source', get_permalink( $post_id ) );
 		update_post_meta( $entry, '_efb_ip', $ip );
+	}
+
+	// Likely spam: kept in Form Entries for review, but nobody gets an email.
+	// The sender sees the normal thank-you message, so bots learn nothing.
+	if ( $is_spam ) {
+		if ( $entry && ! is_wp_error( $entry ) ) {
+			update_post_meta( $entry, '_efb_mail_sent', 'no (spam)' );
+		}
+		return rest_ensure_response( array( 'ok' => true, 'message' => ! empty( $attrs['successMessage'] ) ? $attrs['successMessage'] : __( 'Thank you for your enquiry. We will be in touch shortly.', 'ecofridge-blocks' ) ) );
 	}
 
 	// Email notification.

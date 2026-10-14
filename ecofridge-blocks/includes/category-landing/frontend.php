@@ -336,8 +336,9 @@ final class EFB_Landing_Frontend {
 	}
 
 	/**
-	 * Every market page (children of /markets/): a DF Carousel of cards when the
-	 * pages have featured images, otherwise links as pills (no empty image boxes).
+	 * Every market page (children of /markets/): the site's own card carousel
+	 * (as on the home page) when the pages have featured images, otherwise links
+	 * as pills (no empty image boxes).
 	 */
 	private static function markets_carousel() {
 		$parent = get_page_by_path( apply_filters( 'efb_landing_markets_parent', 'markets' ) );
@@ -359,7 +360,7 @@ final class EFB_Landing_Frontend {
 			return '';
 		}
 		$with_images = array_filter( $pages, 'has_post_thumbnail' );
-		if ( ! $with_images || ! shortcode_exists( 'df_carousel' ) ) {
+		if ( ! $with_images || ! function_exists( 'ef_render_category_carousel' ) ) {
 			$chips = '';
 			foreach ( $pages as $page ) {
 				$chips .= '<li><a class="efbl-chip" href="' . esc_url( get_permalink( $page ) ) . '">' . esc_html( get_the_title( $page ) ) . '</a></li>';
@@ -367,30 +368,19 @@ final class EFB_Landing_Frontend {
 			return '<ul class="efbl-chips efbl-markets">' . $chips . '</ul>';
 		}
 
-		$atts = apply_filters(
-			'efb_landing_markets_carousel_atts',
-			array(
-				'type'           => 'pages',
-				'parent'         => $parent->ID,
-				'exclude'        => $current ? $current->ID : '',
-				'limit'          => 100,
-				'columns'        => 4,
-				'columns_tablet' => 2,
-				'columns_mobile' => 1,
-				'orderby'        => 'menu_order',
-				'order'          => 'ASC',
-				'arrows'         => 'yes',
-				'dots'           => 'no',
-				'image_size'     => 'medium',
-			)
-		);
-
-		$shortcode = '[df_carousel';
-		foreach ( $atts as $key => $value ) {
-			$shortcode .= ' ' . sanitize_key( $key ) . '="' . esc_attr( $value ) . '"';
+		$cards = array();
+		foreach ( $pages as $page ) { // every market; a page without an image gets the shop placeholder.
+			$img     = (string) get_the_post_thumbnail_url( $page, 'woocommerce_single' );
+			$cards[] = array(
+				'title' => get_the_title( $page ),
+				'link'  => get_permalink( $page ),
+				'img'   => '' !== $img ? $img : ( function_exists( 'wc_placeholder_img_src' ) ? wc_placeholder_img_src( 'woocommerce_single' ) : '' ),
+			);
 		}
-		$body = do_shortcode( $shortcode . ']' );
-		return false === strpos( $body, 'dfc-carousel' ) ? '' : $body;
+		$GLOBALS['ef_cc_used'] = true; // the theme prints the carousel script in the footer.
+		ob_start();
+		ef_render_category_carousel( apply_filters( 'efb_landing_markets_cards', $cards ) );
+		return '<div class="ef-cat-carousel-wrap efbl-markets-carousel">' . ob_get_clean() . '</div>';
 	}
 
 	/**

@@ -385,10 +385,26 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-primary-nav .ef-menu a:hover { color: var(--ef-brand); }
 .ef-cat-nav .ef-menu > li > a { color: #fff; padding: 12px 13px; font-size: .8rem; line-height: 19px; } /* fixed line box: no height change when the web font swaps in */
 /* narrow desktops: the one-line green bar still fits next to the cart */
-@media (min-width: 993px) and (max-width: 1120px) { .ef-cat-nav .ef-menu > li > a { padding-left: 8px; padding-right: 8px; } }
+@media (min-width: 993px) and (max-width: 1180px) {
+  .ef-cat-nav .ef-menu > li > a { padding-left: 6px; padding-right: 6px; font-size: .76rem; }
+  .ef-menu > li.menu-item-has-children > a::after { margin-left: 5px; }
+  /* row 1 (7 items + search) stays on one line too */
+  .ef-primary-nav .ef-menu a { padding-left: 7px; padding-right: 7px; font-size: .85rem; }
+  .ef-row1-right .ef-header-search { width: 190px; max-width: 190px; flex: 0 0 190px; }
+}
 .ef-cat-nav .ef-menu > li > a:hover { background: rgba(0,0,0,.14); }
 
-/* simple dropdowns (row 1: Contact → About/Support/Cookie/Markets, Markets → …) */
+/* down arrow after a top-level item that opens a dropdown / mega menu */
+.ef-menu > li.menu-item-has-children > a::after {
+  content: ""; display: inline-block;
+  width: 6px; height: 6px; margin-left: 8px;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  transform: translateY(-3px) rotate(45deg);
+  transition: transform .18s ease;
+}
+.ef-menu > li.menu-item-has-children:hover > a::after { transform: translateY(0) rotate(225deg); }
+
+/* simple dropdowns (row 1: Markets → the market pages) */
 .ef-menu .sub-menu {
   position: absolute; top: 100%; left: 0; min-width: 240px; max-width: 320px;
   background: #fff; box-shadow: 0 10px 26px rgba(0,0,0,.15);
@@ -589,6 +605,8 @@ a:hover, a:focus { color: var(--ef-text); }
   .ef-cat-nav .ef-menu { flex-wrap: nowrap; }
   .ef-cat-nav .ef-menu > li > a { white-space: nowrap; }
   .ef-mega { display: none !important; } /* on mobile: the link goes to the category page */
+  .ef-cat-nav .ef-menu > li.menu-item-has-children > a::after { display: none; } /* no dropdown there */
+  .ef-menu > li.menu-item-has-children:hover > a::after { transform: translateY(-3px) rotate(45deg); } /* submenus are always open */
 }
 
 /* =========================================================================
@@ -1426,7 +1444,7 @@ form.cart .ef-addon-group__body .ef-addon--radio input { margin-top: 0; }
    blank line below. Component images (logos, cards, sliders, grids) are untouched.
    ========================================================================= */
 :is(.entry-content, .ef-range-content, .ef-seo-content, .term-description, .woocommerce-product-details__short-description, .woocommerce-Tabs-panel, .efbl-faq__a-inner, .efb-toggle__body)
-  :is(p, h2, h3, h4, h5, h6, td, th, li, dd, .wp-block-html) img:not(.alignleft):not(.alignright):not(.emoji):not(.avatar):not(:is(.efb-logos, .efb-offers, .efb-tiles, .efb-cards, .efb-products, .efb-hero, .efb-cta, .efbl-carousel, .efbl-cats, .efbl-articles, .efbl-reviews) img) {
+  :is(p, h2, h3, h4, h5, h6, td, th, li, dd, .wp-block-html) img:not(.alignleft):not(.alignright):not(.emoji):not(.avatar):not(:is(.efb-logos, .efb-offers, .efb-tiles, .efb-cards, .efb-products, .efb-hero, .efb-cta, .efbl-carousel, .efbl-cats, .efbl-articles, .efbl-reviews, .ef-also-read) img) {
   display: block;
   max-width: 100%;
   height: auto;
@@ -1477,3 +1495,44 @@ form.cart .ef-addon-group__body .ef-addon--radio input { margin-top: 0; }
    the "Removal & Disposal: Added" item data below them is not repeated there
    (it still shows at checkout, in the order and in the emails). */
 .woocommerce-cart-form .product-name .ef-cart-item-addons ~ dl.variation { display: none; }
+
+/* =========================================================================
+   PRODUCT DETAILS (inc/product-details.php) – price with VAT, Model / Brand,
+   Features section (two columns, icons), Brand tab
+   ========================================================================= */
+.single-product .summary .ef-price-inc-vat { margin: -6px 0 10px; font-size: .95rem; color: var(--ef-text); }
+.single-product .summary .ef-price-inc-vat span { color: #5d6b63; font-size: .85em; }
+.single-product .summary ul.ef-product-specs { list-style: none; margin: 0 0 18px; padding: 10px 14px; border: 1px solid var(--ef-brand-light); border-radius: 10px; background: #f6faf7; }
+.single-product .summary ul.ef-product-specs li { margin: 2px 0; font-size: .95rem; line-height: 1.5; }
+.ef-product-specs__label { font-weight: 700; color: var(--ef-text); margin-right: 4px; }
+
+/* Features: own section above the tabs – the list in two columns, an icon on a light green disc instead of each bullet */
+.single-product .ef-features-section { clear: both; margin: 8px 0 34px; padding: 22px 26px 12px; border: 1px solid var(--ef-brand-light); border-radius: 12px; background: #fff; }
+.single-product .ef-features-section__title { margin: 0 0 16px; font-size: 1.5rem; }
+ul.ef-features { list-style: none; margin: 0 0 1.2em; padding: 0; }
+.ef-features-tab ul.ef-features { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 36px; }
+ul.ef-features li { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 10px; padding: 0; list-style: none; }
+ul.ef-features li::before { content: none; display: none; }
+@media (max-width: 640px) {
+  .ef-features-tab ul.ef-features { grid-template-columns: 1fr; }
+  .single-product .ef-features-section { padding: 18px 16px 8px; }
+}
+.ef-feature-icon {
+  flex: 0 0 26px; width: 26px; height: 26px; border-radius: 50%;
+  background: #e4f2e4; border: 1px solid var(--ef-brand-light);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 14px; line-height: 1;
+}
+.ef-feature-text { padding-top: 2px; }
+
+/* Technical Specs / Brand / Energy tabs */
+.woocommerce-Tabs-panel h2.ef-tab-heading { margin-top: 0; }
+.ef-brand-tab { display: flex; gap: 28px; align-items: flex-start; }
+.ef-brand-tab__logo { flex: 0 0 180px; }
+.ef-brand-tab__logo img { width: 180px; height: auto; display: block; }
+.ef-brand-tab__more { font-weight: 600; }
+@media (max-width: 640px) {
+  .ef-brand-tab { flex-direction: column; gap: 14px; }
+  .ef-brand-tab__logo { flex-basis: auto; }
+  .ef-brand-tab__logo img { width: 140px; }
+}
