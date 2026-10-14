@@ -423,6 +423,34 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-row1-right .ef-menu > li:last-child .sub-menu { left: auto; right: 0; }
 .ef-row1-right .ef-menu > li:last-child .sub-menu .sub-menu { left: auto; right: 100%; }
 
+/* row 1 dropdown on desktop: a light rounded card, rounded rows, and an arrow
+   that slides in on hover */
+@media (min-width: 993px) {
+  .ef-primary-nav .ef-menu > li > .sub-menu {
+    top: calc(100% - 5px); padding: 8px; min-width: 250px;
+    border: 1px solid #e3ebe3; border-radius: 14px;
+    box-shadow: 0 18px 40px -14px rgba(16,60,30,.28), 0 2px 6px rgba(16,60,30,.06);
+  }
+  /* invisible bridge over the gap, so the menu stays open on the way down */
+  .ef-primary-nav .ef-menu > li > .sub-menu::before {
+    content: ""; position: absolute; left: 0; right: 0; top: -6px; height: 6px;
+  }
+  .ef-primary-nav .ef-menu .sub-menu a {
+    display: flex; align-items: center;
+    padding: 10px 12px; border-radius: 9px; font-size: .9rem;
+    transition: background .18s ease, color .18s ease;
+  }
+  /* the arrow opens up in front of the label, with a space after it */
+  .ef-primary-nav .ef-menu .sub-menu a::before {
+    content: "\2192"; flex: 0 0 auto; overflow: hidden;
+    width: 0; margin-right: 0; opacity: 0;
+    font-size: 1rem; line-height: 1; color: var(--ef-brand);
+    transition: width .18s ease, margin .18s ease, opacity .18s ease;
+  }
+  .ef-primary-nav .ef-menu .sub-menu a:hover { background: #f1f7f1; }
+  .ef-primary-nav .ef-menu .sub-menu a:hover::before { width: 1em; margin-right: 8px; opacity: 1; }
+}
+
 /* —— MEGA MENUS (row 2) —— */
 .ef-cat-nav .ef-menu > li.ef-mega-full { position: static; } /* mega spans the container width */
 .ef-mega {
@@ -590,6 +618,9 @@ a:hover, a:focus { color: var(--ef-text); }
     flex-direction: column; align-items: stretch; gap: 0; display: flex;
   }
   .ef-header.ef-nav-open .ef-row1-right { transform: translateX(0); }
+  /* the search in the drawer opens full screen (ecofridge-blocks search.css);
+     a transform would keep it inside the drawer */
+  .ef-header.ef-nav-open .ef-row1-right:has(.efb-search.is-full) { transform: none; }
   .ef-nav-overlay {
     display: block; position: fixed; inset: 0; background: rgba(0,0,0,.45);
     opacity: 0; visibility: hidden; transition: opacity .28s ease, visibility .28s; z-index: 1000;
@@ -1268,28 +1299,12 @@ form.cart .ef-addon-group__body .ef-addon--radio input { margin-top: 0; }
 
 /* =========================================================================
    CART & CHECKOUT — modern cards with green accents (cart = classic template,
-   checkout = WooCommerce Checkout block), trust strip, clear delivery wording
+   checkout = WooCommerce Checkout block), clear delivery wording
    ========================================================================= */
-.ef-trust-strip {
-  list-style: none; margin: 0 0 26px; padding: 14px 18px;
-  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 22px;
-  background: #eef6ee; border: 1px solid var(--ef-brand-light); border-radius: 12px;
-}
-.ef-trust-strip li { display: flex; align-items: center; gap: 12px; margin: 0; line-height: 1.3; }
-.ef-trust-strip__icon {
-  flex: 0 0 42px; height: 42px; border-radius: 50%; background: #fff; color: var(--ef-brand);
-  display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(34,139,34,.15);
-}
-.ef-trust-strip strong { display: block; font-family: var(--ef-font-head); font-weight: 500; letter-spacing: .02em; font-size: .95rem; color: var(--ef-text); }
-.ef-trust-strip small { display: block; color: #5f6b5f; font-size: .8rem; }
-.ef-trust-strip a { color: var(--ef-brand); font-weight: 700; text-decoration: none; }
-@media (max-width: 900px) { .ef-trust-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 520px) { .ef-trust-strip { grid-template-columns: 1fr; } }
-
 /* Cart table as a card */
 .woocommerce-cart .woocommerce-cart-form .shop_table {
-  border: 1px solid var(--ef-brand-light) !important; border-radius: 12px; overflow: hidden;
-  border-collapse: separate; background: #fff; box-shadow: 0 6px 18px rgba(0,0,0,.05);
+  border: 1px solid #dfe8df !important; border-radius: 20px !important; overflow: hidden;
+  border-collapse: separate; background: #fff; box-shadow: 0 10px 30px -12px rgba(16,60,30,.18);
 }
 .woocommerce-cart .woocommerce-cart-form .shop_table thead th {
   background: #eef6ee; font-family: var(--ef-font-head); font-weight: 500;
@@ -1313,17 +1328,22 @@ form.cart .ef-addon-group__body .ef-addon--radio input { margin-top: 0; }
 .ef-continue-shopping a { font-family: var(--ef-font-head); text-transform: uppercase; letter-spacing: .03em; color: var(--ef-brand); text-decoration: none; }
 .ef-continue-shopping a:hover { text-decoration: underline; }
 
-/* Cart totals as a card */
+/* Cart totals as a rounded card: a plain title with a thin rule under it
+   (across the whole card), no coloured bar */
 .woocommerce-cart .cart-collaterals .cart_totals {
-  border: 1px solid var(--ef-brand-light) !important; border-radius: 12px; background: #fff;
-  box-shadow: 0 6px 18px rgba(0,0,0,.06); overflow: hidden;
+  border: 1px solid #dfe8df !important; border-radius: 20px; background: #fff;
+  box-shadow: 0 10px 30px -12px rgba(16,60,30,.18); overflow: hidden;
+  padding: 0 22px 22px !important;
 }
 .woocommerce-cart .cart_totals > h2 {
-  font-family: var(--ef-font-head); text-transform: uppercase; letter-spacing: .03em;
-  background: var(--ef-brand) !important; color: #fff !important; margin: 0 !important; padding: 14px 20px !important;
-  border: 0 !important;
+  font-family: var(--ef-font-head); font-weight: 500; text-transform: uppercase; letter-spacing: .04em;
+  font-size: 1.1rem !important; color: var(--ef-text) !important; background: none !important;
+  margin: 0 -22px 6px !important; padding: 20px 22px 16px !important;
+  border: 0 !important; border-bottom: 1px solid #e6ede6 !important;
 }
-.woocommerce-cart .cart_totals table { background: #fff; }
+.woocommerce-cart .cart_totals table { background: #fff; border: 0 !important; }
+.woocommerce-cart .cart_totals table th,
+.woocommerce-cart .cart_totals table td { border-left: 0 !important; border-right: 0 !important; }
 .woocommerce-cart .cart_totals .order-total th,
 .woocommerce-cart .cart_totals .order-total td { font-size: 1.15rem; color: var(--ef-text); border-top: 2px solid var(--ef-brand-light); }
 .ef-free-delivery { color: var(--ef-brand); font-weight: 700; }
@@ -1354,11 +1374,41 @@ form.cart .ef-addon-group__body .ef-addon--radio input { margin-top: 0; }
 .wc-block-checkout .wc-block-components-radio-control__input:checked { border-color: var(--ef-brand) !important; }
 .wc-block-checkout .wc-block-components-radio-control__input:checked::before { background: var(--ef-brand) !important; }
 .wc-block-checkout .wc-block-components-checkbox__input:checked { background: var(--ef-brand) !important; border-color: var(--ef-brand) !important; }
-.wc-block-checkout .wc-block-components-radio-control__option--checked-option-highlighted,
-.wc-block-checkout .wc-block-components-radio-control--highlight-checked::after { box-shadow: inset 0 0 0 2px var(--ef-brand) !important; border-color: var(--ef-brand) !important; border-radius: 8px; }
-.wc-block-checkout .wc-block-components-radio-control-accordion-option--checked-option-highlighted {
-  box-shadow: inset 0 0 0 2px var(--ef-brand) !important; border-radius: 8px;
+/* text fields: roomier, soft 1px border, the floating label clear of the edge
+   (Astra pins the active label at top: -2px, against the border) */
+.wc-block-checkout .wc-block-components-text-input input,
+.wc-block-checkout .wc-block-components-combobox .components-combobox-control input,
+.wc-block-checkout .wc-blocks-components-select .wc-blocks-components-select__select,
+.wc-block-checkout .wc-block-components-textarea {
+  border: 1px solid #cfdacf !important; border-radius: 10px !important;
 }
+.wc-block-checkout .wc-block-components-text-input input {
+  height: 56px !important; padding: 26px 14px 8px !important;
+}
+.wc-block-checkout .wc-block-components-text-input label { left: 15px !important; }
+.wc-block-checkout .wc-block-components-text-input.is-active label { top: 7px !important; }
+/* shipping address, delivery and payment boxes look like the email field:
+   white, the same soft 1px border and 10px corners (the green radio dot alone
+   marks the chosen option) */
+.wc-block-checkout .wc-block-components-address-card,
+.wc-block-checkout .wc-block-components-radio-control__option,
+.wc-block-checkout .wc-block-components-radio-control-accordion-option {
+  background: #fff !important; border: 1px solid #cfdacf !important; border-radius: 10px !important;
+  box-shadow: none !important;
+}
+.wc-block-checkout .wc-block-components-radio-control,
+.wc-block-checkout .wc-block-components-radio-control--highlight-checked { border-radius: 10px; }
+/* the group's own outline would draw a second line next to the option's */
+.wc-block-checkout .wc-block-components-radio-control--highlight-checked::after,
+.wc-block-checkout .wc-block-components-radio-control-accordion-option::after,
+.wc-block-checkout .wc-block-components-radio-control__option::after { border: 0 !important; box-shadow: none !important; }
+/* a payment method is an outer box holding the option row + its description:
+   only the outer box is framed */
+.wc-block-checkout .wc-block-components-radio-control-accordion-option .wc-block-components-radio-control__option {
+  border: 0 !important; border-radius: 0 !important; background: transparent !important;
+}
+/* several options stacked: a small gap between them instead of shared lines */
+.wc-block-checkout .wc-block-components-radio-control > * + * { margin-top: 8px; }
 .wc-block-checkout .wc-block-components-checkout-place-order-button,
 .wc-block-checkout .wc-block-components-button.contained {
   background: var(--ef-brand) !important; color: #fff !important; border-radius: 8px !important;
@@ -1367,8 +1417,8 @@ form.cart .ef-addon-group__body .ef-addon--radio input { margin-top: 0; }
 }
 .wc-block-checkout .wc-block-components-checkout-place-order-button:hover { background: var(--ef-brand-dark) !important; }
 .wc-block-checkout .wc-block-checkout__sidebar .wp-block-woocommerce-checkout-order-summary-block {
-  border: 1px solid var(--ef-brand-light) !important; border-radius: 12px; overflow: hidden; background: #fff;
-  box-shadow: 0 6px 18px rgba(0,0,0,.06);
+  border: 1px solid #dfe8df !important; border-radius: 20px; overflow: hidden; background: #fff;
+  box-shadow: 0 10px 30px -12px rgba(16,60,30,.18);
 }
 .wc-block-checkout .wc-block-components-order-summary .wc-block-components-order-summary-item__quantity {
   background: var(--ef-brand); color: #fff; border-color: #fff;
