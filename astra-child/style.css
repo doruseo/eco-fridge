@@ -1306,13 +1306,28 @@ form.cart .ef-addon-group__body .ef-addon--radio input { margin-top: 0; }
 .woocommerce-cart .woocommerce-cart-form a.remove { color: #9aa3a0 !important; border: 1px solid #d9dfdc; }
 .woocommerce-cart .woocommerce-cart-form a.remove:hover { color: #fff !important; background: #c62828 !important; border-color: #c62828; }
 /* quantity − / + like the product grids */
-.woocommerce-cart .quantity { display: inline-flex; border: 1px solid var(--ef-brand-light); border-radius: 4px; overflow: hidden; background: #fff; }
+.woocommerce-cart .quantity { display: inline-flex; align-items: stretch; border: 1px solid var(--ef-brand-light); border-radius: 4px; overflow: hidden; background: #fff; }
+/* the hidden label sits between − and the input; out of the flow, or it adds a
+   white strip after + (the product page does the same) */
+.woocommerce-cart .quantity .screen-reader-text { position: absolute !important; }
 .woocommerce-cart .quantity .minus,
-.woocommerce-cart .quantity .plus { background: #eef6ee !important; color: var(--ef-brand) !important; border: 0 !important; font-weight: 700; }
+.woocommerce-cart .quantity .plus { display: flex; align-items: center; justify-content: center; margin: 0 !important; background: #eef6ee !important; color: var(--ef-brand) !important; border: 0 !important; font-weight: 700; }
 .woocommerce-cart .quantity .minus:hover,
 .woocommerce-cart .quantity .plus:hover { background: var(--ef-brand) !important; color: #fff !important; }
 .woocommerce-cart .quantity .qty { border: 0 !important; font-weight: 600; }
 .ef-continue-shopping { margin: 16px 0 0; }
+/* postcodes we do not deliver to (inc/cart-checkout.php): cart totals and checkout */
+.ef-no-delivery td { padding-top: 0 !important; }
+.ef-no-delivery__msg {
+  margin: 8px 0 12px; padding: 10px 14px;
+  border-left: 4px solid #d97706; border-radius: 6px;
+  background: #fff7e6; color: #5c3d00;
+  font-size: 14px; line-height: 1.5;
+}
+/* checkout: "Ship" shown as not available (still clickable, to change the address) */
+.wc-block-checkout__shipping-method-option.ef-ship-unavailable { opacity: .55; background: #f6f6f6; }
+.wc-block-checkout__shipping-method-option.ef-ship-unavailable .wc-block-checkout__shipping-method-option-price { display: none; }
+.ef-ship-unavailable__note { display: block; width: 100%; margin-top: 4px; font-size: 12px; line-height: 1.3; color: #5c3d00; }
 .ef-continue-shopping a { font-family: var(--ef-font-head); text-transform: uppercase; letter-spacing: .03em; color: var(--ef-brand); text-decoration: none; }
 .ef-continue-shopping a:hover { text-decoration: underline; }
 

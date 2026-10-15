@@ -18,7 +18,8 @@
  * the rows — fees (Removal & Disposal, Warranty) are shown BEFORE shipping, so
  * the totals read: Subtotal (ex-VAT) → Removal & Disposal → Warranty → Shipping
  * → VAT → Total. All values remain WooCommerce-driven (fees, shipping method,
- * tax rate) and editable from the WooCommerce admin.
+ * tax rate) and editable from the WooCommerce admin. Before a postcode is known
+ * the Shipment row shows the delivery note above the postcode calculator.
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -62,9 +63,10 @@ defined( 'ABSPATH' ) || exit;
 
 		<?php elseif ( WC()->cart->needs_shipping() && 'yes' === get_option( 'woocommerce_enable_shipping_calc' ) ) : ?>
 
+			<?php // ECO-Fridge: no postcode yet (inc/cart-checkout.php) – the delivery note, then the calculator. ?>
 			<tr class="shipping">
-				<th><?php esc_html_e( 'Shipping', 'woocommerce' ); ?></th>
-				<td data-title="<?php esc_attr_e( 'Shipping', 'woocommerce' ); ?>"><?php woocommerce_shipping_calculator(); ?></td>
+				<th><?php esc_html_e( 'Shipment', 'woocommerce' ); ?></th>
+				<td data-title="<?php esc_attr_e( 'Shipment', 'woocommerce' ); ?>"><p class="woocommerce-shipping-destination"><?php echo wp_kses_post( apply_filters( 'woocommerce_shipping_estimate_html', '' ) ); ?></p><?php woocommerce_shipping_calculator( __( 'Enter your postcode', 'eco-fridge-child' ) ); ?></td>
 			</tr>
 
 		<?php endif; ?>

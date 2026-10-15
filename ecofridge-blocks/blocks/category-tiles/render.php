@@ -50,11 +50,25 @@ $efb_wrapper = get_block_wrapper_attributes(
 ?>
 <div <?php echo $efb_wrapper; // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 	<?php
+	// "View all" button next to the heading: its own link, or the parent category.
+	$efb_all_text = trim( (string) ( $attributes['viewAllText'] ?? '' ) );
+	$efb_all_url  = trim( (string) ( $attributes['viewAllUrl'] ?? '' ) );
+	if ( '' !== $efb_all_text && '' === $efb_all_url && $attributes['parent'] ) {
+		$efb_all_url = get_term_link( (int) $attributes['parent'], 'product_cat' );
+		$efb_all_url = is_wp_error( $efb_all_url ) ? '' : $efb_all_url;
+	}
+	$efb_has_all = '' !== $efb_all_text && '' !== $efb_all_url;
+	if ( $efb_has_all ) {
+		echo '<div class="efb-tiles__head">';
+	}
 	if ( '' !== $attributes['heading'] ) {
 		$efb_parent_link = $attributes['parent'] && $attributes['headingLink'] ? get_term_link( (int) $attributes['parent'], 'product_cat' ) : '';
 		echo '<h2 class="efb-tiles__heading">';
 		echo ( $efb_parent_link && ! is_wp_error( $efb_parent_link ) ) ? '<a href="' . esc_url( $efb_parent_link ) . '">' . esc_html( $attributes['heading'] ) . '</a>' : esc_html( $attributes['heading'] );
 		echo '</h2>';
+	}
+	if ( $efb_has_all ) {
+		echo '<a class="efb-tiles__all" href="' . esc_url( $efb_all_url ) . '">' . esc_html( $efb_all_text ) . '</a></div>';
 	}
 	?>
 	<div class="efb-tiles__grid">

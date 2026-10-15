@@ -36,6 +36,14 @@
       "type": "boolean",
       "default": true
     },
+    "viewAllText": {
+      "type": "string",
+      "default": ""
+    },
+    "viewAllUrl": {
+      "type": "string",
+      "default": ""
+    },
     "style": {
       "type": "string",
       "default": "plain"

@@ -542,6 +542,8 @@
 						el( RangeControl, { label: 'Columns', min: 1, max: 8, value: a.columns, onChange: ( v ) => setAttributes( { columns: v } ) } ),
 						el( ToggleControl, { label: 'Hide empty categories', checked: a.hideEmpty, onChange: ( v ) => setAttributes( { hideEmpty: v } ) } ),
 						el( ToggleControl, { label: 'Link the heading to the parent category', checked: a.headingLink, onChange: ( v ) => setAttributes( { headingLink: v } ) } ),
+						el( TextControl, { label: '“View all” button text', help: 'Shown on the right of the heading, e.g. “View all Display Cabinets”. Empty = no button.', value: a.viewAllText, onChange: ( v ) => setAttributes( { viewAllText: v } ) } ),
+						el( TextControl, { label: '“View all” button link', help: 'Empty = the parent category above.', value: a.viewAllUrl, onChange: ( v ) => setAttributes( { viewAllUrl: v } ) } ),
 						el( SelectControl, {
 							label: 'Name colour',
 							value: a.style,
