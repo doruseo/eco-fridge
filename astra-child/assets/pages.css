@@ -8,6 +8,9 @@
   --ef-page-tint: #f3f8f4;
   --ef-page-line: #e3ebe5;
   --ef-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='3.5' d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+  --ef-card-foot: #e8f3ea; /* pale green foot of the home page cards */
+  /* arrow for the round card buttons, used as a mask (takes the text colour) */
+  --ef-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' d='M4 12h15M13 6l6 6-6 6'/%3E%3C/svg%3E");
 }
 
 /* ---- legal pages ------------------------------------------------------- */
@@ -88,16 +91,15 @@
 .ef-home-ranges .ef-home-ranges__all a::after { content: "\2192"; }
 .ef-home-ranges .ef-home-ranges__all a:hover { background: #fff; color: var(--ef-brand-deep); border-color: #fff; }
 
-/* range cards: white, rounded (25px), no green border, image on light grey,
-   name + number of models on the left and a round arrow on the right */
+/* range cards: rounded (25px), no green border, image on white, a pale green
+   foot with the name + number of models on the left and a round arrow on the right */
 .ef-home-cats .ef-cc-card { flex-basis: calc((100% - 60px) / 4); border: 0; border-radius: 25px; box-shadow: 0 10px 24px -14px rgba(0,0,0,.55); }
 .ef-home-cats .ef-cc-card:hover,
 .ef-home-cats .ef-cc-card:focus-visible { transform: translateY(-6px); box-shadow: 0 18px 34px -14px rgba(0,0,0,.6); }
-.ef-home-cats .ef-cc-img { height: 210px; background: #f3f5f4; }
-.ef-home-cats .ef-cc-img img { mix-blend-mode: multiply; } /* the white photo backgrounds blend into the grey */
+.ef-home-cats .ef-cc-img { height: 210px; background: #fff; }
 .ef-home-cats .ef-cc-foot {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 14px 20px 18px; margin-top: auto; background: #fff;
+  padding: 16px 20px; margin-top: auto; background: var(--ef-card-foot);
 }
 .ef-home-cats .ef-cc-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .ef-home-cats .ef-cc-name {
@@ -111,7 +113,9 @@
   display: flex; align-items: center; justify-content: center;
   transition: background .2s, color .2s;
 }
-.ef-home-cats .ef-cc-go::before { content: "\2192"; font-size: 16px; line-height: 1; }
+/* the arrow is drawn (an SVG mask), so it sits exactly in the middle of the
+   circle; a text arrow follows the font's baseline and ends up off-centre */
+.ef-home-cats .ef-cc-go::before { content: ""; width: 16px; height: 16px; background: currentColor; -webkit-mask: var(--ef-arrow) center / contain no-repeat; mask: var(--ef-arrow) center / contain no-repeat; }
 .ef-home-cats .ef-cc-card:hover .ef-cc-go { background: var(--ef-brand); color: #fff; }
 /* the carousel arrows sit on the dark band */
 .ef-home-ranges .ef-cc-arrow { border-color: transparent; }
@@ -343,7 +347,7 @@
 .entry-content .ef-home-shopnow .wp-block-button__link { display: inline-flex; align-items: center; justify-content: center; min-height: 50px; padding: 12px 34px; border-radius: 999px; border: 2px solid var(--ef-brand-deep); background: var(--ef-brand-deep); color: #fff !important; font-size: 16px; font-weight: 700; text-decoration: none; transition: background .2s, border-color .2s, transform .2s; }
 .entry-content .ef-home-shopnow .wp-block-button__link:hover { background: var(--ef-brand-deep-hover); border-color: var(--ef-brand-deep-hover); transform: translateY(-1px); }
 
-/* client logos: an even grid of white tiles, colour on hover */
+/* client logos: an even grid of white tiles framed in light green, colour on hover */
 .ef-home-clients .efb-logos__list { gap: 14px; }
 @media (min-width: 782px) {
   .ef-home-clients .efb-logos__list { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
@@ -355,14 +359,81 @@
   align-items: center;
   justify-content: center;
   padding: 12px;
-  border: 1px solid var(--ef-page-line);
+  border: 1.5px solid var(--ef-brand-light);
   border-radius: 12px;
   background: #fff;
   transition: border-color .2s, box-shadow .2s;
 }
 .ef-home-clients .efb-logos__item img { filter: grayscale(1); opacity: .85; transition: filter .25s, opacity .25s; }
-.ef-home-clients .efb-logos__item:hover { border-color: var(--ef-brand-light); box-shadow: 0 10px 22px -16px rgba(15,69,39,.45); }
+.ef-home-clients .efb-logos__item:hover { border-color: var(--ef-brand); box-shadow: 0 10px 22px -16px rgba(15,69,39,.45); }
 .ef-home-clients .efb-logos__item:hover img { filter: none; opacity: 1; }
+
+/* "Display Cabinets", "Storage Cabinets", "Graded Units": the same cards as
+   "Shop by range" (rounded 25px, image on white, pale green foot with the name
+   on the left and a round arrow on the right), on the white page instead of
+   the dark band; the heading on the left and "View all …" on the right. */
+.home .efb-tiles .efb-tiles__head { gap: 16px 32px; margin: 0 0 20px; }
+.home .efb-tiles .efb-tiles__head h2.efb-tiles__heading { text-align: left; margin: 0; }
+.home .efb-tiles .efb-tiles__all {
+  display: inline-flex; align-items: center; gap: 8px; flex: 0 0 auto;
+  padding: 10px 18px; border: 1px solid var(--ef-brand); border-radius: 6px;
+  background: #fff; color: var(--ef-brand);
+  font-family: var(--ef-font-head); font-size: 14px; letter-spacing: .04em; text-transform: uppercase;
+  transition: background .2s, color .2s;
+}
+.home .efb-tiles .efb-tiles__all::after { content: "\2192"; }
+.home .efb-tiles .efb-tiles__all:hover { background: var(--ef-brand); color: #fff; }
+@media (max-width: 767px) {
+  .home .efb-tiles .efb-tiles__head { flex-direction: column; align-items: center; }
+  .home .efb-tiles .efb-tiles__head h2.efb-tiles__heading { text-align: center; }
+}
+.home .efb-tiles .efb-tiles__grid { gap: 20px; }
+.home .efb-tiles .efb-tile {
+  padding: 0; gap: 0; align-items: stretch; text-align: left;
+  border: 1px solid var(--ef-page-line); border-radius: 25px; overflow: hidden;
+  background: #fff;
+  box-shadow: 0 10px 24px -16px rgba(0,0,0,.35);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.home .efb-tiles .efb-tile:hover,
+.home .efb-tiles .efb-tile:focus-visible { transform: translateY(-6px); border-color: var(--ef-page-line); box-shadow: 0 18px 34px -16px rgba(0,0,0,.4); }
+.home .efb-tiles .efb-tile__image { height: 210px; padding: 16px; background: #fff; }
+.home .efb-tiles .efb-tile__image img { max-height: 100%; }
+/* name on the left; on the right a round button: the circle is ::after, the
+   drawn arrow ::before is laid exactly over its centre */
+.home .efb-tiles .efb-tile__name {
+  --ef-go: 34px; --ef-go-pad: 20px;
+  position: relative;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  min-height: calc(2.6em + 32px); /* room for two lines, so every foot has the same height */
+  margin-top: auto; padding: 16px var(--ef-go-pad); background: var(--ef-card-foot);
+  font-family: var(--ef-font-head); font-size: 1rem; letter-spacing: .03em; color: var(--ef-text);
+  transition: color .18s ease;
+}
+.home .efb-tiles .efb-tile__name::after {
+  content: ""; flex: 0 0 var(--ef-go); width: var(--ef-go); height: var(--ef-go); box-sizing: border-box;
+  border-radius: 50%; border: 1.5px solid var(--ef-brand); background: #fff;
+  transition: background .2s;
+}
+.home .efb-tiles .efb-tile__name::before {
+  content: ""; position: absolute; z-index: 1; pointer-events: none;
+  right: var(--ef-go-pad); top: 50%; width: var(--ef-go); height: var(--ef-go); margin-top: calc(var(--ef-go) / -2);
+  background: var(--ef-brand);
+  -webkit-mask: var(--ef-arrow) center / 16px 16px no-repeat; mask: var(--ef-arrow) center / 16px 16px no-repeat;
+}
+.home .efb-tiles .efb-tile:hover .efb-tile__name { color: var(--ef-brand); }
+.home .efb-tiles .efb-tile:hover .efb-tile__name::after { background: var(--ef-brand); }
+.home .efb-tiles .efb-tile:hover .efb-tile__name::before { background: #fff; }
+@media (max-width: 600px) {
+  .home .efb-tiles .efb-tiles__grid { gap: 12px; }
+  .home .efb-tiles .efb-tile { border-radius: 18px; }
+  .home .efb-tiles .efb-tile__image { height: 150px; padding: 12px; }
+  .home .efb-tiles .efb-tile__name { --ef-go: 28px; --ef-go-pad: 12px; min-height: calc(2.6em + 22px); padding: 11px var(--ef-go-pad); font-size: .85rem; gap: 8px; }
+  .home .efb-tiles .efb-tile__name::before { -webkit-mask-size: 14px 14px; mask-size: 14px 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home .efb-tiles .efb-tile, .home .efb-tiles .efb-tile:hover { transition: none; transform: none; }
+}
 
 /* one heading style for every home page section */
 .ef-home-ranges h2.ef-cc-heading,

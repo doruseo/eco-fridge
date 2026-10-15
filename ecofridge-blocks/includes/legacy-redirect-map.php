@@ -4,7 +4,8 @@
  * to their final page on this site, and the URLs the original site answers
  * with 410 Gone. Generated from the legacy database on 2026-10-13 – see
  * legacy-urls.php (efb_legacy_redirect_map). Paths are relative, with a
- * trailing slash.
+ * trailing slash. The author archive and three old attachment pages were added
+ * after the launch QA (migration 62).
  *
  * @package EcoFridgeBlocks
  */
@@ -38,6 +39,10 @@ return array(
 		'/Multideck-Double-Glazed-Display-Fridge.html' => '/range/display-cabinets/silver-steel-multideck-display-chillers/',
 		'/app/download/18450634/ECO-Fridge.pdf' => '/',
 		'/app/download/9462683/ECO-Fridge.pdf' => '/support/',
+		'/author/eco-fridge/' => '/blog/',
+		'/author/eco-fridge/page/2/' => '/blog/',
+		'/author/eco-fridge/page/3/' => '/blog/',
+		'/brochure/retarder-prover-manual/retarder-proofer-controller-user-manual/' => '/brochure/retarder-prover-manual/',
 		'/call-us/' => '/contact-us/',
 		'/catalogue-how-to-videos/' => '/support/',
 		'/catalogue-more/' => '/support/',
@@ -55,13 +60,15 @@ return array(
 		'/lowtemp-freezer/' => '/range/storage-cabinets/low-temperature-chest-freezers/',
 		'/lowtemp-freezer/ultra-low-temp-chest-freezer/' => '/range/storage-cabinets/low-temperature-chest-freezers/',
 		'/market/hotels/display-freezers/' => '/market/display-freezers/',
+		'/markets/sports-clubs/banner-no1-coffee-new/' => '/markets/sports-clubs/',
+		'/markets/sports-clubs/eco-upright-mont-trans/' => '/markets/sports-clubs/',
+		'/multidecks/' => '/range/display-cabinets/silver-steel-multideck-display-chillers/',
 		'/multidecks/black-slimline-display-fridge/' => '/product/frost-tech-black-slimline-multideck/',
 		'/multidecks/medium-capacity-display-fridge/' => '/range/display-cabinets/silver-steel-multideck-display-chillers/',
 		'/multidecks/slimline-display-fridge/' => '/range/display-cabinets/silver-steel-multideck-display-chillers/',
 		'/multidecks/white-shutter-display-fridge/' => '/range/display-cabinets/silver-steel-multideck-display-chillers/',
 		'/news/' => '/blog/',
 		'/page.php?page=special' => '/graded-units/',
-		'/multidecks/' => '/range/display-cabinets/silver-steel-multideck-display-chillers/',
 		'/patisseries/' => '/product-category/commercial-display-fridge/patisserie-fridge/',
 		'/patisseries/corner-patisserie/' => '/product-category/commercial-display-fridge/patisserie-fridge/',
 		'/patisseries/costa-patisseries/' => '/product-category/commercial-display-fridge/patisserie-fridge/',

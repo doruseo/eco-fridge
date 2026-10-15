@@ -7,8 +7,10 @@
  *  - Sign-in: after 5 failed attempts from one IP address, sign-in is blocked
  *    for that address for 15 minutes (wp-login.php and My Account alike); the
  *    error never says whether the username or the password was wrong.
- *  - Usernames are not exposed: no /?author=N lookup and no public
- *    /wp-json/wp/v2/users list.
+ *  - Two-step sign-in (2FA, "Two Factor" plugin) is required for every staff
+ *    account; until it is set up, the dashboard only opens the profile.
+ *  - Usernames are not exposed: no /?author=N lookup, no author archives or
+ *    author links, and /wp-json/wp/v2/users only for staff.
  *  - No WordPress version in the page source.
  *  - Security headers: no MIME sniffing, no framing by other sites, a strict
  *    referrer policy, no camera / microphone / location access, and HSTS on
@@ -71,11 +73,12 @@ add_filter( 'wp_is_application_passwords_available', '__return_false' );
  * Usernames are not exposed.
  * ------------------------------------------------------------------------- */
 
-// /?author=1 would redirect to /author/<login>/ and give the username away.
+// /?author=1 would redirect to /author/<slug>/, and the author archive itself
+// shows the slug; both go to the homepage (staff can still preview them).
 add_action(
 	'template_redirect',
 	static function () {
-		if ( isset( $_GET['author'] ) && ! is_user_logged_in() ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ( isset( $_GET['author'] ) || is_author() ) && ! current_user_can( 'edit_posts' ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			wp_safe_redirect( home_url( '/' ), 301 );
 			exit;
 		}
@@ -83,11 +86,21 @@ add_action(
 	1
 );
 
-// The REST user list is only for signed-in users (the block editor needs it).
+// Author links in the theme and in Rank Math's schema would print the slug.
+add_filter(
+	'author_link',
+	static function ( $link ) {
+		return is_admin() ? $link : home_url( '/' );
+	},
+	99
+);
+
+// The REST user list is only for staff (the block editor needs it); signed-in
+// shop customers do not get it either.
 add_filter(
 	'rest_endpoints',
 	static function ( $endpoints ) {
-		if ( ! is_user_logged_in() ) {
+		if ( ! current_user_can( 'edit_posts' ) ) {
 			foreach ( array_keys( $endpoints ) as $route ) {
 				if ( 0 === strpos( $route, '/wp/v2/users' ) ) {
 					unset( $endpoints[ $route ] );
@@ -163,6 +176,55 @@ add_action(
 	'wp_login',
 	static function () {
 		delete_transient( efb_login_key( efb_client_ip() ) );
+	}
+);
+
+/* ---------------------------------------------------------------------------
+ * Two-step sign-in (2FA) for staff.
+ *
+ * The codes come from the "Two Factor" plugin (wordpress.org/plugins/two-factor).
+ * Every account that can edit content or run the shop must turn it on: until it
+ * does, every admin screen sends it to its profile to set up an authenticator
+ * app and the backup codes. Shop customers are not affected.
+ * ------------------------------------------------------------------------- */
+
+/**
+ * Whether the user has to sign in with a second step but has not set one up yet.
+ *
+ * @param WP_User $user User.
+ * @return bool
+ */
+function efb_2fa_missing( $user ) {
+	if ( ! class_exists( 'Two_Factor_Core' ) || ! $user || ! $user->exists() ) {
+		return false;
+	}
+	$staff = user_can( $user, 'edit_posts' ) || user_can( $user, 'manage_woocommerce' );
+	return $staff && ! Two_Factor_Core::is_user_using_two_factor( $user->ID );
+}
+
+add_action(
+	'admin_init',
+	static function () {
+		global $pagenow;
+		if ( wp_doing_ajax() || in_array( $pagenow, array( 'profile.php', 'admin-post.php' ), true ) ) {
+			return;
+		}
+		if ( efb_2fa_missing( wp_get_current_user() ) ) {
+			wp_safe_redirect( admin_url( 'profile.php?efb_2fa=required#two-factor-options' ) );
+			exit;
+		}
+	}
+);
+
+add_action(
+	'admin_notices',
+	static function () {
+		if ( 'profile' !== get_current_screen()->id || ! efb_2fa_missing( wp_get_current_user() ) ) {
+			return;
+		}
+		echo '<div class="notice notice-error"><p><strong>' . esc_html__( 'Two-step sign-in is required for this account.', 'ecofridge-blocks' ) . '</strong> '
+			. esc_html__( 'Under "Two-Factor Options" below, turn on "Authenticator App", scan the QR code with Google Authenticator, Microsoft Authenticator or 1Password, enter the code, then generate and keep the backup codes. Save the profile; the rest of the dashboard opens afterwards.', 'ecofridge-blocks' )
+			. '</p></div>';
 	}
 );
 
