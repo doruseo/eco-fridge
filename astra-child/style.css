@@ -451,70 +451,104 @@ a:hover, a:focus { color: var(--ef-text); }
   .ef-primary-nav .ef-menu .sub-menu a:hover::before { width: 1em; margin-right: 8px; opacity: 1; }
 }
 
-/* —— MEGA MENUS (row 2) —— */
+/* —— MEGA MENUS (row 2) ——
+   A soft card that drops from the green bar: rounded bottom corners, a
+   diffuse shadow, a short fade + slide. Display / Storage Cabinets: a grid of
+   compact tiles (product image in a pale square, name beside it, an arrow on
+   hover). Commercial Fridges / Freezers: grouped text links with the same
+   hover (pale green row + arrow) as the row-1 dropdowns. */
+.ef-cat-nav {
+  --ef-mega-tint: #f2f7f3;
+  --ef-mega-line: #e3ebe5;
+  --ef-mega-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' d='M4 12h15M13 6l6 6-6 6'/%3E%3C/svg%3E");
+}
 .ef-cat-nav .ef-menu > li.ef-mega-full { position: static; } /* mega spans the container width */
 .ef-mega {
   position: absolute; top: 100%;
-  background: #fff; border-top: 3px solid var(--ef-brand);
-  box-shadow: 0 16px 32px rgba(0,0,0,.16);
-  padding: 22px 26px; z-index: 70;
-  max-height: 80vh; overflow-y: auto;
-  opacity: 0; visibility: hidden; transform: translateY(6px);
-  transition: opacity .18s ease, transform .18s ease, visibility .18s;
+  background: #fff;
+  border: 1px solid var(--ef-mega-line); border-top: 0;
+  border-radius: 0 0 18px 18px;
+  box-shadow: 0 28px 50px -18px rgba(16, 52, 30, .32), 0 6px 14px -8px rgba(0, 0, 0, .12);
+  padding: 22px 24px 24px; z-index: 70;
+  max-height: 80vh; overflow-y: auto; overscroll-behavior: contain;
+  opacity: 0; visibility: hidden; transform: translateY(8px);
+  transition: opacity .2s ease, transform .22s cubic-bezier(.2, .7, .2, 1), visibility .2s;
 }
 .ef-mega-full > .ef-mega { left: 0; right: 0; }
-.ef-cat-nav .ef-menu > li:hover > .ef-mega { opacity: 1; visibility: visible; transform: translateY(0); }
+.ef-cat-nav .ef-menu > li:hover > .ef-mega,
+.ef-cat-nav .ef-menu > li:focus-within > .ef-mega { opacity: 1; visibility: visible; transform: translateY(0); }
 
-/* flat 5-column grid with icons (Display / Storage Cabinets) */
-.ef-mega-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
-.ef-mega-tile {
-  display: flex; flex-direction: column; align-items: center; text-align: center;
-  text-decoration: none; color: #000;
-  padding: 8px; border: 1px solid transparent; border-radius: 10px;
-  transition: border-color .18s ease;
+/* Display / Storage Cabinets: 4 columns of compact tiles */
+.ef-mega-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px 14px; }
+.ef-cat-nav .ef-mega-tile {
+  position: relative;
+  display: flex; align-items: center; gap: 14px;
+  min-height: 74px; padding: 8px 38px 8px 8px; line-height: 1.3;
+  text-decoration: none; color: var(--ef-text);
+  border-radius: 12px;
+  transition: background .18s ease;
 }
-.ef-mega-tile:hover { border-color: var(--ef-brand-light); color: #000; }
-.ef-mega-tile-img { display: flex; align-items: center; justify-content: center; height: 80px; width: 100%; margin-bottom: 8px; }
-.ef-mega-tile-img img { max-height: 80px; max-width: 100%; width: auto; object-fit: contain; }
-.ef-mega-tile-name { font-family: var(--ef-font-head); font-size: .78rem; line-height: 1.28; color: #000; }
+.ef-cat-nav .ef-mega-tile-img {
+  flex: 0 0 58px; width: 58px; height: 58px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 10px; background: var(--ef-mega-tint);
+  transition: background .18s ease, transform .2s ease;
+}
+.ef-cat-nav .ef-mega-tile-img img { max-width: 46px; max-height: 50px; width: auto; height: auto; object-fit: contain; mix-blend-mode: multiply; }
+.ef-cat-nav .ef-mega-tile-name {
+  font-family: var(--ef-font-head); font-size: .84rem; line-height: 1.3;
+  letter-spacing: .02em; text-transform: uppercase; color: var(--ef-text);
+  transition: color .18s ease;
+}
+.ef-cat-nav .ef-mega-tile::after {
+  content: ""; position: absolute; right: 12px; top: 50%;
+  width: 16px; height: 16px; margin-top: -8px;
+  background: var(--ef-brand);
+  -webkit-mask: var(--ef-mega-arrow) center / contain no-repeat; mask: var(--ef-mega-arrow) center / contain no-repeat;
+  opacity: 0; transform: translateX(-6px);
+  transition: opacity .18s ease, transform .18s ease;
+}
+.ef-cat-nav .ef-mega-tile:hover,
+.ef-cat-nav .ef-mega-tile:focus-visible { background: var(--ef-mega-tint); color: var(--ef-text); }
+.ef-cat-nav .ef-mega-tile:hover .ef-mega-tile-img { background: #fff; transform: scale(1.04); }
+.ef-cat-nav .ef-mega-tile:hover .ef-mega-tile-name { color: var(--ef-brand); }
+.ef-cat-nav .ef-mega-tile:hover::after,
+.ef-cat-nav .ef-mega-tile:focus-visible::after { opacity: 1; transform: none; }
+@media (max-width: 1200px) { .ef-mega-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
-/* —— grouped COMPACT mega (Commercial Fridge / Freezer) — wider, anchored right —— */
+/* —— grouped COMPACT mega (Commercial Fridges / Freezers) — anchored right —— */
 .ef-cat-nav .ef-menu > li.ef-mega-compact { position: relative; }
-.ef-mega-compact > .ef-mega { right: 0; width: max-content; min-width: 560px; max-width: min(1040px, 96vw); padding: 22px 28px; }
-.ef-mega-groups { display: flex; flex-wrap: wrap; gap: 38px; align-items: flex-start; }
+.ef-mega-compact > .ef-mega { right: 0; width: max-content; min-width: 560px; max-width: min(1040px, 96vw); padding: 22px 22px 20px; border-radius: 0 0 18px 18px; }
+.ef-mega-groups { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; }
 .ef-mega-col { display: flex; flex-direction: column; min-width: 250px; }
-/* tier-2 header: NO icon, larger text */
-.ef-mega-head {
-  display: flex; align-items: center; text-decoration: none;
-  padding-bottom: 10px; margin-bottom: 9px; border-bottom: 2px solid var(--ef-border);
+/* tier-2 header: brand green, a short accent line under it */
+.ef-cat-nav .ef-mega-head {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+  padding: 0 12px 12px; margin-bottom: 6px; text-decoration: none;
 }
-.ef-mega-head-img { display: none; } /* tier-2 icon removed */
-.ef-mega-head-txt {
-  font-family: var(--ef-font-head); text-transform: uppercase; letter-spacing: .02em;
-  font-size: 1.05rem; color: var(--ef-brand);
+.ef-cat-nav .ef-mega-head::after { content: ""; width: 28px; height: 3px; border-radius: 3px; background: var(--ef-brand); transition: width .2s ease; }
+.ef-cat-nav .ef-mega-head:hover::after { width: 48px; }
+.ef-cat-nav .ef-mega-head-img { display: none; } /* tier-2 icon removed */
+.ef-cat-nav .ef-mega-head-txt {
+  font-family: var(--ef-font-head); text-transform: uppercase; letter-spacing: .03em;
+  font-size: 1.02rem; color: var(--ef-brand);
 }
-/* tier-3: text only (no icons); tier-4 = sub-links */
-.ef-mega-col-items { display: flex; flex-direction: column; gap: 1px; }
-.ef-mega-compact .ef-mega-tile { flex-direction: row; align-items: center; text-align: left; padding: 7px 10px; border-radius: 8px; }
-/* "›" symbol before each tier-3 link (clearly marks the separate links) */
-.ef-mega-compact .ef-mega-tile::before {
-  content: "\203A";
-  flex: 0 0 auto;
-  color: var(--ef-brand);
-  font-weight: 700;
-  font-size: 1rem;
-  line-height: 1;
-  margin-right: 8px;
+/* tier-3: text links; tier-4: sub-links on a thin guide line */
+.ef-cat-nav .ef-mega-col-items { display: flex; flex-direction: column; gap: 2px; }
+.ef-cat-nav .ef-mega-compact .ef-mega-tile { min-height: 0; padding: 8px 34px 8px 12px; border-radius: 9px; gap: 0; }
+.ef-cat-nav .ef-mega-compact .ef-mega-tile::after { right: 10px; width: 14px; height: 14px; margin-top: -7px; }
+.ef-cat-nav .ef-mega-compact .ef-mega-tile-name { font-family: var(--ef-font-body); font-size: .9rem; font-weight: 500; letter-spacing: 0; text-transform: none; }
+.ef-cat-nav .ef-mega-compact .ef-mega-tile-img { display: none; } /* tier-3 icons removed (Commercial) */
+.ef-cat-nav .ef-mega-subitems { display: flex; flex-direction: column; margin: 0 0 6px 20px; padding-left: 10px; border-left: 2px solid var(--ef-mega-line); }
+.ef-cat-nav .ef-mega-subitem {
+  font-family: var(--ef-font-body); font-size: .82rem; color: #5b6660 !important;
+  padding: 4px 8px; border-radius: 6px; text-decoration: none; white-space: nowrap; text-transform: none; letter-spacing: 0;
+  transition: color .15s ease, background .15s ease;
 }
-.ef-mega-compact .ef-mega-tile:hover::before { color: var(--ef-brand-dark); }
-.ef-mega-compact .ef-mega-tile-name { font-family: var(--ef-font-body); font-size: .86rem; color: #000; }
-.ef-mega-compact .ef-mega-tile-img { display: none; } /* tier-3 icons removed (Commercial) */
-.ef-mega-subitems { display: flex; flex-direction: column; margin: 0 0 4px 14px; }
-.ef-mega-subitem {
-  font-family: var(--ef-font-body); font-size: .78rem; color: #555 !important;
-  padding: 3px 6px; text-decoration: none; white-space: nowrap; text-transform: none; letter-spacing: 0;
+.ef-cat-nav .ef-mega-subitem:hover { color: var(--ef-brand) !important; background: var(--ef-mega-tint); }
+@media (prefers-reduced-motion: reduce) {
+  .ef-mega, .ef-cat-nav .ef-mega-tile, .ef-cat-nav .ef-mega-tile::after, .ef-cat-nav .ef-mega-tile-img { transition: none; }
 }
-.ef-mega-subitem:hover { color: var(--ef-brand) !important; }
 
 /* header search */
 .ef-header-search { width: 250px; max-width: 38vw; }
