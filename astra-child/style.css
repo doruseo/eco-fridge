@@ -312,6 +312,19 @@ a:hover, a:focus { color: var(--ef-text); }
   #secondary .ast-filter-wrap { position: relative; }
   #secondary .ast-filter-wrap > .widget { position: static !important; }
   #secondary .widget > *:not(.widget-title):not(.widgettitle) { left: 0; right: 0; min-width: 0; max-width: none; }
+
+  /* Astra Pro sticky shop toolbar (fixed at the bottom of the screen): keep the bar
+     just as tall as its controls + 10px top/bottom, filters and sorting on one row,
+     and open the filter panels UPWARDS (the bar sits at the bottom of the viewport). */
+  .ast-shop-toolbar-container .ast-sticky-shop-filters { padding: 10px 16px; gap: 8px; align-items: center; }
+  .ast-shop-toolbar-container .ast-shop-toolbar-aside-wrap { margin: 0 !important; }
+  .ast-shop-toolbar-container .ast-shop-toolbar-aside-wrap:first-child { flex: 1 1 auto; min-width: 0; }
+  .ast-shop-toolbar-container #secondary { margin: 0 !important; }
+  .ast-shop-toolbar-container #secondary .ast-filter-wrap { margin: 0; }
+  .ast-shop-toolbar-container .woocommerce-ordering select { width: auto; max-width: 140px; }
+  .ast-shop-toolbar-container #secondary .widget > *:not(.widget-title):not(.widgettitle) {
+    top: auto; bottom: calc(100% + 24px);
+  }
 }
 
 /* Product grid card — subtle border like the original */
@@ -540,9 +553,9 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-cat-nav .ef-mega-tile:focus-visible::after { opacity: 1; transform: none; }
 @media (max-width: 1200px) { .ef-mega-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
-/* —— grouped COMPACT mega (Commercial Fridges / Freezers) — anchored right —— */
+/* —— grouped COMPACT mega (Commercial Fridges / Freezers) — opens to the right of its menu item —— */
 .ef-cat-nav .ef-menu > li.ef-mega-compact { position: relative; }
-.ef-mega-compact > .ef-mega { right: 0; width: max-content; min-width: 560px; max-width: min(1040px, 96vw); padding: 22px 22px 20px; border-radius: 0 0 18px 18px; }
+.ef-mega-compact > .ef-mega { left: 0; width: max-content; min-width: 560px; max-width: min(1040px, 96vw); padding: 22px 22px 20px; border-radius: 0 0 18px 18px; }
 .ef-mega-groups { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; }
 .ef-mega-col { display: flex; flex-direction: column; min-width: 250px; }
 /* tier-2 header: brand green, a short accent line under it */
@@ -700,30 +713,80 @@ a:hover, a:focus { color: var(--ef-text); }
   background-color: var(--ef-brand-deep); border-top-color: var(--ef-brand-deep);
 }
 .site-footer .ast-builder-html-element,
-.site-footer .ast-builder-html-element p { color: #fff; line-height: 1.7; }
+.site-footer .ast-builder-html-element p { color: rgba(255,255,255,.86); line-height: 1.7; }
+/* column headings: uppercase, a short light-green accent bar under them */
 .site-footer .ast-builder-html-element h3,
 .site-footer .footer-widget-area .widget-title {
   font-family: var(--ef-font-head);
   text-transform: uppercase;
-  letter-spacing: .03em;
+  letter-spacing: .08em;
   color: #fff;
-  font-size: 1.1rem;
-  margin: 0 0 16px;
-  /* inline-block: the light-green underline follows the column's alignment */
+  font-size: 1rem;
+  margin: 0 0 18px;
+  /* inline-block: the accent bar follows the column's alignment */
   display: inline-block;
-  padding-bottom: 6px;
-  border-bottom: 2px solid var(--ef-brand-light);
+  padding-bottom: 10px;
+  border: 0;
+  background: linear-gradient(var(--ef-brand-light), var(--ef-brand-light)) left bottom / 28px 3px no-repeat;
 }
-.site-footer .ast-builder-html-element a,
-.site-footer .footer-widget-area a { color: #fff; text-decoration: none; font-weight: 600; }
-.site-footer .ast-builder-html-element a:hover,
-.site-footer .ast-builder-html-element a:focus-visible,
-.site-footer .footer-widget-area a:hover,
-.site-footer .footer-widget-area a:focus-visible { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
 .site-footer .ast-builder-html-element ul,
 .site-footer .footer-widget-area ul { list-style: none; margin: 0; padding: 0; }
 .site-footer .ast-builder-html-element li,
-.site-footer .footer-widget-area li { margin: 0 0 8px; color: #fff; }
+.site-footer .footer-widget-area li { margin: 0 0 6px; color: #fff; }
+/* inline links (phone, email): white, a faint line under them that turns light green on hover */
+.site-footer .ast-builder-html-element a,
+.site-footer .footer-widget-area a {
+  color: #fff; font-weight: 600; text-decoration: none;
+  background: linear-gradient(rgba(255,255,255,.3), rgba(255,255,255,.3)) left bottom / 100% 1px no-repeat;
+  padding-bottom: 1px; transition: color .2s ease, background .2s ease, transform .2s ease;
+}
+.site-footer .ast-builder-html-element a:hover,
+.site-footer .ast-builder-html-element a:focus-visible,
+.site-footer .footer-widget-area a:hover,
+.site-footer .footer-widget-area a:focus-visible {
+  color: #fff; text-decoration: none;
+  background-image: linear-gradient(var(--ef-brand-light), var(--ef-brand-light));
+}
+/* link lists (Support / Contact Us, the Information menu): a small chevron,
+   softer text, and on hover the link turns white and slides a little to the right */
+.site-footer li > a {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 3px 0; background: none !important;
+  color: rgba(255,255,255,.84) !important; font-weight: 500;
+}
+.site-footer li > a::before {
+  content: ""; flex: 0 0 auto; width: 6px; height: 6px;
+  border-top: 2px solid var(--ef-brand-light); border-right: 2px solid var(--ef-brand-light);
+  transform: rotate(45deg); transition: transform .2s ease;
+}
+.site-footer li > a:hover,
+.site-footer li > a:focus-visible { color: #fff !important; transform: translateX(4px); }
+.site-footer li > a:hover::before,
+.site-footer li > a:focus-visible::before { transform: translateX(2px) rotate(45deg); }
+.site-footer .ast-builder-html-element p:has(+ .ef-footer-links) { margin-bottom: 10px; }
+.site-footer .ef-footer-links { margin: 0 !important; }
+.site-footer .ast-builder-html-element img { transition: opacity .2s ease; }
+.site-footer .ast-builder-html-element a:has(img) { background: none; }
+.site-footer .ast-builder-html-element a:hover img { opacity: .85; }
+/* mobile/tablet (columns stacked): each column is its own block with room above
+   its heading; centred accent bar; link lists become rounded
+   "pill" buttons (easy to tap), wrapping and centred, without the chevron */
+@media (max-width: 921px) {
+  .site-primary-footer-wrap { padding-top: 12px !important; padding-bottom: 16px !important; }
+  .site-primary-footer-wrap .site-footer-section { margin: 0 !important; padding: 26px 0; }
+  .site-footer .ast-builder-html-element h3,
+  .site-footer .footer-widget-area .widget-title { background-position: center bottom; margin-bottom: 16px; }
+  .site-footer .ast-builder-html-element ul,
+  .site-footer .footer-widget-area ul { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .site-footer li { margin: 0 !important; }
+  .site-footer li > a {
+    padding: 8px 16px; border: 1px solid rgba(255,255,255,.24); border-radius: 999px; font-size: .9rem;
+    transition: background-color .2s ease, border-color .2s ease;
+  }
+  .site-footer li > a::before { display: none; }
+  .site-footer li > a:hover,
+  .site-footer li > a:focus-visible { transform: none; background-color: rgba(255,255,255,.1) !important; border-color: var(--ef-brand-light); }
+}
 
 /* bottom row (copyright): black, white text, light green links */
 .site-below-footer-wrap { background: #000; color: #fff; }
