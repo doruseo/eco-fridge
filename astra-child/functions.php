@@ -59,28 +59,59 @@ require_once get_stylesheet_directory() . '/inc/blog.php';
 require_once get_stylesheet_directory() . '/inc/pages.php';
 
 /**
- * Google fonts 1:1 with the original: Oswald (headings) + Open Sans (body).
+ * Fonts 1:1 with the original: Oswald (headings) + Open Sans (body), self-hosted
+ * (assets/fonts, the same variable woff2 files Google Fonts serves). Same-origin
+ * files with a preload start downloading with the HTML instead of after a
+ * render-blocking stylesheet on another domain, so they are usually ready by the
+ * first paint (better LCP, no layout shift from the font swap).
  */
-add_action( 'wp_enqueue_scripts', function () {
-	wp_enqueue_style(
-		'eco-fridge-fonts',
-		'https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Oswald:wght@400;500;600;700&display=swap',
-		array(),
-		null
+function ef_fonts_css() {
+	$dir    = get_stylesheet_directory_uri() . '/assets/fonts/';
+	$latin  = 'U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD';
+	$ext    = 'U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF';
+	$faces  = array(
+		array( 'Open Sans', '400 700', 'open-sans-latin', $latin ),
+		array( 'Open Sans', '400 700', 'open-sans-latin-ext', $ext ),
+		array( 'Oswald', '400 700', 'oswald-latin', $latin ),
+		array( 'Oswald', '400 700', 'oswald-latin-ext', $ext ),
 	);
-}, 5 );
+	$css = '';
+	foreach ( $faces as $f ) {
+		$css .= "@font-face{font-family:'{$f[0]}';font-style:normal;font-weight:{$f[1]};font-display:swap;"
+			. "src:url({$dir}{$f[2]}.woff2) format('woff2');unicode-range:{$f[3]}}";
+	}
+	return $css;
+}
+
+/** Preload the two Latin font files and declare the faces inline, first thing in <head>. */
+add_action( 'wp_head', function () {
+	$dir = get_stylesheet_directory_uri() . '/assets/fonts/';
+	foreach ( array( 'open-sans-latin', 'oswald-latin' ) as $file ) {
+		echo '<link rel="preload" href="' . esc_url( $dir . $file . '.woff2' ) . '" as="font" type="font/woff2" crossorigin>' . "\n";
+	}
+	echo '<style id="ef-fonts">' . ef_fonts_css() . "</style>\n"; // phpcs:ignore WordPress.Security.EscapeOutput -- static CSS built above
+}, 1 );
 
 /**
- * Connect early to Google Fonts (CSS on fonts.googleapis.com, files on
- * fonts.gstatic.com), so the fonts start downloading sooner.
+ * No WordPress emoji script on the front end: browsers draw emoji themselves.
+ * On Windows (no flag emoji) the script swapped every emoji, e.g. the 🏢 in the
+ * breadcrumbs, for an image from s.w.org — an extra script and a third-party request.
  */
-add_filter( 'wp_resource_hints', function ( $urls, $relation ) {
-	if ( 'preconnect' === $relation ) {
-		$urls[] = 'https://fonts.googleapis.com';
-		$urls[] = array( 'href' => 'https://fonts.gstatic.com', 'crossorigin' => 'anonymous' );
+remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
+remove_action( 'wp_print_styles', 'print_emoji_styles' );
+remove_action( 'wp_enqueue_scripts', 'wp_enqueue_emoji_styles' );
+
+/**
+ * WooCommerce swaps `woocommerce-no-js` for `woocommerce-js` on <body> from the
+ * footer, i.e. only after the whole page has been parsed and painted; its CSS
+ * keys rules on that class (e.g. the 1em gap under the breadcrumbs), so the page
+ * jumped once the swap ran (CLS). Run the same swap right after <body> opens.
+ */
+add_action( 'wp_body_open', function () {
+	if ( function_exists( 'wc_no_js' ) ) {
+		wc_no_js();
 	}
-	return $urls;
-}, 10, 2 );
+}, 1 );
 
 /**
  * Load the child theme style after the Astra parent's.
@@ -201,11 +232,8 @@ function ef_from_price_html( $product_id ) {
  */
 add_action( 'enqueue_block_assets', function () {
 	if ( is_admin() ) {
-		wp_enqueue_style(
-			'eco-fridge-fonts',
-			'https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Oswald:wght@400;500;600;700&display=swap',
-			array(),
-			null
-		);
+		wp_register_style( 'eco-fridge-fonts', false, array(), null );
+		wp_enqueue_style( 'eco-fridge-fonts' );
+		wp_add_inline_style( 'eco-fridge-fonts', ef_fonts_css() );
 	}
 } );

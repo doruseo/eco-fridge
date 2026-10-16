@@ -34,9 +34,12 @@ Text Domain: eco-fridge-child
 }
 
 /* Local fallbacks sized like the web fonts, so text keeps its size while
-   Oswald / Open Sans load (no layout shift when they swap in). */
-@font-face { font-family: 'Oswald Fallback'; src: local('Arial Narrow'), local('ArialNarrow'), local('Arial'); size-adjust: 81%; ascent-override: 146%; descent-override: 35%; line-gap-override: 0%; }
-@font-face { font-family: 'Open Sans Fallback'; src: local('Arial'); size-adjust: 105%; ascent-override: 101%; descent-override: 28%; line-gap-override: 0%; }
+   Oswald / Open Sans load (no layout shift when they swap in). Values measured
+   from the font files against Arial (Windows/macOS) — Roboto (Android) has the
+   same widths within 0.1%, so one set fits both. Not Arial Narrow: the size-adjust
+   is for Arial, on the narrow face it made the text far too narrow. */
+@font-face { font-family: 'Oswald Fallback'; src: local('Arial'), local('ArialMT'), local('Roboto'), local('Roboto-Regular'); size-adjust: 81.27%; ascent-override: 146.8%; descent-override: 35.56%; line-gap-override: 0%; }
+@font-face { font-family: 'Open Sans Fallback'; src: local('Arial'), local('ArialMT'), local('Roboto'), local('Roboto-Regular'); size-adjust: 104.23%; ascent-override: 102.55%; descent-override: 28.11%; line-gap-override: 0%; }
 
 /* The green category bar stays on one line while the fonts load (it wrapped
    with the wider fallback font, then jumped back: a large layout shift). */
@@ -329,6 +332,27 @@ a:hover, a:focus { color: var(--ef-text); }
 #content .site-content,
 .ef-product-card { background: #fff; }
 .ef-product-card { border-color: transparent; }
+
+/* Product gallery before its slider starts: show only the first image. Until the
+   script wraps the slides in .flex-viewport, every image was stacked full width
+   (the page grew by thousands of px, then collapsed: a large layout shift). */
+/* = the gap under the slider viewport (a single image gets no slider, so no gap) */
+.woocommerce-js div.product div.images.woocommerce-product-gallery > .woocommerce-product-gallery__wrapper:has(> .woocommerce-product-gallery__image + .woocommerce-product-gallery__image) { margin-bottom: 1em; }
+.woocommerce-js div.product div.images.woocommerce-product-gallery > .woocommerce-product-gallery__wrapper > .woocommerce-product-gallery__image:nth-child(n+2) { display: none; }
+/* Same for the Astra Pro thumbnails: until their slider wraps them in .flex-viewport,
+   lay them out as the slider will (4 per row, 15px apart) instead of full width. */
+.woocommerce-product-gallery--columns-4 .ast-single-product-thumbnails > .woocommerce-product-gallery-thumbnails__wrapper { display: flex; gap: 15px; overflow: hidden; }
+.woocommerce-product-gallery--columns-4 .ast-single-product-thumbnails > .woocommerce-product-gallery-thumbnails__wrapper > .ast-woocommerce-product-gallery__image { flex: 0 0 calc((100% - 45px) / 4); min-width: 0; }
+/* While the sliders start (the slides are moved into .flex-viewport a few frames
+   before their widths are set inline), keep the slides in one row at their final
+   width, so the gallery never grows thousands of px tall for a moment. The inline
+   widths the slider sets afterwards are the same values. */
+.woocommerce-product-gallery,
+.woocommerce-product-gallery .ast-single-product-thumbnails { container-type: inline-size; }
+.woocommerce-product-gallery .flex-viewport > .woocommerce-product-gallery__wrapper { display: flex; align-items: flex-start; }
+.woocommerce-product-gallery .flex-viewport > .woocommerce-product-gallery__wrapper > .woocommerce-product-gallery__image { flex: 0 0 auto; width: 100cqw; }
+.woocommerce-product-gallery--columns-4 .ast-single-product-thumbnails .flex-viewport > .woocommerce-product-gallery-thumbnails__wrapper { display: flex; align-items: flex-start; }
+.woocommerce-product-gallery--columns-4 .ast-single-product-thumbnails .flex-viewport > .woocommerce-product-gallery-thumbnails__wrapper > .ast-woocommerce-product-gallery__image { flex: 0 0 auto; width: calc((100cqw - 45px) / 4); margin-right: 15px; }
 .ef-product-card:hover { border-color: var(--ef-border); }
 
 /* =========================================================================
@@ -629,6 +653,9 @@ a:hover, a:focus { color: var(--ef-text); }
   .ef-row1-cart-slot .ast-menu-cart-outline .cart-container,
   .ef-row1-cart-slot .ast-menu-cart-with-border .cart-container { border-color: var(--ef-border) !important; }
   .ef-cart-info { display: none; } /* on mobile, only the cart icon */
+  /* until the footer script moves the cart up into row 1, keep it out of the green
+     bar: shown there first, it made the bar taller, then the page jumped up (CLS) */
+  .ef-header-row2 .ef-header-cart { display: none; }
 
   /* row 1 menu = 70% FLYOUT from the right + overlay */
   .ef-row1-right {
