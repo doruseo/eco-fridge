@@ -155,11 +155,12 @@ add_action( 'woocommerce_after_main_content', function () {
 }, 5 );
 
 /* =========================================================================
- * 3b. WooCommerce breadcrumbs: 🏢 instead of "Home", ">>" separator
+ * 3b. WooCommerce breadcrumbs: "Home" (plain text: an emoji drew in a
+ *     different font/image per device), ">>" separator
  *     (the green links are styled in style.css)
  * ========================================================================= */
 add_filter( 'woocommerce_breadcrumb_defaults', function ( $args ) {
-	$args['home']      = '🏢';
+	$args['home']      = 'Home';
 	$args['delimiter'] = ' <span class="ef-crumb-sep">&gt;&gt;</span> ';
 	return $args;
 } );

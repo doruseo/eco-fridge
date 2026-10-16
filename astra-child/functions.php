@@ -94,8 +94,8 @@ add_action( 'wp_head', function () {
 
 /**
  * No WordPress emoji script on the front end: browsers draw emoji themselves.
- * On Windows (no flag emoji) the script swapped every emoji, e.g. the 🏢 in the
- * breadcrumbs, for an image from s.w.org — an extra script and a third-party request.
+ * On Windows (no flag emoji) the script swapped every emoji for an image from
+ * s.w.org — an extra script and a third-party request.
  */
 remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
 remove_action( 'wp_print_styles', 'print_emoji_styles' );
