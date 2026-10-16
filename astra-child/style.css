@@ -327,6 +327,23 @@ a:hover, a:focus { color: var(--ef-text); }
   }
 }
 
+/* Phones (Astra Pro's sticky-toolbar breakpoint, 544px): Astra's script rebuilds the
+   bottom bar in several steps after the page is parsed (sorting only → filters moved
+   in → wrapped into .ast-sticky-shop-filters), and the fixed bar grew and shrank on
+   screen each time (layout shift). Keep it hidden until its final markup is in place;
+   a bar that appears once is not a layout shift. Only with JS: without it the
+   script never runs, so the bar stays visible as it is. */
+@media (max-width: 544px) {
+  .woocommerce-js.ast-default-shop-page-modern-style .ast-shop-toolbar-container:not(:has(> .ast-sticky-shop-filters)) { display: none; }
+  /* The same script inserts the "Showing 1–12 of N results" line above the product
+     grid, pushing the grid down (seen on tag and search pages, where the grid is in
+     the first screen). Hold an identical empty line (same font, line-height and 1em
+     margins) under the notices until the real one arrives. */
+  .woocommerce-js.ast-default-shop-page-modern-style .woocommerce-notices-wrapper:not(:has(+ .woocommerce-result-count))::after {
+    content: "\00a0"; display: block; line-height: 1; margin: 1em 0;
+  }
+}
+
 /* Product grid card — subtle border like the original */
 .ef-product-card {
   border: 1px solid var(--ef-border);
