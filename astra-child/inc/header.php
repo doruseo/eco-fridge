@@ -67,11 +67,27 @@ function ef_hdr_icon( $it ) {
 	return '';
 }
 
-/** Mega tile (icon + name) from a menu item. */
+/**
+ * A mega-menu image that is only downloaded once the visitor reaches the category
+ * bar: the real file sits in data-src / data-srcset and the footer script swaps it
+ * in. The hidden panels are laid out under the bar, inside the first screen, so
+ * plain lazy images were all fetched on every page load (~1 MB on desktop).
+ */
+function ef_hdr_img( $url, $alt ) {
+	$attrs = function_exists( 'ef_cc_img_attrs' ) ? ef_cc_img_attrs( $url, array( 170, 140 ) ) : '';
+	if ( '' === $attrs && function_exists( 'efb_img_size_attrs' ) ) {
+		$attrs = efb_img_size_attrs( $url );
+	}
+	$attrs = str_replace( array( ' srcset=', ' sizes=' ), array( ' data-srcset=', ' data-sizes=' ), $attrs );
+	return '<img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" data-src="' . esc_url( $url ) . '"'
+		. $attrs . ' alt="' . esc_attr( $alt ) . '" loading="lazy" decoding="async" />';
+}
+
+/** Mega tile (image + name) from a menu item. */
 function ef_hdr_tile( $it ) {
 	$icon = ef_hdr_icon( $it );
 	return '<a class="ef-mega-tile" href="' . esc_url( $it->url ) . '">'
-		. '<span class="ef-mega-tile-img">' . ( $icon ? '<img src="' . esc_url( $icon ) . '"' . ( function_exists( 'efb_img_size_attrs' ) ? efb_img_size_attrs( $icon ) : '' ) . ' alt="' . esc_attr( $it->title ) . '" loading="lazy" />' : '' ) . '</span>'
+		. '<span class="ef-mega-tile-img">' . ( $icon ? ef_hdr_img( $icon, $it->title ) : '' ) . '</span>'
 		. '<span class="ef-mega-tile-name">' . esc_html( $it->title ) . '</span></a>';
 }
 
@@ -102,7 +118,7 @@ function ef_hdr_mega( $top, $by ) {
 		$icon = ef_hdr_icon( $c );
 		$out .= '<div class="ef-mega-col">';
 		$out .= '<a class="ef-mega-head" href="' . esc_url( $c->url ) . '">';
-		if ( $icon ) { $out .= '<span class="ef-mega-head-img"><img src="' . esc_url( $icon ) . '"' . ( function_exists( 'efb_img_size_attrs' ) ? efb_img_size_attrs( $icon ) : '' ) . ' alt="" loading="lazy" /></span>'; }
+		if ( $icon ) { $out .= '<span class="ef-mega-head-img">' . ef_hdr_img( $icon, '' ) . '</span>'; }
 		$out .= '<span class="ef-mega-head-txt">' . esc_html( $c->title ) . '</span>';
 		$out .= '</a>';
 
@@ -201,7 +217,9 @@ add_action( 'astra_header_before', function () {
 	echo '<a class="ef-logo" href="' . $home . '" rel="home">';
 	if ( has_custom_logo() ) {
 		$lid = get_theme_mod( 'custom_logo' );
-		echo wp_get_attachment_image( $lid, 'full', false, array( 'class' => 'ef-logo-img', 'alt' => get_bloginfo( 'name' ) ) );
+		// Shown at most 58px tall (~230px wide): without `sizes` the browser assumed
+		// 100vw and fetched the 1920px file on desktop.
+		echo wp_get_attachment_image( $lid, 'full', false, array( 'class' => 'ef-logo-img', 'alt' => get_bloginfo( 'name' ), 'sizes' => '230px', 'loading' => 'eager', 'fetchpriority' => 'high' ) );
 	} else {
 		echo esc_html( get_bloginfo( 'name' ) );
 	}
@@ -257,6 +275,20 @@ add_action( 'wp_footer', function () {
 	}
 	placeCart();
 	var rt; window.addEventListener('resize', function(){ clearTimeout(rt); rt = setTimeout(function(){ placeCart(); if(!isMobile()){ closeNav(); } }, 150); });
+
+	// mega-menu images: fetched only when the visitor reaches the category bar (see ef_hdr_img)
+	var catNav = h.querySelector('.ef-cat-nav');
+	function loadMegaImages(){
+		h.querySelectorAll('.ef-mega img[data-src]').forEach(function(img){
+			if(img.dataset.sizes){ img.sizes = img.dataset.sizes; }
+			if(img.dataset.srcset){ img.srcset = img.dataset.srcset; }
+			img.src = img.dataset.src;
+			img.removeAttribute('data-src');
+		});
+	}
+	if(catNav){
+		['pointerenter', 'focusin', 'touchstart'].forEach(function(ev){ catNav.addEventListener(ev, loadMegaImages, {once: true, passive: true}); });
+	}
 })();
 </script>
 	<?php

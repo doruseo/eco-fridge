@@ -188,6 +188,59 @@ function ef_category_carousel_data( $term ) {
 }
 
 /**
+ * width/height + srcset/sizes for a card image given by URL, so the browser picks
+ * a file close to the card's size (the cards used the 800px or full-size file even
+ * on phones). Returns '' when the URL is not a Media Library file.
+ *
+ * @param string     $url     Image URL (original or a generated size).
+ * @param bool|int[] $two_col true = the wide two-banner variant (width-bound); an
+ *                            array( width, height ) = a box the whole image is fitted
+ *                            into on every screen (e.g. the mega-menu tiles);
+ *                            false = a carousel card.
+ */
+function ef_cc_img_attrs( $url, $two_col = false ) {
+	$key = 'ef_cc_img_' . md5( $url . wp_json_encode( $two_col ) );
+	$out = wp_cache_get( $key, 'eco-fridge' );
+	if ( false !== $out ) { return $out; }
+
+	$out  = '';
+	$path = (string) wp_parse_url( $url, PHP_URL_PATH );
+	$w    = 0;
+	$h    = 0;
+	if ( preg_match( '~-(\d{2,4})x(\d{2,4})(\.\w+)$~', $path, $m ) ) {
+		$w   = (int) $m[1];
+		$h   = (int) $m[2];
+		$id  = attachment_url_to_postid( preg_replace( '~-\d{2,4}x\d{2,4}(\.\w+)$~', '$1', $url ) );
+	} else {
+		$id = attachment_url_to_postid( $url );
+	}
+	$meta = $id ? wp_get_attachment_metadata( $id ) : false;
+	if ( $meta && ! empty( $meta['width'] ) ) {
+		if ( ! $w ) {
+			$w = (int) $meta['width'];
+			$h = (int) $meta['height'];
+		}
+		$out    = ' width="' . $w . '" height="' . $h . '"';
+		if ( is_array( $two_col ) ) {
+			$sizes = (int) ceil( min( $two_col[0], $two_col[1] * $w / max( 1, $h ) ) ) . 'px';
+		} elseif ( $two_col ) {
+			$sizes = '(max-width: 640px) 100vw, 610px';
+		} else {
+			// A card fits the whole image in a fixed box (~350x208 on desktop, ~260x188
+			// on phones), so tall product shots are shown much narrower than the card.
+			$ratio = $w / max( 1, $h );
+			$sizes = '(max-width: 520px) ' . (int) ceil( min( 260, 188 * $ratio ) ) . 'px, ' . (int) ceil( min( 350, 208 * $ratio ) ) . 'px';
+		}
+		$srcset = wp_calculate_image_srcset( array( $w, $h ), $url, $meta, $id );
+		if ( $srcset ) {
+			$out .= ' srcset="' . esc_attr( $srcset ) . '" sizes="' . esc_attr( $sizes ) . '"';
+		}
+	}
+	wp_cache_set( $key, $out, 'eco-fridge', DAY_IN_SECONDS );
+	return $out;
+}
+
+/**
  * Prints one carousel of cards.
  *
  * @param array[]         $cards   Cards (title, link, img; optional meta = a sub-line under the title).
@@ -198,12 +251,20 @@ function ef_render_category_carousel( $cards, $variant = '' ) {
 	foreach ( array_filter( (array) $variant ) as $v ) {
 		$classes .= ' ef-cat-carousel--' . sanitize_html_class( $v );
 	}
+	// On category pages and /shop the first carousel sits in the first screen (often
+	// the LCP image on mobile): its first cards load eagerly, the first one with high priority.
+	static $carousel_no = 0;
+	$carousel_no++;
+	$above_fold = 1 === $carousel_no && ( ef_is_shop_page() || ( function_exists( 'is_product_category' ) && is_product_category() ) );
+	$two_col = in_array( '2col', (array) $variant, true );
+
 	echo '<div class="' . esc_attr( $classes ) . '">';
 	echo '<button type="button" class="ef-cc-arrow ef-cc-prev" aria-label="Previous">&lsaquo;</button>';
 	echo '<div class="ef-cc-track" role="list">';
-	foreach ( $cards as $c ) {
+	foreach ( array_values( $cards ) as $i => $c ) {
+		$load = ( $above_fold && $i < 3 ) ? ' loading="eager"' . ( 0 === $i ? ' fetchpriority="high"' : '' ) : ' loading="lazy"';
 		echo '<a class="ef-cc-card" role="listitem" href="' . esc_url( $c['link'] ) . '">';
-		echo '<span class="ef-cc-img">' . ( $c['img'] ? '<img src="' . esc_url( $c['img'] ) . '" alt="' . esc_attr( $c['title'] ) . '" loading="lazy" />' : '' ) . '</span>';
+		echo '<span class="ef-cc-img">' . ( $c['img'] ? '<img src="' . esc_url( $c['img'] ) . '"' . ef_cc_img_attrs( $c['img'], $two_col ) . ' alt="' . esc_attr( $c['title'] ) . '"' . $load . ' decoding="async" />' : '' ) . '</span>';
 		if ( isset( $c['meta'] ) ) {
 			// footer with a sub-line (e.g. the number of models) and a "go" arrow
 			echo '<span class="ef-cc-foot"><span class="ef-cc-text">';

@@ -34,9 +34,12 @@ Text Domain: eco-fridge-child
 }
 
 /* Local fallbacks sized like the web fonts, so text keeps its size while
-   Oswald / Open Sans load (no layout shift when they swap in). */
-@font-face { font-family: 'Oswald Fallback'; src: local('Arial Narrow'), local('ArialNarrow'), local('Arial'); size-adjust: 81%; ascent-override: 146%; descent-override: 35%; line-gap-override: 0%; }
-@font-face { font-family: 'Open Sans Fallback'; src: local('Arial'); size-adjust: 105%; ascent-override: 101%; descent-override: 28%; line-gap-override: 0%; }
+   Oswald / Open Sans load (no layout shift when they swap in). Values measured
+   from the font files against Arial (Windows/macOS) — Roboto (Android) has the
+   same widths within 0.1%, so one set fits both. Not Arial Narrow: the size-adjust
+   is for Arial, on the narrow face it made the text far too narrow. */
+@font-face { font-family: 'Oswald Fallback'; src: local('Arial'), local('ArialMT'), local('Roboto'), local('Roboto-Regular'); size-adjust: 81.27%; ascent-override: 146.8%; descent-override: 35.56%; line-gap-override: 0%; }
+@font-face { font-family: 'Open Sans Fallback'; src: local('Arial'), local('ArialMT'), local('Roboto'), local('Roboto-Regular'); size-adjust: 104.23%; ascent-override: 102.55%; descent-override: 28.11%; line-gap-override: 0%; }
 
 /* The green category bar stays on one line while the fonts load (it wrapped
    with the wider fallback font, then jumped back: a large layout shift). */
@@ -309,6 +312,36 @@ a:hover, a:focus { color: var(--ef-text); }
   #secondary .ast-filter-wrap { position: relative; }
   #secondary .ast-filter-wrap > .widget { position: static !important; }
   #secondary .widget > *:not(.widget-title):not(.widgettitle) { left: 0; right: 0; min-width: 0; max-width: none; }
+
+  /* Astra Pro sticky shop toolbar (fixed at the bottom of the screen): keep the bar
+     just as tall as its controls + 10px top/bottom, filters and sorting on one row,
+     and open the filter panels UPWARDS (the bar sits at the bottom of the viewport). */
+  .ast-shop-toolbar-container .ast-sticky-shop-filters { padding: 10px 16px; gap: 8px; align-items: center; }
+  .ast-shop-toolbar-container .ast-shop-toolbar-aside-wrap { margin: 0 !important; }
+  .ast-shop-toolbar-container .ast-shop-toolbar-aside-wrap:first-child { flex: 1 1 auto; min-width: 0; }
+  .ast-shop-toolbar-container #secondary { margin: 0 !important; }
+  .ast-shop-toolbar-container #secondary .ast-filter-wrap { margin: 0; }
+  .ast-shop-toolbar-container .woocommerce-ordering select { width: auto; max-width: 140px; }
+  .ast-shop-toolbar-container #secondary .widget > *:not(.widget-title):not(.widgettitle) {
+    top: auto; bottom: calc(100% + 24px);
+  }
+}
+
+/* Phones (Astra Pro's sticky-toolbar breakpoint, 544px): Astra's script rebuilds the
+   bottom bar in several steps after the page is parsed (sorting only → filters moved
+   in → wrapped into .ast-sticky-shop-filters), and the fixed bar grew and shrank on
+   screen each time (layout shift). Keep it hidden until its final markup is in place;
+   a bar that appears once is not a layout shift. Only with JS: without it the
+   script never runs, so the bar stays visible as it is. */
+@media (max-width: 544px) {
+  .woocommerce-js.ast-default-shop-page-modern-style .ast-shop-toolbar-container:not(:has(> .ast-sticky-shop-filters)) { display: none; }
+  /* The same script inserts the "Showing 1–12 of N results" line above the product
+     grid, pushing the grid down (seen on tag and search pages, where the grid is in
+     the first screen). Hold an identical empty line (same font, line-height and 1em
+     margins) under the notices until the real one arrives. */
+  .woocommerce-js.ast-default-shop-page-modern-style .woocommerce-notices-wrapper:not(:has(+ .woocommerce-result-count))::after {
+    content: "\00a0"; display: block; line-height: 1; margin: 1em 0;
+  }
 }
 
 /* Product grid card — subtle border like the original */
@@ -329,6 +362,27 @@ a:hover, a:focus { color: var(--ef-text); }
 #content .site-content,
 .ef-product-card { background: #fff; }
 .ef-product-card { border-color: transparent; }
+
+/* Product gallery before its slider starts: show only the first image. Until the
+   script wraps the slides in .flex-viewport, every image was stacked full width
+   (the page grew by thousands of px, then collapsed: a large layout shift). */
+/* = the gap under the slider viewport (a single image gets no slider, so no gap) */
+.woocommerce-js div.product div.images.woocommerce-product-gallery > .woocommerce-product-gallery__wrapper:has(> .woocommerce-product-gallery__image + .woocommerce-product-gallery__image) { margin-bottom: 1em; }
+.woocommerce-js div.product div.images.woocommerce-product-gallery > .woocommerce-product-gallery__wrapper > .woocommerce-product-gallery__image:nth-child(n+2) { display: none; }
+/* Same for the Astra Pro thumbnails: until their slider wraps them in .flex-viewport,
+   lay them out as the slider will (4 per row, 15px apart) instead of full width. */
+.woocommerce-product-gallery--columns-4 .ast-single-product-thumbnails > .woocommerce-product-gallery-thumbnails__wrapper { display: flex; gap: 15px; overflow: hidden; }
+.woocommerce-product-gallery--columns-4 .ast-single-product-thumbnails > .woocommerce-product-gallery-thumbnails__wrapper > .ast-woocommerce-product-gallery__image { flex: 0 0 calc((100% - 45px) / 4); min-width: 0; }
+/* While the sliders start (the slides are moved into .flex-viewport a few frames
+   before their widths are set inline), keep the slides in one row at their final
+   width, so the gallery never grows thousands of px tall for a moment. The inline
+   widths the slider sets afterwards are the same values. */
+.woocommerce-product-gallery,
+.woocommerce-product-gallery .ast-single-product-thumbnails { container-type: inline-size; }
+.woocommerce-product-gallery .flex-viewport > .woocommerce-product-gallery__wrapper { display: flex; align-items: flex-start; }
+.woocommerce-product-gallery .flex-viewport > .woocommerce-product-gallery__wrapper > .woocommerce-product-gallery__image { flex: 0 0 auto; width: 100cqw; }
+.woocommerce-product-gallery--columns-4 .ast-single-product-thumbnails .flex-viewport > .woocommerce-product-gallery-thumbnails__wrapper { display: flex; align-items: flex-start; }
+.woocommerce-product-gallery--columns-4 .ast-single-product-thumbnails .flex-viewport > .woocommerce-product-gallery-thumbnails__wrapper > .ast-woocommerce-product-gallery__image { flex: 0 0 auto; width: calc((100cqw - 45px) / 4); margin-right: 15px; }
 .ef-product-card:hover { border-color: var(--ef-border); }
 
 /* =========================================================================
@@ -470,7 +524,10 @@ a:hover, a:focus { color: var(--ef-text); }
   border-radius: 0 0 18px 18px;
   box-shadow: 0 28px 50px -18px rgba(16, 52, 30, .32), 0 6px 14px -8px rgba(0, 0, 0, .12);
   padding: 22px 24px 24px; z-index: 70;
-  max-height: 80vh; overflow-y: auto; overscroll-behavior: contain;
+  /* never taller than the screen below the sticky header (80 + 46px; +32px admin
+     bar): a taller panel scrolls inside itself, so every item can be reached */
+  max-height: calc(100vh - 126px - 16px); max-height: calc(100dvh - 126px - 16px);
+  overflow-y: auto; overscroll-behavior: contain;
   opacity: 0; visibility: hidden; transform: translateY(8px);
   transition: opacity .2s ease, transform .22s cubic-bezier(.2, .7, .2, 1), visibility .2s;
 }
@@ -479,7 +536,7 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-cat-nav .ef-menu > li:focus-within > .ef-mega { opacity: 1; visibility: visible; transform: translateY(0); }
 
 /* Display / Storage Cabinets: 4 columns of compact tiles */
-.ef-mega-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px 14px; }
+.ef-mega-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px 14px; }
 .ef-cat-nav .ef-mega-tile {
   position: relative;
   display: flex; align-items: center; gap: 14px;
@@ -514,11 +571,33 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-cat-nav .ef-mega-tile:hover .ef-mega-tile-name { color: var(--ef-brand); }
 .ef-cat-nav .ef-mega-tile:hover::after,
 .ef-cat-nav .ef-mega-tile:focus-visible::after { opacity: 1; transform: none; }
-@media (max-width: 1200px) { .ef-mega-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 1200px) { .ef-mega-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.admin-bar .ef-mega { max-height: calc(100vh - 158px - 16px); max-height: calc(100dvh - 158px - 16px); }
 
-/* —— grouped COMPACT mega (Commercial Fridges / Freezers) — anchored right —— */
+/* Display / Storage Cabinets (.ef-mega-grid): large tiles — the image as big as
+   the column allows on top, the range name under it on up to 3 lines (the space
+   for 3 lines is kept on every tile, so the names line up row by row). The font
+   size is the largest at which the longest name ("Standard Upright Stainless Steel
+   Gastronorm Chiller & Fish/Meat Cabinet") still fits in 3 lines at 5 and 6 columns. */
+.ef-cat-nav .ef-mega-grid .ef-mega-tile {
+  flex-direction: column; align-items: stretch; gap: 10px;
+  min-height: 0; padding: 10px 6px 12px;
+}
+.ef-cat-nav .ef-mega-grid .ef-mega-tile-img {
+  flex: 0 0 auto; width: 100%; height: 140px; padding: 10px; box-sizing: border-box;
+}
+.ef-cat-nav .ef-mega-grid .ef-mega-tile-img img { max-width: 100%; max-height: 100%; }
+.ef-cat-nav .ef-mega-grid .ef-mega-tile-name {
+  font-size: .88rem; line-height: 1.3; letter-spacing: .01em; text-align: center;
+  min-height: calc(3 * 1.3em);
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden;
+}
+/* the hover arrow sits in the image's top-right corner */
+.ef-cat-nav .ef-mega-grid .ef-mega-tile::after { top: 18px; right: 18px; margin-top: 0; }
+
+/* —— grouped COMPACT mega (Commercial Fridges / Freezers) — opens to the right of its menu item —— */
 .ef-cat-nav .ef-menu > li.ef-mega-compact { position: relative; }
-.ef-mega-compact > .ef-mega { right: 0; width: max-content; min-width: 560px; max-width: min(1040px, 96vw); padding: 22px 22px 20px; border-radius: 0 0 18px 18px; }
+.ef-mega-compact > .ef-mega { left: 0; width: max-content; min-width: 560px; max-width: min(1040px, 96vw); padding: 22px 22px 20px; border-radius: 0 0 18px 18px; }
 .ef-mega-groups { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; }
 .ef-mega-col { display: flex; flex-direction: column; min-width: 250px; }
 /* tier-2 header: brand green, a short accent line under it */
@@ -629,6 +708,9 @@ a:hover, a:focus { color: var(--ef-text); }
   .ef-row1-cart-slot .ast-menu-cart-outline .cart-container,
   .ef-row1-cart-slot .ast-menu-cart-with-border .cart-container { border-color: var(--ef-border) !important; }
   .ef-cart-info { display: none; } /* on mobile, only the cart icon */
+  /* until the footer script moves the cart up into row 1, keep it out of the green
+     bar: shown there first, it made the bar taller, then the page jumped up (CLS) */
+  .ef-header-row2 .ef-header-cart { display: none; }
 
   /* row 1 menu = 70% FLYOUT from the right + overlay */
   .ef-row1-right {
@@ -673,30 +755,80 @@ a:hover, a:focus { color: var(--ef-text); }
   background-color: var(--ef-brand-deep); border-top-color: var(--ef-brand-deep);
 }
 .site-footer .ast-builder-html-element,
-.site-footer .ast-builder-html-element p { color: #fff; line-height: 1.7; }
+.site-footer .ast-builder-html-element p { color: rgba(255,255,255,.86); line-height: 1.7; }
+/* column headings: uppercase, a short light-green accent bar under them */
 .site-footer .ast-builder-html-element h3,
 .site-footer .footer-widget-area .widget-title {
   font-family: var(--ef-font-head);
   text-transform: uppercase;
-  letter-spacing: .03em;
+  letter-spacing: .08em;
   color: #fff;
-  font-size: 1.1rem;
-  margin: 0 0 16px;
-  /* inline-block: the light-green underline follows the column's alignment */
+  font-size: 1rem;
+  margin: 0 0 18px;
+  /* inline-block: the accent bar follows the column's alignment */
   display: inline-block;
-  padding-bottom: 6px;
-  border-bottom: 2px solid var(--ef-brand-light);
+  padding-bottom: 10px;
+  border: 0;
+  background: linear-gradient(var(--ef-brand-light), var(--ef-brand-light)) left bottom / 28px 3px no-repeat;
 }
-.site-footer .ast-builder-html-element a,
-.site-footer .footer-widget-area a { color: #fff; text-decoration: none; font-weight: 600; }
-.site-footer .ast-builder-html-element a:hover,
-.site-footer .ast-builder-html-element a:focus-visible,
-.site-footer .footer-widget-area a:hover,
-.site-footer .footer-widget-area a:focus-visible { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
 .site-footer .ast-builder-html-element ul,
 .site-footer .footer-widget-area ul { list-style: none; margin: 0; padding: 0; }
 .site-footer .ast-builder-html-element li,
-.site-footer .footer-widget-area li { margin: 0 0 8px; color: #fff; }
+.site-footer .footer-widget-area li { margin: 0 0 6px; color: #fff; }
+/* inline links (phone, email): white, a faint line under them that turns light green on hover */
+.site-footer .ast-builder-html-element a,
+.site-footer .footer-widget-area a {
+  color: #fff; font-weight: 600; text-decoration: none;
+  background: linear-gradient(rgba(255,255,255,.3), rgba(255,255,255,.3)) left bottom / 100% 1px no-repeat;
+  padding-bottom: 1px; transition: color .2s ease, background .2s ease, transform .2s ease;
+}
+.site-footer .ast-builder-html-element a:hover,
+.site-footer .ast-builder-html-element a:focus-visible,
+.site-footer .footer-widget-area a:hover,
+.site-footer .footer-widget-area a:focus-visible {
+  color: #fff; text-decoration: none;
+  background-image: linear-gradient(var(--ef-brand-light), var(--ef-brand-light));
+}
+/* link lists (Support / Contact Us, the Information menu): a small chevron,
+   softer text, and on hover the link turns white and slides a little to the right */
+.site-footer li > a {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 3px 0; background: none !important;
+  color: rgba(255,255,255,.84) !important; font-weight: 500;
+}
+.site-footer li > a::before {
+  content: ""; flex: 0 0 auto; width: 6px; height: 6px;
+  border-top: 2px solid var(--ef-brand-light); border-right: 2px solid var(--ef-brand-light);
+  transform: rotate(45deg); transition: transform .2s ease;
+}
+.site-footer li > a:hover,
+.site-footer li > a:focus-visible { color: #fff !important; transform: translateX(4px); }
+.site-footer li > a:hover::before,
+.site-footer li > a:focus-visible::before { transform: translateX(2px) rotate(45deg); }
+.site-footer .ast-builder-html-element p:has(+ .ef-footer-links) { margin-bottom: 10px; }
+.site-footer .ef-footer-links { margin: 0 !important; }
+.site-footer .ast-builder-html-element img { transition: opacity .2s ease; }
+.site-footer .ast-builder-html-element a:has(img) { background: none; }
+.site-footer .ast-builder-html-element a:hover img { opacity: .85; }
+/* mobile/tablet (columns stacked): each column is its own block with room above
+   its heading; centred accent bar; link lists become rounded
+   "pill" buttons (easy to tap), wrapping and centred, without the chevron */
+@media (max-width: 921px) {
+  .site-primary-footer-wrap { padding-top: 12px !important; padding-bottom: 16px !important; }
+  .site-primary-footer-wrap .site-footer-section { margin: 0 !important; padding: 26px 0; }
+  .site-footer .ast-builder-html-element h3,
+  .site-footer .footer-widget-area .widget-title { background-position: center bottom; margin-bottom: 16px; }
+  .site-footer .ast-builder-html-element ul,
+  .site-footer .footer-widget-area ul { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .site-footer li { margin: 0 !important; }
+  .site-footer li > a {
+    padding: 8px 16px; border: 1px solid rgba(255,255,255,.24); border-radius: 999px; font-size: .9rem;
+    transition: background-color .2s ease, border-color .2s ease;
+  }
+  .site-footer li > a::before { display: none; }
+  .site-footer li > a:hover,
+  .site-footer li > a:focus-visible { transform: none; background-color: rgba(255,255,255,.1) !important; border-color: var(--ef-brand-light); }
+}
 
 /* bottom row (copyright): black, white text, light green links */
 .site-below-footer-wrap { background: #000; color: #fff; }
