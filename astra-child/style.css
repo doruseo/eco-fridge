@@ -575,20 +575,22 @@ a:hover, a:focus { color: var(--ef-text); }
 .admin-bar .ef-mega { max-height: calc(100vh - 158px - 16px); max-height: calc(100dvh - 158px - 16px); }
 
 /* Display / Storage Cabinets (.ef-mega-grid): large tiles — the image as big as
-   the column allows on top, the range name under it on up to 4 lines (the space
-   for 4 lines is kept on every tile, so the names line up row by row). */
+   the column allows on top, the range name under it on up to 3 lines (the space
+   for 3 lines is kept on every tile, so the names line up row by row). The font
+   size is the largest at which the longest name ("Standard Upright Stainless Steel
+   Gastronorm Chiller & Fish/Meat Cabinet") still fits in 3 lines at 5 and 6 columns. */
 .ef-cat-nav .ef-mega-grid .ef-mega-tile {
   flex-direction: column; align-items: stretch; gap: 10px;
-  min-height: 0; padding: 10px 10px 12px;
+  min-height: 0; padding: 10px 6px 12px;
 }
 .ef-cat-nav .ef-mega-grid .ef-mega-tile-img {
   flex: 0 0 auto; width: 100%; height: 140px; padding: 10px; box-sizing: border-box;
 }
 .ef-cat-nav .ef-mega-grid .ef-mega-tile-img img { max-width: 100%; max-height: 100%; }
 .ef-cat-nav .ef-mega-grid .ef-mega-tile-name {
-  font-size: 1.05rem; line-height: 1.3; text-align: center;
-  min-height: calc(4 * 1.3em);
-  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; overflow: hidden;
+  font-size: .88rem; line-height: 1.3; letter-spacing: .01em; text-align: center;
+  min-height: calc(3 * 1.3em);
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden;
 }
 /* the hover arrow sits in the image's top-right corner */
 .ef-cat-nav .ef-mega-grid .ef-mega-tile::after { top: 18px; right: 18px; margin-top: 0; }
