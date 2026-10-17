@@ -192,11 +192,14 @@ function ef_category_carousel_data( $term ) {
  * a file close to the card's size (the cards used the 800px or full-size file even
  * on phones). Returns '' when the URL is not a Media Library file.
  *
- * @param string $url     Image URL (original or a generated size).
- * @param bool   $two_col  The wide two-banner variant (width-bound) instead of a card.
+ * @param string     $url     Image URL (original or a generated size).
+ * @param bool|int[] $two_col true = the wide two-banner variant (width-bound); an
+ *                            array( width, height ) = a box the whole image is fitted
+ *                            into on every screen (e.g. the mega-menu tiles);
+ *                            false = a carousel card.
  */
 function ef_cc_img_attrs( $url, $two_col = false ) {
-	$key = 'ef_cc_img_' . md5( $url . (int) $two_col );
+	$key = 'ef_cc_img_' . md5( $url . wp_json_encode( $two_col ) );
 	$out = wp_cache_get( $key, 'eco-fridge' );
 	if ( false !== $out ) { return $out; }
 
@@ -218,7 +221,9 @@ function ef_cc_img_attrs( $url, $two_col = false ) {
 			$h = (int) $meta['height'];
 		}
 		$out    = ' width="' . $w . '" height="' . $h . '"';
-		if ( $two_col ) {
+		if ( is_array( $two_col ) ) {
+			$sizes = (int) ceil( min( $two_col[0], $two_col[1] * $w / max( 1, $h ) ) ) . 'px';
+		} elseif ( $two_col ) {
 			$sizes = '(max-width: 640px) 100vw, 610px';
 		} else {
 			// A card fits the whole image in a fixed box (~350x208 on desktop, ~260x188

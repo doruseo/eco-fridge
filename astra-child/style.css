@@ -524,7 +524,10 @@ a:hover, a:focus { color: var(--ef-text); }
   border-radius: 0 0 18px 18px;
   box-shadow: 0 28px 50px -18px rgba(16, 52, 30, .32), 0 6px 14px -8px rgba(0, 0, 0, .12);
   padding: 22px 24px 24px; z-index: 70;
-  max-height: 80vh; overflow-y: auto; overscroll-behavior: contain;
+  /* never taller than the screen below the sticky header (80 + 46px; +32px admin
+     bar): a taller panel scrolls inside itself, so every item can be reached */
+  max-height: calc(100vh - 126px - 16px); max-height: calc(100dvh - 126px - 16px);
+  overflow-y: auto; overscroll-behavior: contain;
   opacity: 0; visibility: hidden; transform: translateY(8px);
   transition: opacity .2s ease, transform .22s cubic-bezier(.2, .7, .2, 1), visibility .2s;
 }
@@ -533,7 +536,7 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-cat-nav .ef-menu > li:focus-within > .ef-mega { opacity: 1; visibility: visible; transform: translateY(0); }
 
 /* Display / Storage Cabinets: 4 columns of compact tiles */
-.ef-mega-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px 14px; }
+.ef-mega-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px 14px; }
 .ef-cat-nav .ef-mega-tile {
   position: relative;
   display: flex; align-items: center; gap: 14px;
@@ -568,7 +571,27 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-cat-nav .ef-mega-tile:hover .ef-mega-tile-name { color: var(--ef-brand); }
 .ef-cat-nav .ef-mega-tile:hover::after,
 .ef-cat-nav .ef-mega-tile:focus-visible::after { opacity: 1; transform: none; }
-@media (max-width: 1200px) { .ef-mega-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 1200px) { .ef-mega-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.admin-bar .ef-mega { max-height: calc(100vh - 158px - 16px); max-height: calc(100dvh - 158px - 16px); }
+
+/* Display / Storage Cabinets (.ef-mega-grid): large tiles — the image as big as
+   the column allows on top, the range name under it on up to 4 lines (the space
+   for 4 lines is kept on every tile, so the names line up row by row). */
+.ef-cat-nav .ef-mega-grid .ef-mega-tile {
+  flex-direction: column; align-items: stretch; gap: 10px;
+  min-height: 0; padding: 10px 10px 12px;
+}
+.ef-cat-nav .ef-mega-grid .ef-mega-tile-img {
+  flex: 0 0 auto; width: 100%; height: 140px; padding: 10px; box-sizing: border-box;
+}
+.ef-cat-nav .ef-mega-grid .ef-mega-tile-img img { max-width: 100%; max-height: 100%; }
+.ef-cat-nav .ef-mega-grid .ef-mega-tile-name {
+  font-size: 1.05rem; line-height: 1.3; text-align: center;
+  min-height: calc(4 * 1.3em);
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; overflow: hidden;
+}
+/* the hover arrow sits in the image's top-right corner */
+.ef-cat-nav .ef-mega-grid .ef-mega-tile::after { top: 18px; right: 18px; margin-top: 0; }
 
 /* —— grouped COMPACT mega (Commercial Fridges / Freezers) — opens to the right of its menu item —— */
 .ef-cat-nav .ef-menu > li.ef-mega-compact { position: relative; }
