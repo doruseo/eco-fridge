@@ -807,9 +807,26 @@ a:hover, a:focus { color: var(--ef-text); }
 .site-footer li > a:focus-visible::before { transform: translateX(2px) rotate(45deg); }
 .site-footer .ast-builder-html-element p:has(+ .ef-footer-links) { margin-bottom: 10px; }
 .site-footer .ef-footer-links { margin: 0 !important; }
-.site-footer .ast-builder-html-element img { transition: opacity .2s ease; }
-.site-footer .ast-builder-html-element a:has(img) { background: none; }
-.site-footer .ast-builder-html-element a:hover img { opacity: .85; }
+/* image links (Facebook badge): no underline or hover fill over the image; on hover
+   the badge lifts a little with a soft shadow and stays fully sharp */
+.site-footer .ast-builder-html-element a:has(img),
+.site-footer .ast-builder-html-element a:has(img):hover,
+.site-footer .ast-builder-html-element a:has(img):focus-visible {
+  display: inline-block; padding-bottom: 0; background: none; border-radius: 4px;
+}
+.site-footer .ast-builder-html-element a:has(img):focus-visible { outline: 2px solid var(--ef-brand-light); outline-offset: 3px; }
+.site-footer .ast-builder-html-element a img {
+  display: block; border-radius: 4px;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.site-footer .ast-builder-html-element a:hover img,
+.site-footer .ast-builder-html-element a:focus-visible img {
+  transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,.35);
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-footer .ast-builder-html-element a:hover img,
+  .site-footer .ast-builder-html-element a:focus-visible img { transform: none; }
+}
 /* mobile/tablet (columns stacked): each column is its own block with room above
    its heading; centred accent bar; link lists become rounded
    "pill" buttons (easy to tap), wrapping and centred, without the chevron */
