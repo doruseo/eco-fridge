@@ -10,8 +10,9 @@
  *     Multideck Fridges, Patisserie Display Fridges, Under Counter Freezers, …
  *     Classified by hand from each product's title and categories; a product
  *     can be two types (e.g. a low-temperature chest freezer). The bakery fridge
- *     and freezer are upright storage ones too; their bakery tags and the oven
- *     tags come from migration 63.
+ *     and freezer are upright storage ones; the retarder prover, ovens, grills
+ *     and oven stand get tags of their own type (they also have the bakery
+ *     child categories of migration 63, which are the pages that rank).
  *     These tag pages repeat category pages, so they are noindex (Rank Math)
  *     to keep the categories as the pages that rank.
  *  2. Feature tags (existing): added where the product's title says so —
@@ -49,6 +50,10 @@ $types = array(
 	'under-counter-freezers' => array( 'Under Counter Freezers', array( 29, 80 ) ),
 	'low-temperature-freezers' => array( 'Low Temperature Freezers', array( 128, 129, 130, 139 ) ),
 	'medical-fridges' => array( 'Medical Fridges', array( 134 ) ),
+	'retarder-provers' => array( 'Retarder Provers', array( 131 ) ),
+	'ovens' => array( 'Ovens', array( 140, 141, 150, 151 ) ),
+	'grills' => array( 'Grills', array( 140, 142, 150 ) ),
+	'oven-stands' => array( 'Oven Stands', array( 152 ) ),
 );
 
 $titles = array(
@@ -160,6 +165,7 @@ $titles = array(
 	128 => 'Low Temperature Chest Fr',
 	129 => 'Low Temperature Chest Fr',
 	130 => 'Ultra Low Temperature Ch',
+	131 => 'Stainless Steel Upright ',
 	132 => 'Stainless Steel Upright ',
 	133 => 'Stainless Steel Upright ',
 	134 => 'Medical White Upright St',
@@ -168,6 +174,12 @@ $titles = array(
 	137 => 'Stainless Steel Double G',
 	138 => 'Premium Stainless Steel ',
 	139 => 'Low Temperature Upright ',
+	140 => 'Commercial Stainless Ste',
+	141 => 'Commercial Stainless Ste',
+	142 => 'Commercial Stainless Ste',
+	150 => 'Commercial Stainless Ste',
+	151 => 'Commercial Stainless Ste',
+	152 => 'Commercial Stainless Ste',
 	143 => 'Upright Mirrored Stainle',
 	144 => 'Grab and Go Display Chil',
 	145 => 'Grab and Go Display Chil',

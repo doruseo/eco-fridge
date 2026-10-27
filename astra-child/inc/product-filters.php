@@ -3,12 +3,13 @@
  * Product filter bar — the faceted filters in the shop sidebar.
  *
  * Facets (each one a "Filter: Product facet" widget in "astra-woo-shop-sidebar",
- * set up by migration/63-filter-bar.php; Price stays WooCommerce's own widget):
+ * set up by migration/63-filter-bar.php; Price, first in the bar, stays
+ * WooCommerce's own widget):
  *
  *   Categories  the product groups (Display Cabinets, Storage Cabinets, Fridges,
  *               Freezers, Heated Cabinets, Bakery Cabinets, Ovens & Grills,
  *               Medical Cabinets), each collapsed under a chevron with its
- *               ranges (Commercial menu) or product tags below it
+ *               ranges (Commercial menu) or child categories below it
  *   Type        product tags of what each product is (Multideck Fridges, Under
  *               Counter Freezers, …) — on every product, used ones included,
  *               so it works where the categories don't (migration 64)
@@ -73,8 +74,8 @@ function ef_pf_groups() {
 		array( 'key' => 'commercial-fridge', 'label' => 'Fridges', 'children' => 'menu' ),
 		array( 'key' => 'commercial-freezer', 'label' => 'Freezers', 'children' => 'menu', 'extra' => array( 'low-temperature-chest-freezers' ) ),
 		array( 'key' => 'heated-display', 'label' => 'Heated Cabinets', 'children' => array( 'heated-display-cabinets', 'dual-temperature-hot-and-cold-premium-mirrored-stainless-steel-multideck' ) ),
-		array( 'key' => 'stainless-steel-upright-bakery-cabinets', 'label' => 'Bakery Cabinets', 'children' => array( 'tag:bakery-fridges', 'tag:bakery-freezers', 'tag:retarder-provers' ) ),
-		array( 'key' => 'ovens-grills', 'label' => 'Ovens & Grills', 'term' => false, 'children' => array( 'tag:ovens', 'tag:grills', 'tag:oven-stands' ) ),
+		array( 'key' => 'stainless-steel-upright-bakery-cabinets', 'label' => 'Bakery Cabinets', 'children' => array( 'bakery-fridges', 'bakery-freezers', 'retarder-provers' ) ),
+		array( 'key' => 'ovens-grills', 'label' => 'Ovens & Grills', 'term' => false, 'children' => array( 'ovens', 'grills', 'oven-stands' ) ),
 		array( 'key' => 'medical', 'label' => 'Medical Cabinets', 'children' => array( 'upright-medical-fridge' ) ),
 	);
 }
@@ -161,9 +162,9 @@ function ef_pf_category_options() {
 }
 
 /**
- * Type tags, in display order (migration 64), then the bakery / oven ones that
- * have no general type (migration 63). Bakery Fridges / Freezers are left out:
- * those products are Upright Storage Fridges / Freezers here.
+ * Type tags, in display order (migration 64). The bakery fridge / freezer are
+ * Upright Storage Fridges / Freezers; ovens, grills, stands and the retarder
+ * prover have type tags of their own (as well as their categories).
  *
  * @return string[]
  */
