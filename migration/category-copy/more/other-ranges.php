@@ -22,7 +22,7 @@ return array(
 </ul>
 
 <h2>Equipping a bakery or café kitchen</h2>
-<p>Plan the kitchen around the products you bake and the volume at peak times. A café baking off croissants, cookies and scones through the day is well served by a compact convection oven on a 13-amp plug and a contact grill for paninis. A bakery producing bread and pastries needs larger tray capacity, steam for crust and shine, and refrigeration that fits the same trays: <a href="/range/storage-cabinets/stainless-steel-upright-bakery-cabinets/">bakery fridges, freezers and a retarder prover</a> for ten 400 × 600 mm trays each.</p>
+<p>Plan the kitchen around the products you bake and the volume at peak times. A café baking off croissants, cookies and scones through the day is well served by a compact convection oven on a 13-amp plug and a contact grill for paninis. A bakery producing bread and pastries needs larger tray capacity, steam for crust and shine, and refrigeration that fits the same trays: <a href="/range/bakery-cabinets/bakery-fridges/">bakery fridges</a>, <a href="/range/bakery-cabinets/bakery-freezers/">bakery freezers</a> and a <a href="/range/bakery-cabinets/retarder-provers/">retarder prover</a> for ten 400 × 600 mm trays each.</p>
 <p>The retarder prover changes how a bakery works: dough is made in the afternoon, held cold overnight and proved automatically on the timer, so the first bake goes in as soon as staff arrive. It needs a water supply and an external drain.</p>
 
 <h2>Power and installation</h2>
