@@ -18,17 +18,16 @@
  *   Width,      WooCommerce attributes, filtered by WooCommerce itself
  *   Height      (filter_width / filter_height)
  *
- * URLs: one selected option that has its own page (a category, a tag, a market,
- * Used) goes to that page. Several options give a filtered URL on the page of
- * one of them or on /shop/ — `filter_category`, `filter_type`, `filter_condition`,
- * `filter_market`, `filter_feature` (WooCommerce
- * ignores filter_* keys that are not attributes), plus WooCommerce's own
- * filter_width / filter_height / min_price / max_price. Filtered URLs are
- * noindex and disallowed in robots.txt.
- *
- * Pages that are themselves an option (e.g. /range/display-cabinets/) count as
- * that option being selected; other archives (e.g. /ranges/deli-displays/, most
- * product tags) are a scope: their filters stay on that page.
+ * URLs: the page the visitor is on is the scope; every option they tick narrows
+ * it and shows in the query string, so GA4 sees what was filtered —
+ * `filter_category`, `filter_type`, `filter_condition`, `filter_market`,
+ * `filter_feature` (WooCommerce ignores filter_* keys that are not
+ * attributes), plus WooCommerce's own filter_width / filter_height /
+ * min_price / max_price. Filtered URLs are noindex and disallowed in
+ * robots.txt. A page that is itself an option (e.g. /range/display-cabinets/)
+ * shows that option ticked; unticking it leaves the page for /shop/ with the
+ * other filters kept. The ticked filters are also listed above the panel as
+ * removable chips.
  *
  * Counts come from a cached index of the visible products (terms + prices), so
  * every option shows how many products it would leave given the other facets.
@@ -343,9 +342,9 @@ function ef_pf_param_list( $param ) {
 }
 
 /**
- * The page context: `implicit` = the options the page itself stands for,
- * `scope` = the term a non-option archive restricts to ({tax, term_id}),
- * `url` = the page's own URL.
+ * The page context: `scope` = the archive's term every filter narrows
+ * ({tax, term_id}; none on /shop/), `implicit` = the option the page itself
+ * stands for (shown ticked), `url` = the page's own URL.
  *
  * @return array
  */
@@ -372,27 +371,24 @@ function ef_pf_context() {
 		$ctx['implicit'] = array( 'types' => array( $term->slug ) );
 	} elseif ( 'product_tag' === $term->taxonomy && isset( ef_pf_flat_options( 'features' )[ $term->slug ] ) ) {
 		$ctx['implicit'] = array( 'features' => array( $term->slug ) );
-	} else {
-		$ctx['scope'] = array( 'tax' => $term->taxonomy, 'term_id' => (int) $term->term_id );
 	}
+	$ctx['scope'] = array( 'tax' => $term->taxonomy, 'term_id' => (int) $term->term_id );
 	return $ctx;
 }
 
 /**
- * The selected options of every facet (the page's own + the URL's), plus the
- * price range: facet => values, 'price' => [min|null, max|null].
+ * The filters in the URL: facet => values, 'price' => [min|null, max|null].
+ * The page's own option is not one of them (it is the scope).
  *
  * @return array
  */
 function ef_pf_state() {
 	static $state = null;
 	if ( null !== $state ) { return $state; }
-	$ctx   = ef_pf_context();
 	$state = array();
 	foreach ( EF_PF_PARAMS as $facet => $param ) {
 		$valid = 'categories' === $facet ? ef_pf_category_options()['opts'] : ef_pf_flat_options( $facet );
-		$vals  = array_merge( $ctx['implicit'][ $facet ] ?? array(), ef_pf_param_list( $param ) );
-		$state[ $facet ] = array_values( array_unique( array_filter( $vals, fn( $v ) => isset( $valid[ $v ] ) ) ) );
+		$state[ $facet ] = array_values( array_filter( ef_pf_param_list( $param ), fn( $v ) => isset( $valid[ $v ] ) ) );
 	}
 	$state['price'] = array(
 		isset( $_GET['min_price'] ) ? (float) wp_unslash( $_GET['min_price'] ) : null, // phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -526,10 +522,8 @@ function ef_pf_price_range() {
 add_filter( 'woocommerce_product_query_tax_query', function ( $tax_query ) {
 	if ( ! ef_pf_applies() ) { return $tax_query; }
 	$state = ef_pf_state();
-	$ctx   = ef_pf_context();
 
-	// Only what the URL adds: the page's own option is already the archive's term.
-	$cats = array_diff( $state['categories'], $ctx['implicit']['categories'] ?? array() );
+	$cats = $state['categories'];
 	if ( $cats ) {
 		$opts  = ef_pf_category_options()['opts'];
 		$terms = array( 'product_cat' => array(), 'product_tag' => array() );
@@ -549,8 +543,7 @@ add_filter( 'woocommerce_product_query_tax_query', function ( $tax_query ) {
 		$tax_query[] = $any;
 	}
 
-	$cond = array_diff( $state['condition'], $ctx['implicit']['condition'] ?? array() );
-	if ( 1 === count( $state['condition'] ) && $cond ) {
+	if ( 1 === count( $state['condition'] ) ) {
 		$tax_query[] = array(
 			'taxonomy' => 'product_cat',
 			'field'    => 'slug',
@@ -559,16 +552,14 @@ add_filter( 'woocommerce_product_query_tax_query', function ( $tax_query ) {
 		);
 	}
 
-	$markets = array_diff( $state['markets'], $ctx['implicit']['markets'] ?? array() );
-	if ( $markets ) {
-		$tax_query[] = array( 'taxonomy' => 'market', 'field' => 'slug', 'terms' => array_values( $markets ) );
+	if ( $state['markets'] ) {
+		$tax_query[] = array( 'taxonomy' => 'market', 'field' => 'slug', 'terms' => $state['markets'] );
 	}
 
 	// Type and Features: each an OR of its tags, the two ANDed like every facet.
 	foreach ( array( 'types', 'features' ) as $facet ) {
-		$tags = array_diff( $state[ $facet ], $ctx['implicit'][ $facet ] ?? array() );
-		if ( $tags ) {
-			$tax_query[] = array( 'taxonomy' => 'product_tag', 'field' => 'slug', 'terms' => array_values( $tags ) );
+		if ( $state[ $facet ] ) {
+			$tax_query[] = array( 'taxonomy' => 'product_tag', 'field' => 'slug', 'terms' => $state[ $facet ] );
 		}
 	}
 	return $tax_query;
@@ -587,27 +578,38 @@ add_filter( 'woocommerce_price_filter_widget_max_amount', function ( $amount ) {
 } );
 
 /**
- * /shop/ with a single option that has its own page → that page (one URL per
- * listing; the filter bar never builds these, but links and old bookmarks may).
+ * The URL's filters as removable chips: [{label, url}] — url = this page
+ * without that one filter (other filters, sorting kept; back to page 1).
+ *
+ * @return array[]
  */
-add_action( 'template_redirect', function () {
-	if ( ! function_exists( 'ef_is_shop_page' ) || ! ef_is_shop_page() || ! ef_pf_is_filtered() ) { return; }
-	foreach ( array_keys( $_GET ) as $key ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if ( ! in_array( $key, array( 'filter_category', 'filter_type', 'filter_condition', 'filter_market', 'filter_feature' ), true ) ) { return; }
+function ef_pf_active_filters() {
+	$state   = ef_pf_state();
+	$current = preg_replace( '%/page/\d+/?%', '/', add_query_arg( array() ) );
+	$current = remove_query_arg( 'paged', $current );
+	$chips   = array();
+	foreach ( EF_PF_PARAMS as $facet => $param ) {
+		$opts = 'categories' === $facet ? ef_pf_category_options()['opts'] : ef_pf_flat_options( $facet );
+		foreach ( $state[ $facet ] as $value ) {
+			$rest = array_values( array_diff( $state[ $facet ], array( $value ) ) );
+			$url  = $rest ? add_query_arg( $param, implode( ',', $rest ), $current ) : remove_query_arg( $param, $current );
+			if ( count( $rest ) < 2 ) {
+				$url = remove_query_arg( 'query_type_' . $facet, $url );
+			}
+			// Keep the lists readable (a,b, not a%2Cb), like the filter bar builds them.
+			$chips[] = array( 'label' => $opts[ $value ]['label'], 'url' => str_replace( '%2C', ',', $url ) );
+		}
 	}
-	$state = ef_pf_state();
-	$items = array();
-	foreach ( array( 'categories', 'types', 'condition', 'markets', 'features' ) as $facet ) {
-		foreach ( $state[ $facet ] as $v ) { $items[] = array( $facet, $v ); }
+	list( $min, $max ) = $state['price'];
+	if ( null !== $min || null !== $max ) {
+		$money   = fn( $v ) => html_entity_decode( wp_strip_all_tags( wc_price( $v, array( 'decimals' => 0 ) ) ), ENT_QUOTES, 'UTF-8' );
+		$chips[] = array(
+			'label' => ( null !== $min ? $money( $min ) : '' ) . ' – ' . ( null !== $max ? $money( $max ) : '' ),
+			'url'   => remove_query_arg( array( 'min_price', 'max_price' ), $current ),
+		);
 	}
-	if ( 1 !== count( $items ) ) { return; }
-	list( $facet, $v ) = $items[0];
-	$opts = 'categories' === $facet ? ef_pf_category_options()['opts'] : ef_pf_flat_options( $facet );
-	if ( ! empty( $opts[ $v ]['url'] ) ) {
-		wp_safe_redirect( $opts[ $v ]['url'], 301 );
-		exit;
-	}
-} );
+	return $chips;
+}
 
 /* =========================================================================
  * 6. SEO — filtered URLs are noindex and disallowed in robots.txt.
@@ -657,6 +659,9 @@ class EF_Product_Filter_Widget extends WP_Widget {
 	/** Unique IDs for the collapsible lists. */
 	private static $uid = 0;
 
+	/** The page's own option(s) in the facet being rendered. */
+	private $page = array();
+
 	public function __construct() {
 		parent::__construct(
 			'ef_product_filter',
@@ -670,8 +675,10 @@ class EF_Product_Filter_Widget extends WP_Widget {
 		$facet = $instance['facet'] ?? 'categories';
 		if ( ! isset( self::FACETS[ $facet ] ) ) { return; }
 
-		$counts  = ef_pf_counts( $facet );
-		$checked = ef_pf_state()[ $facet ];
+		$counts     = ef_pf_counts( $facet );
+		$selected   = ef_pf_state()[ $facet ];
+		$this->page = ef_pf_context()['implicit'][ $facet ] ?? array();
+		$checked    = array_merge( $selected, $this->page );
 		if ( 'categories' === $facet ) {
 			$html = $this->nodes( ef_pf_category_options()['tree'], $counts, $checked );
 		} else {
@@ -683,8 +690,10 @@ class EF_Product_Filter_Widget extends WP_Widget {
 		if ( '' === $html ) { return; }
 
 		$title = ! empty( $instance['title'] ) ? $instance['title'] : self::FACETS[ $facet ];
+		// How many of this facet's filters are on (the mobile buttons show it too).
+		$badge = $selected ? ' <span class="ef-pf-n" aria-label="' . count( $selected ) . ' selected">' . count( $selected ) . '</span>' : '';
 		echo $args['before_widget']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo $args['before_title'] . esc_html( $title ) . $args['after_title']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo $args['before_title'] . esc_html( $title ) . $badge . $args['after_title']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo '<div class="ef-pf" data-facet="' . esc_attr( $facet ) . '"><ul class="ef-pf-list">' . $html . '</ul></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
 		echo $args['after_widget']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
@@ -728,7 +737,8 @@ class EF_Product_Filter_Widget extends WP_Widget {
 	private function item( $facet, $value, $label, $count, $checked, $sub = '', $open = false ) {
 		if ( ! $count && ! $checked && '' === $sub ) { return ''; }
 		$html = '<li class="ef-pf-item"><div class="ef-pf-row">'
-			. '<label class="ef-pf-opt"><input type="checkbox" value="' . esc_attr( $value ) . '"' . ( $checked ? ' checked' : '' ) . '>'
+			. '<label class="ef-pf-opt"><input type="checkbox" value="' . esc_attr( $value ) . '"' . ( $checked ? ' checked' : '' )
+			. ( in_array( $value, $this->page, true ) ? ' data-page="1"' : '' ) . '>'
 			. '<span class="ef-pf-box" aria-hidden="true"></span>'
 			. '<span class="ef-pf-name">' . esc_html( $label ) . '</span>'
 			. '<span class="ef-pf-count">' . (int) $count . '</span></label>';
@@ -775,26 +785,14 @@ add_action( 'widgets_init', function () {
  * ========================================================================= */
 add_action( 'wp_footer', function () {
 	if ( ! ef_pf_applies() ) { return; }
-	$ctx  = ef_pf_context();
-	$urls = array();
-	foreach ( ef_pf_category_options()['opts'] as $key => $o ) {
-		if ( $o['url'] ) { $urls['categories'][ $key ] = $o['url']; }
-	}
-	foreach ( array( 'types', 'condition', 'markets', 'features' ) as $facet ) {
-		foreach ( ef_pf_flat_options( $facet ) as $v => $o ) {
-			if ( $o['url'] ) { $urls[ $facet ][ $v ] = $o['url']; }
-		}
-	}
 	$keep = array();
 	foreach ( array( 'orderby', 'min_price', 'max_price' ) as $k ) {
 		if ( isset( $_GET[ $k ] ) ) { $keep[ $k ] = sanitize_text_field( wp_unslash( $_GET[ $k ] ) ); } // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	}
 	$cfg = array(
 		'shop'   => wc_get_page_permalink( 'shop' ),
-		'base'   => $ctx['url'],
-		'scoped' => (bool) $ctx['scope'],
+		'base'   => ef_pf_context()['url'],
 		'params' => EF_PF_PARAMS,
-		'urls'   => $urls,
 		'keep'   => $keep,
 	);
 	?>
@@ -804,35 +802,20 @@ add_action( 'wp_footer', function () {
 	var sec = document.getElementById('secondary');
 	if(!sec){ return; }
 
-	// The current selection of every facet, read from the checkboxes.
+	// The ticked filters of every facet (the page's own option is the page, not a filter).
 	function state(){
 		var s = {};
 		Object.keys(cfg.params).forEach(function(f){ s[f] = []; });
-		sec.querySelectorAll('.ef-pf input:checked').forEach(function(i){
+		sec.querySelectorAll('.ef-pf input:checked:not([data-page])').forEach(function(i){
 			var f = i.closest('.ef-pf').dataset.facet;
 			if(s[f] && s[f].indexOf(i.value) < 0){ s[f].push(i.value); }
 		});
 		return s;
 	}
-	function urlOf(f, v){ return (cfg.urls[f] && cfg.urls[f][v]) || ''; }
-
-	// One option with its own page → that page; otherwise the filtered URL, on the
-	// page of a facet's only option (first: category, type, market, feature, Used)
-	// with the rest as parameters (the facets are ANDed), else on /shop/.
+	// This page (or /shop/ once its own option is unticked) + every ticked filter in
+	// the query string.
 	function build(s){
-		var items = [], hasPrice = cfg.keep.min_price !== undefined || cfg.keep.max_price !== undefined;
-		Object.keys(s).forEach(function(f){ s[f].forEach(function(v){ items.push([f, v]); }); });
-		var base = cfg.base;
-		if(!cfg.scoped){
-			if(!items.length && !hasPrice){ return cfg.shop; }
-			if(items.length === 1 && !hasPrice && urlOf(items[0][0], items[0][1])){ return urlOf(items[0][0], items[0][1]); }
-			base = cfg.shop;
-			['categories', 'types', 'markets', 'features', 'condition'].some(function(f){
-				if(s[f].length !== 1 || !urlOf(f, s[f][0])){ return false; }
-				base = urlOf(f, s[f][0]); s[f] = [];
-				return true;
-			});
-		}
+		var base = sec.querySelector('.ef-pf input[data-page]:not(:checked)') ? cfg.shop : cfg.base;
 		var q = [];
 		Object.keys(cfg.params).forEach(function(f){
 			if(!s[f].length){ return; }
@@ -853,9 +836,10 @@ add_action( 'wp_footer', function () {
 			// A range narrows its group and a group replaces its ranges: one level per line.
 			box.querySelectorAll('input[value="' + CSS.escape(input.value) + '"]').forEach(function(i){
 				var li = i.closest('.ef-pf-item');
-				li.querySelectorAll('.ef-pf-sub input').forEach(function(d){ d.checked = false; });
+				li.querySelectorAll('.ef-pf-sub input:not([data-page])').forEach(function(d){ d.checked = false; });
 				for(var up = li.parentElement.closest('.ef-pf-item'); up; up = up.parentElement.closest('.ef-pf-item')){
-					up.querySelector(':scope > .ef-pf-row input').checked = false;
+					var a = up.querySelector(':scope > .ef-pf-row input');
+					if(!a.dataset.page){ a.checked = false; }
 				}
 			});
 		}

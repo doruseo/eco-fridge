@@ -174,6 +174,26 @@ a:hover, a:focus { color: var(--ef-text); }
 .ef-pf-sub { margin: 0 0 4px 19px; padding-left: 8px; border-left: 2px solid var(--ef-divider); }
 .ef-pf-sub[hidden] { display: none; }
 .ef-pf-sub .ef-pf-opt { padding: 6px 8px; font-size: .85rem; }
+/* the filters in use: a count on each facet's title, removable chips at the top */
+.ef-pf-n {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; margin-left: 2px; padding: 0 5px; border-radius: 999px;
+  background: var(--ef-brand); color: #fff; font-size: .7rem; font-weight: 700; letter-spacing: 0; line-height: 1;
+}
+.ef-pf-active { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 12px 0 4px; }
+.ef-pf-active__label { font-size: .78rem; font-weight: 600; color: var(--ef-meta); margin-right: 2px; }
+.ef-pf-chip {
+  display: inline-flex; align-items: center; gap: 6px; max-width: 100%;
+  padding: 4px 6px 4px 10px; border: 1px solid var(--ef-brand-light); border-radius: 999px;
+  background: #e8f5e9; color: var(--ef-brand-dark); font-size: .78rem; font-weight: 600; line-height: 1.2;
+  text-decoration: none; transition: background-color .15s ease, border-color .15s ease;
+}
+.ef-pf-chip:hover,
+.ef-pf-chip:focus-visible { background: #fff; border-color: var(--ef-brand); color: var(--ef-brand-dark); }
+.ef-pf-chip__x {
+  display: inline-flex; align-items: center; justify-content: center; flex: 0 0 18px; height: 18px;
+  border-radius: 50%; background: var(--ef-brand); color: #fff; font-size: .85rem; line-height: 1;
+}
 /* while the next filtered page loads */
 .ef-pf-loading #primary { opacity: .55; pointer-events: none; transition: opacity .2s ease; }
 
@@ -267,6 +287,7 @@ a:hover, a:focus { color: var(--ef-text); }
     overflow: visible;                 /* do NOT clip the dropdowns that drop below the bar */
   }
   .ef-filters-head { display: flex; flex: 0 0 auto; order: 99; }
+  .ef-pf-active { order: 100; flex: 1 0 100%; padding: 4px 0 0; }
   body #secondary .ast-filter-wrap .widget-title,
   body #secondary .ast-filter-wrap .widgettitle {
     font-family: var(--ef-font-body) !important; font-size: .8rem !important; letter-spacing: 0;

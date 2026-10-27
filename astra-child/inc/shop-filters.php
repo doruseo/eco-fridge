@@ -27,6 +27,17 @@ add_action( 'dynamic_sidebar_before', function ( $index ) {
 		echo '<a class="ef-filters-clear" href="' . esc_url( ef_pf_context()['url'] ) . '">Clear all</a>';
 	}
 	echo '</div>';
+
+	// What the visitor ticked, each one removable on its own.
+	$chips = ef_pf_active_filters();
+	if ( $chips ) {
+		echo '<div class="ef-pf-active"><span class="ef-pf-active__label">Selected:</span>';
+		foreach ( $chips as $chip ) {
+			echo '<a class="ef-pf-chip" href="' . esc_url( $chip['url'] ) . '" rel="nofollow" aria-label="' . esc_attr( 'Remove filter: ' . $chip['label'] ) . '">'
+				. esc_html( $chip['label'] ) . '<span class="ef-pf-chip__x" aria-hidden="true">&times;</span></a>';
+		}
+		echo '</div>';
+	}
 } );
 
 /**
