@@ -124,53 +124,78 @@ a:hover, a:focus { color: var(--ef-text); }
 /* =========================================================================
    FILTER SIDEBAR on category archives (left)
    ========================================================================= */
-/* Shared look (desktop + the mobile dropdown panels): rows with a hover tint,
-   count badges, custom checkboxes on the attribute filters, a styled slider. */
-.ef-filter-cats { list-style: none; margin: 0; padding: 0; }
-.ef-filter-cats li { margin: 0; }
-.ef-filter-cats a,
-#secondary .woocommerce-widget-layered-nav-list .woocommerce-widget-layered-nav-list__item a {
+/* Shared look (desktop + the mobile dropdown panels): option rows with a custom
+   checkbox, a count badge and a hover tint; groups collapse under a chevron
+   (inc/product-filters.php); a styled price slider. */
+.ef-pf-list,
+.ef-pf-sub { list-style: none; margin: 0; padding: 0; }
+.ef-pf-item { margin: 0; }
+.ef-pf-row { display: flex; align-items: center; gap: 2px; }
+.ef-pf-opt {
+  position: relative; flex: 1 1 auto; min-width: 0;
   display: flex; align-items: center; gap: 10px;
-  margin: 0 0 2px; padding: 7px 10px; border: 0; border-radius: 8px;
-  color: var(--ef-text); font-size: .9rem; line-height: 1.3; text-decoration: none;
+  margin: 0 0 2px; padding: 7px 10px; border-radius: 8px;
+  color: var(--ef-text); font-size: .9rem; font-weight: 400; line-height: 1.3; cursor: pointer;
   transition: background-color .15s ease, color .15s ease;
 }
-.ef-filter-cats a:hover,
-#secondary .woocommerce-widget-layered-nav-list .woocommerce-widget-layered-nav-list__item a:hover {
-  background: #f1f8f1; color: var(--ef-brand-dark); border: 0;
-}
-.ef-filter-cats li { display: flex; align-items: center; position: relative; }
-.ef-filter-cats li > a { flex: 1 1 auto; padding-right: 46px; }
-.ef-filter-cats .ef-count,
-#secondary .woocommerce-widget-layered-nav-list .count {
-  margin-left: auto; min-width: 26px; padding: 1px 8px; border-radius: 999px;
-  background: #eef1f4; color: #4b5563; font-size: .72rem; font-weight: 600; text-align: center;
-}
-.ef-filter-cats .ef-count { position: absolute; right: 10px; pointer-events: none; }
-.ef-filter-cats li.ef-current > a {
-  background: #e8f5e9; color: var(--ef-brand-dark); font-weight: 700;
-  box-shadow: inset 3px 0 0 var(--ef-brand);
-}
-.ef-filter-cats li.ef-current .ef-count { background: var(--ef-brand); color: #fff; }
-
-/* attribute filters (Width, Height): full-width rows with a custom checkbox */
-#secondary .woocommerce-widget-layered-nav-list { margin: 0; padding: 0; list-style: none; }
-#secondary .woocommerce-widget-layered-nav-list .woocommerce-widget-layered-nav-list__item { display: block; margin: 0; }
-#secondary .woocommerce-widget-layered-nav-list__item a::before {
-  content: ""; flex: 0 0 18px; height: 18px; box-sizing: border-box;
-  margin: 0 !important; border: 1.5px solid #c3cad3; border-radius: 5px; background: #fff center / 12px no-repeat;
-  font-family: inherit !important;
+.ef-pf-opt:hover { background: #f1f8f1; color: var(--ef-brand-dark); }
+/* the real checkbox stays focusable, the box beside it is what shows */
+.ef-pf-opt input { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
+.ef-pf-box {
+  flex: 0 0 18px; height: 18px; box-sizing: border-box;
+  border: 1.5px solid #c3cad3; border-radius: 5px; background: #fff center / 12px no-repeat;
   transition: background-color .15s ease, border-color .15s ease;
 }
-#secondary .woocommerce-widget-layered-nav-list__item a:hover::before { border-color: var(--ef-brand); }
-#secondary .woocommerce-widget-layered-nav-list__item.chosen a,
-#secondary .woocommerce-widget-layered-nav-list__item--chosen a { color: var(--ef-brand-dark); font-weight: 600; border: 0; }
-#secondary .woocommerce-widget-layered-nav-list__item.chosen a::before,
-#secondary .woocommerce-widget-layered-nav-list__item--chosen a::before {
+.ef-pf-opt:hover .ef-pf-box { border-color: var(--ef-brand); }
+.ef-pf-opt input:focus-visible + .ef-pf-box { box-shadow: 0 0 0 3px rgba(34,139,34,.3); }
+.ef-pf-opt input:checked + .ef-pf-box {
   background-color: var(--ef-brand); border-color: var(--ef-brand);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2l2.3 2.3 4.7-5' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
-#secondary .woocommerce-widget-layered-nav-list__item.chosen .count { background: var(--ef-brand); color: #fff; }
+.ef-pf-opt:has(input:checked) { color: var(--ef-brand-dark); font-weight: 600; }
+.ef-pf-name { flex: 1 1 auto; min-width: 0; }
+.ef-pf-count {
+  flex: 0 0 auto; margin-left: auto; min-width: 26px; padding: 1px 8px; border-radius: 999px;
+  background: #eef1f4; color: #4b5563; font-size: .72rem; font-weight: 600; text-align: center;
+}
+.ef-pf-opt:has(input:checked) .ef-pf-count { background: var(--ef-brand); color: #fff; }
+/* the chevron that opens a group (reset Astra's global button look) */
+.ef-pf .ef-pf-toggle {
+  flex: 0 0 30px; width: 30px; height: 30px; min-height: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  margin: 0 0 2px; padding: 0 !important; border: 0; border-radius: 8px;
+  background: transparent !important; color: var(--ef-brand) !important; box-shadow: none; line-height: 1; cursor: pointer;
+}
+.ef-pf .ef-pf-toggle:hover { background: #f1f8f1 !important; }
+.ef-pf .ef-pf-toggle:focus-visible { outline: 2px solid var(--ef-brand); outline-offset: 1px; }
+.ef-pf-toggle svg { transition: transform .2s ease; }
+.ef-pf-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+/* a group's ranges: indented under a thin guide line */
+.ef-pf-sub { margin: 0 0 4px 19px; padding-left: 8px; border-left: 2px solid var(--ef-divider); }
+.ef-pf-sub[hidden] { display: none; }
+.ef-pf-sub .ef-pf-opt { padding: 6px 8px; font-size: .85rem; }
+/* the filters in use: a count on each facet's title, removable chips at the top */
+.ef-pf-n {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; margin-left: 2px; padding: 0 5px; border-radius: 999px;
+  background: var(--ef-brand); color: #fff; font-size: .7rem; font-weight: 700; letter-spacing: 0; line-height: 1;
+}
+.ef-pf-active { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 12px 0 4px; }
+.ef-pf-active__label { font-size: .78rem; font-weight: 600; color: var(--ef-meta); margin-right: 2px; }
+.ef-pf-chip {
+  display: inline-flex; align-items: center; gap: 6px; max-width: 100%;
+  padding: 4px 6px 4px 10px; border: 1px solid var(--ef-brand-light); border-radius: 999px;
+  background: #e8f5e9; color: var(--ef-brand-dark); font-size: .78rem; font-weight: 600; line-height: 1.2;
+  text-decoration: none; transition: background-color .15s ease, border-color .15s ease;
+}
+.ef-pf-chip:hover,
+.ef-pf-chip:focus-visible { background: #fff; border-color: var(--ef-brand); color: var(--ef-brand-dark); }
+.ef-pf-chip__x {
+  display: inline-flex; align-items: center; justify-content: center; flex: 0 0 18px; height: 18px;
+  border-radius: 50%; background: var(--ef-brand); color: #fff; font-size: .85rem; line-height: 1;
+}
+/* while the next filtered page loads */
+.ef-pf-loading #primary { opacity: .55; pointer-events: none; transition: opacity .2s ease; }
 
 /* price filter: slim track, round handles, value pills, full-width button */
 #secondary .widget_price_filter .price_slider_wrapper .ui-widget-content,
@@ -245,104 +270,119 @@ a:hover, a:focus { color: var(--ef-text); }
 }
 .ef-filters-clear:hover { background: var(--ef-brand); border-color: var(--ef-brand); color: #fff; }
 
-/* —— MOBILE/TABLET (≤921px): filters = small HORIZONTAL bar, moved (via JS)
-   after the category description, right before the product grid. —— */
+/* —— DESKTOP: Categories starts closed under its title, a chevron opens it —— */
+@media (min-width: 922px) {
+  #secondary .widget:has(> .ef-pf[data-collapsible]) > .widget-title { cursor: pointer; margin-bottom: 0; user-select: none; }
+  #secondary .widget:has(> .ef-pf[data-collapsible]).ef-open > .widget-title { margin-bottom: 10px; }
+  #secondary .widget:has(> .ef-pf[data-collapsible]):not(.ef-open) > .ef-pf { display: none; }
+}
+/* the chevron of a section that opens (desktop Categories, every section in the panel) */
+#secondary .widget:has(> .ef-pf[data-collapsible]) > .widget-title::after,
+.ef-drawer #secondary .widget-title::after,
+.ef-drawer #secondary .widgettitle::after {
+  content: ""; flex: 0 0 auto; width: 8px; height: 8px; margin: -4px 4px 0 auto;
+  border-right: 2px solid var(--ef-brand); border-bottom: 2px solid var(--ef-brand);
+  transform: rotate(45deg); transition: transform .2s ease, margin .2s ease;
+}
+#secondary .widget.ef-open > .widget-title::after,
+#secondary .widget.ef-open > .widgettitle::after,
+#secondary .widget:has(> .ef-pf[data-collapsible]).ef-open > .widget-title::after { transform: rotate(-135deg); margin-top: 4px; }
+#secondary [role="button"].widget-title:focus-visible,
+#secondary [role="button"].widgettitle:focus-visible { outline: 2px solid var(--ef-brand); outline-offset: 3px; border-radius: 4px; }
+
+/* —— MOBILE/TABLET (≤921px): a bar at the top of the content (Filters button +
+   sorting) that sticks under the header; the filters open in a side panel
+   (inc/shop-filters.php builds both and moves the sidebar into the panel). —— */
 @media (max-width: 921px) {
-  #secondary,
-  #secondary .sidebar-main { width: 100% !important; display: block; position: static; }
-  /* the REAL container of the filter widgets (Astra puts them in .ast-filter-wrap) */
-  #secondary .ast-filter-wrap {
-    display: flex !important;
-    flex-wrap: wrap;                   /* filter buttons wrap onto a second row if needed */
-    align-items: center;
-    justify-content: flex-start;
-    gap: 6px;
-    margin: 2px 0 14px;
-    padding: 0;
-    overflow: visible;                 /* do NOT clip the dropdowns that drop below the bar */
+  /* until the script has moved it into the panel, the sidebar stays out of view */
+  .ast-container > #secondary { display: none; }
+  .ef-mbar {
+    position: sticky; top: var(--ef-mbar-top, 0px); z-index: 50;
+    display: flex; align-items: center; gap: 10px;
+    margin: 0 0 14px; padding: 10px 0;
+    background: #fff; border-bottom: 1px solid var(--ef-divider);
   }
-  .ef-filters-head { display: flex; flex: 0 0 auto; order: 99; }
-  body #secondary .ast-filter-wrap .widget-title,
-  body #secondary .ast-filter-wrap .widgettitle {
-    font-family: var(--ef-font-body) !important; font-size: .8rem !important; letter-spacing: 0;
+  .ef-mbar .ef-mbar__filters {
+    flex: 1 1 0; min-width: 0; height: 42px; min-height: 0;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    margin: 0; padding: 0 14px !important; border: 1px solid var(--ef-brand-light); border-radius: 10px;
+    background: #fff !important; color: var(--ef-text) !important; box-shadow: none;
+    font-family: var(--ef-font-body); font-size: .9rem; font-weight: 600; line-height: 1; letter-spacing: 0; text-transform: none;
   }
-  .ef-filters-head__title { display: none; }
-  #secondary .ast-filter-wrap > .widget { margin: 0 !important; padding: 0 !important; position: relative; flex: 0 0 auto; width: auto; border: 0; }
-  /* the TITLE (button) = very small, so they all fit horizontally */
-  #secondary .widget-title,
-  #secondary .widgettitle {
-    margin: 0;
-    border: 1px solid var(--ef-brand-light);
-    border-radius: 6px;
-    padding: 6px 24px 6px 12px;
-    border-radius: 999px;
-    background: #fff;
-    cursor: pointer;
-    font-size: .74rem;
-    font-weight: 600;
-    line-height: 1.2;
-    letter-spacing: 0;
-    text-transform: none;
-    white-space: nowrap;
-    position: relative;
-    user-select: none;
+  .ef-mbar .ef-mbar__filters svg { color: var(--ef-brand); }
+  .ef-mbar .ef-mbar__filters:focus-visible { outline: 2px solid var(--ef-brand); outline-offset: 2px; }
+  .ef-mbar__sort { flex: 1 1 0; min-width: 0; }
+  .ef-mbar__sort .woocommerce-ordering { margin: 0; float: none !important; width: 100% !important; }
+  .ef-mbar__sort select.orderby {
+    width: 100%; max-width: none; height: 42px; margin: 0; padding: 0 30px 0 12px;
+    border: 1px solid var(--ef-brand-light); border-radius: 10px; background-color: #fff;
+    color: var(--ef-text); font-size: .9rem; font-weight: 600;
   }
-  #secondary .widget-title::after,
-  #secondary .widgettitle::after {
-    content: "\25BE"; /* ▾ */
-    position: absolute; right: 9px; top: 50%; transform: translateY(-50%);
-    color: var(--ef-brand); font-size: .8em; pointer-events: none;
-  }
-  #secondary .widget.ef-open .widget-title::after,
-  #secondary .widget.ef-open .widgettitle::after { content: "\25B4"; /* ▴ */ }
-  /* the options panel = hidden dropdown — text at NORMAL size (visibility so the
-     price slider can take its width) */
-  #secondary .widget > *:not(.widget-title):not(.widgettitle) {
-    position: absolute; top: calc(100% + 4px); left: 0; z-index: 60;
-    min-width: 210px; max-width: 82vw; max-height: 60vh; overflow: auto;
-    background: #fff; border: 1px solid var(--ef-border); border-radius: 10px;
-    box-shadow: 0 12px 28px rgba(0,0,0,.16); padding: 14px; margin: 0;
-    visibility: hidden; opacity: 0; pointer-events: none; transition: opacity .15s ease;
-  }
-  #secondary .widget.ef-open > *:not(.widget-title):not(.widgettitle) {
-    visibility: visible; opacity: 1; pointer-events: auto;
-  }
-  /* the last filters open the dropdown to the left so it doesn't run off-screen */
-  /* the panel spans the whole filter bar (the buttons may wrap onto two rows) */
-  #secondary .ast-filter-wrap { position: relative; }
-  #secondary .ast-filter-wrap > .widget { position: static !important; }
-  #secondary .widget > *:not(.widget-title):not(.widgettitle) { left: 0; right: 0; min-width: 0; max-width: none; }
-
-  /* Astra Pro sticky shop toolbar (fixed at the bottom of the screen): keep the bar
-     just as tall as its controls + 10px top/bottom, filters and sorting on one row,
-     and open the filter panels UPWARDS (the bar sits at the bottom of the viewport). */
-  .ast-shop-toolbar-container .ast-sticky-shop-filters { padding: 10px 16px; gap: 8px; align-items: center; }
+  /* the result count stays above the grid, on its own line (Astra Pro pins this
+     container to the bottom of the screen on phones and pushes the grid down) */
+  .ast-header-break-point .ast-shop-toolbar-container { position: static !important; display: block; margin: 0 0 10px; z-index: auto; }
   .ast-shop-toolbar-container .ast-shop-toolbar-aside-wrap { margin: 0 !important; }
-  .ast-shop-toolbar-container .ast-shop-toolbar-aside-wrap:first-child { flex: 1 1 auto; min-width: 0; }
-  .ast-shop-toolbar-container #secondary { margin: 0 !important; }
-  .ast-shop-toolbar-container #secondary .ast-filter-wrap { margin: 0; }
-  .ast-shop-toolbar-container .woocommerce-ordering select { width: auto; max-width: 140px; }
-  .ast-shop-toolbar-container #secondary .widget > *:not(.widget-title):not(.widgettitle) {
-    top: auto; bottom: calc(100% + 24px);
-  }
+  .ast-shop-toolbar-container .ast-shop-toolbar-aside-wrap:empty { display: none; }
+  .ast-header-break-point.ast-woocommerce-shop-page-modern-style ul.products { margin-top: 0; }
 }
 
-/* Phones (Astra Pro's sticky-toolbar breakpoint, 544px): Astra's script rebuilds the
-   bottom bar in several steps after the page is parsed (sorting only → filters moved
-   in → wrapped into .ast-sticky-shop-filters), and the fixed bar grew and shrank on
-   screen each time (layout shift). Keep it hidden until its final markup is in place;
-   a bar that appears once is not a layout shift. Only with JS: without it the
-   script never runs, so the bar stays visible as it is. */
-@media (max-width: 544px) {
-  .woocommerce-js.ast-default-shop-page-modern-style .ast-shop-toolbar-container:not(:has(> .ast-sticky-shop-filters)) { display: none; }
-  /* The same script inserts the "Showing 1–12 of N results" line above the product
-     grid, pushing the grid down (seen on tag and search pages, where the grid is in
-     the first screen). Hold an identical empty line (same font, line-height and 1em
-     margins) under the notices until the real one arrives. */
-  .woocommerce-js.ast-default-shop-page-modern-style .woocommerce-notices-wrapper:not(:has(+ .woocommerce-result-count))::after {
-    content: "\00a0"; display: block; line-height: 1; margin: 1em 0;
-  }
+/* the Filters side panel (only ever opened on mobile/tablet) */
+.ef-drawer { position: fixed; inset: 0; z-index: 100000; }
+.ef-drawer[hidden] { display: none; }
+html.ef-drawer-open { overflow: hidden; }
+.ef-drawer__backdrop { position: absolute; inset: 0; background: rgba(17, 24, 39, .5); }
+.ef-drawer__panel {
+  position: absolute; top: 0; bottom: 0; left: 0; width: min(420px, 88vw);
+  display: flex; flex-direction: column; background: #fff;
+  box-shadow: 8px 0 30px rgba(0,0,0,.2); animation: ef-drawer-in .22s ease-out;
 }
+@keyframes ef-drawer-in { from { transform: translateX(-100%); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .ef-drawer__panel { animation: none; } }
+.ef-drawer__head {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 8px 10px 16px; border-bottom: 1px solid var(--ef-divider);
+  font-family: var(--ef-font-head); font-size: 1.15rem; color: var(--ef-text);
+}
+.ef-drawer .ef-drawer__close {
+  width: 44px; height: 44px; min-height: 0; display: inline-flex; align-items: center; justify-content: center;
+  margin: 0; padding: 0 !important; border: 0; border-radius: 10px;
+  background: transparent !important; color: var(--ef-text) !important; box-shadow: none;
+  font-size: 1.8rem; line-height: 1;
+}
+.ef-drawer .ef-drawer__close:hover { background: #f1f8f1 !important; }
+.ef-drawer__body { flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; padding: 0 16px; }
+.ef-drawer__foot { padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid var(--ef-divider); }
+.ef-drawer .ef-drawer__done {
+  width: 100%; margin: 0; padding: 13px 16px; border: 0; border-radius: 10px;
+  background: var(--ef-brand) !important; color: #fff !important; font-size: .95rem; font-weight: 600;
+}
+.ef-drawer .ef-drawer__done:hover { background: var(--ef-brand-dark) !important; }
+/* the sidebar inside the panel: sections one under another, each opened by its title */
+.ef-drawer #secondary,
+.ef-drawer #secondary .sidebar-main {
+  display: block; float: none; position: static; width: 100% !important;
+  margin: 0; padding: 0; background: none; border: 0; box-shadow: none;
+}
+.ef-drawer #secondary .ast-filter-wrap { display: block !important; margin: 0; padding: 0; }
+.ef-drawer .ef-filters-head { display: flex; justify-content: flex-end; padding: 12px 0 0; border: 0; }
+.ef-drawer .ef-filters-head__title { display: none; }
+.ef-drawer .ef-filters-head:not(:has(.ef-filters-clear)) { display: none; }
+.ef-drawer .ef-pf-active { padding: 10px 0 12px; border-bottom: 1px solid var(--ef-divider); }
+.ef-drawer #secondary .widget { margin: 0; padding: 0; border-bottom: 1px solid var(--ef-divider); }
+.ef-drawer #secondary .widget:last-child { border-bottom: 0; }
+.ef-drawer #secondary .widget-title,
+.ef-drawer #secondary .widgettitle {
+  display: flex; align-items: center; gap: 8px; margin: 0; padding: 16px 0;
+  border: 0; background: none; cursor: pointer; user-select: none;
+  font-family: var(--ef-font-head) !important; font-size: .95rem !important; font-weight: 600; line-height: 1.2;
+  text-transform: uppercase; letter-spacing: .06em; color: var(--ef-text);
+}
+.ef-drawer #secondary .widget:not(.ef-open) > :not(.widget-title):not(.widgettitle) { display: none; }
+.ef-drawer #secondary .widget.ef-open > :not(.widget-title):not(.widgettitle) { padding-bottom: 14px; }
+
+/* Astra's "Out of stock" label on product cards: red, so it stands out */
+.woocommerce ul.products li.product .ast-shop-product-out-of-stock,
+.woocommerce-page ul.products li.product .ast-shop-product-out-of-stock { color: #c62828; font-weight: 700; }
 
 /* Product grid card — subtle border like the original */
 .ef-product-card {

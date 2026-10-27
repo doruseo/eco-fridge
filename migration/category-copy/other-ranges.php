@@ -15,18 +15,18 @@ return array(
 <h2>Equipment for bakeries, cafés and kitchens</h2>
 <p>Our bakery range brings together the cooking and refrigeration a bakery or café kitchen needs: stainless steel convection ovens for bake-off and fresh baking, and bakery cabinets that store and prove dough on standard trays.</p>
 
-<h2>Commercial ovens</h2>
+<h2><a href="/range/bakery-cabinets/ovens/">Commercial ovens</a></h2>
 <ul>
 <li><strong>Compact oven</strong> – about 600 × 680 × 590 mm, four 400 × 300 mm trays, +50 to +300 °C, 3 kW on a 13-amp plug.</li>
 <li><strong>Oven and grill with steamer</strong> – about 600 × 630 × 575 mm, four trays, steam function, 2.6 kW on a 13-amp plug.</li>
 <li><strong>Large oven with grill and steamer</strong> – about 860 × 750 × 590 mm, four 590 × 390 mm trays, 6 kW (installation by a qualified electrician).</li>
 <li><strong>Large oven with steamer</strong> – about 920 × 850 × 825 mm, eight 520 × 390 mm trays, 9 kW (installation by a qualified electrician).</li>
-<li><strong>Oven stand</strong> with tray-rack storage, and a <strong>stainless steel contact grill</strong> for panini and toasties.</li>
+<li><strong><a href="/range/bakery-cabinets/oven-stands/">Oven stand</a></strong> with tray-rack storage, and a <strong>stainless steel contact grill</strong> for panini and toasties (see <a href="/range/bakery-cabinets/grills/">grills</a>).</li>
 </ul>
 <p>The ovens feature a 120-minute timer with bell, chamber light, stainless steel or ceramic-coated cavities with rounded corners for easy cleaning, and good insulation on five sides.</p>
 
 <h2>Bakery refrigeration</h2>
-<p>For dough and bakes, see our <a href="/range/storage-cabinets/stainless-steel-upright-bakery-cabinets/">bakery fridges, freezers and retarder provers</a>, all designed for 400 × 600 mm trays. To display what you bake, browse <a href="/product-category/commercial-display-fridge/patisserie-fridge/">patisserie fridges</a> and <a href="/range/display-cabinets/heated-display-cabinets/">heated display cabinets</a>.</p>
+<p>For dough and bakes, see our <a href="/range/bakery-cabinets/bakery-fridges/">bakery fridges</a>, <a href="/range/bakery-cabinets/bakery-freezers/">bakery freezers</a> and <a href="/range/bakery-cabinets/retarder-provers/">retarder provers</a>, all designed for 400 × 600 mm trays. To display what you bake, browse <a href="/product-category/commercial-display-fridge/patisserie-fridge/">patisserie fridges</a> and <a href="/range/display-cabinets/heated-display-cabinets/">heated display cabinets</a>.</p>
 HTML,
 		'faq'      => array(
 			array( 'What bakery equipment do you supply?', 'Stainless steel commercial ovens (with grill and steam options), an oven stand, a contact grill, and bakery fridges, freezers and a retarder prover for 400 × 600 mm trays.' ),

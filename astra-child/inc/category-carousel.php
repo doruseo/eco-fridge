@@ -389,7 +389,8 @@ add_action( 'wp', function () {
 } );
 
 add_action( 'woocommerce_archive_description', function () {
-	if ( ! ef_is_shop_page() ) { return; }
+	// Filtered /shop/ = search results from the filter bar: straight to the products.
+	if ( ! ef_is_shop_page() || ef_pf_is_filtered() ) { return; }
 
 	$types = ef_shop_type_cards();
 	$cards = ef_shop_carousel_cards();

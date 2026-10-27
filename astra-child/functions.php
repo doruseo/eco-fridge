@@ -31,7 +31,8 @@ require_once get_stylesheet_directory() . '/inc/product-details.php';
 // driven 100% by the authoritative WP menu (Primary Menu #342). Footer/banner stay native.
 require_once get_stylesheet_directory() . '/inc/header.php';
 
-// Custom widget for the (contextual) subcategory filter in the shop sidebar.
+// Product filter bar (facets, counts, filtered URLs) + the shop sidebar's layout.
+require_once get_stylesheet_directory() . '/inc/product-filters.php';
 require_once get_stylesheet_directory() . '/inc/shop-filters.php';
 
 // Categories' long-form content (below the product grid) + editing from the dashboard.

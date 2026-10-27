@@ -76,12 +76,31 @@ $spec_rows = function ( WC_Product $p ) {
 	return $rows;
 };
 
+/**
+ * Products without a spec table (ovens, bakery cabinets): size from the
+ * "Dimensions" attribute ("OVE50 - 920mm x 850mm x 825mm (WxDxH)"), temperature
+ * from the Features tab ("Temp Range +2 / +7°C", "Thermostat +50 to +300℃").
+ */
+$spec_fallback = static function ( WC_Product $p ) {
+	$out  = array( 'size' => '', 'temp' => '', 'width' => 0 );
+	$dims = (string) $p->get_attribute( 'dimensions' );
+	if ( preg_match( '~(\d{3,4})\s*mm\s*x\s*(\d{3,4})\s*mm\s*x\s*(\d{3,4})\s*mm~i', $dims, $m ) ) {
+		$out['size']  = $m[1] . ' × ' . $m[2] . ' × ' . $m[3] . ' mm';
+		$out['width'] = (int) $m[1];
+	}
+	$features = wp_strip_all_tags( str_replace( '</li>', "\n", (string) get_post_meta( $p->get_id(), '_ef_tab_features', true ) ) );
+	if ( preg_match( '~^\s*(?:temp(?:erature)?\s*range:?|thermostat)\s*(.+?)\s*$~mi', html_entity_decode( $features, ENT_QUOTES, 'UTF-8' ), $m ) ) {
+		$out['temp'] = trim( str_replace( array( '℃', '(Oven)' ), array( '°C', '' ), $m[1] ) );
+	}
+	return $out;
+};
+
 /** Size (W × D × H mm) and temperature of a product, from its spec table. */
-$spec = function ( WC_Product $p ) use ( $spec_rows ) {
+$spec = function ( WC_Product $p ) use ( $spec_rows, $spec_fallback ) {
 	$rows = $spec_rows( $p );
 	$out  = array( 'size' => '', 'temp' => '', 'width' => 0 );
 	if ( count( $rows ) < 2 ) {
-		return $out;
+		return $spec_fallback( $p );
 	}
 	$head = array_map( 'strtolower', $rows[0] );
 	$di   = $ti = null;
@@ -129,7 +148,7 @@ $fits = static function ( WC_Product $p, WP_Term $t ) {
 	$name = strtolower( $p->get_name() );
 	$cat  = strtolower( $t->slug . ' ' . $t->name );
 	if ( preg_match( '~\b(oven|grill|stand|prover)\b|bakery~', $name ) ) {
-		return (bool) preg_match( '~bakery|storage-cabinets|graded~', $cat );
+		return (bool) preg_match( '~bakery|oven|grill|stand|prover|storage-cabinets|graded~', $cat );
 	}
 	if ( preg_match( '~heated|\bhot\b~', $name ) && ! preg_match( '~heat|hot|dual|display-cabinets|graded|deli~', $cat ) ) {
 		return false; // Heated displays only in the heated ranges.
@@ -205,8 +224,9 @@ $table_for = function ( WP_Term $t ) use ( $products_of, $spec, $temps, $money, 
 				if ( $s['width'] ) { $widths[] = $s['width']; }
 				if ( '' !== (string) $p->get_price() ) { $prices[] = (float) $p->get_price(); }
 			}
-			if ( ! preg_match( '~heat|hot~', $c->slug ) ) {
-				// Chilled/frozen ranges: ignore heated models filed in the same category.
+			if ( ! preg_match( '~heat|hot|oven|grill|prover~', $c->slug ) ) {
+				// Chilled/frozen ranges: ignore heated models filed in the same category
+				// (ovens, grills and retarder provers keep their warm temperatures).
 				$t_nums = array_filter( $t_nums, static fn( $n ) => $n <= 20 );
 			}
 			$temp_txt  = $t_nums ? $range_txt( min( $t_nums ), max( $t_nums ) ) : '–';
