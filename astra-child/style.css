@@ -124,53 +124,58 @@ a:hover, a:focus { color: var(--ef-text); }
 /* =========================================================================
    FILTER SIDEBAR on category archives (left)
    ========================================================================= */
-/* Shared look (desktop + the mobile dropdown panels): rows with a hover tint,
-   count badges, custom checkboxes on the attribute filters, a styled slider. */
-.ef-filter-cats { list-style: none; margin: 0; padding: 0; }
-.ef-filter-cats li { margin: 0; }
-.ef-filter-cats a,
-#secondary .woocommerce-widget-layered-nav-list .woocommerce-widget-layered-nav-list__item a {
+/* Shared look (desktop + the mobile dropdown panels): option rows with a custom
+   checkbox, a count badge and a hover tint; groups collapse under a chevron
+   (inc/product-filters.php); a styled price slider. */
+.ef-pf-list,
+.ef-pf-sub { list-style: none; margin: 0; padding: 0; }
+.ef-pf-item { margin: 0; }
+.ef-pf-row { display: flex; align-items: center; gap: 2px; }
+.ef-pf-opt {
+  position: relative; flex: 1 1 auto; min-width: 0;
   display: flex; align-items: center; gap: 10px;
-  margin: 0 0 2px; padding: 7px 10px; border: 0; border-radius: 8px;
-  color: var(--ef-text); font-size: .9rem; line-height: 1.3; text-decoration: none;
+  margin: 0 0 2px; padding: 7px 10px; border-radius: 8px;
+  color: var(--ef-text); font-size: .9rem; font-weight: 400; line-height: 1.3; cursor: pointer;
   transition: background-color .15s ease, color .15s ease;
 }
-.ef-filter-cats a:hover,
-#secondary .woocommerce-widget-layered-nav-list .woocommerce-widget-layered-nav-list__item a:hover {
-  background: #f1f8f1; color: var(--ef-brand-dark); border: 0;
-}
-.ef-filter-cats li { display: flex; align-items: center; position: relative; }
-.ef-filter-cats li > a { flex: 1 1 auto; padding-right: 46px; }
-.ef-filter-cats .ef-count,
-#secondary .woocommerce-widget-layered-nav-list .count {
-  margin-left: auto; min-width: 26px; padding: 1px 8px; border-radius: 999px;
-  background: #eef1f4; color: #4b5563; font-size: .72rem; font-weight: 600; text-align: center;
-}
-.ef-filter-cats .ef-count { position: absolute; right: 10px; pointer-events: none; }
-.ef-filter-cats li.ef-current > a {
-  background: #e8f5e9; color: var(--ef-brand-dark); font-weight: 700;
-  box-shadow: inset 3px 0 0 var(--ef-brand);
-}
-.ef-filter-cats li.ef-current .ef-count { background: var(--ef-brand); color: #fff; }
-
-/* attribute filters (Width, Height): full-width rows with a custom checkbox */
-#secondary .woocommerce-widget-layered-nav-list { margin: 0; padding: 0; list-style: none; }
-#secondary .woocommerce-widget-layered-nav-list .woocommerce-widget-layered-nav-list__item { display: block; margin: 0; }
-#secondary .woocommerce-widget-layered-nav-list__item a::before {
-  content: ""; flex: 0 0 18px; height: 18px; box-sizing: border-box;
-  margin: 0 !important; border: 1.5px solid #c3cad3; border-radius: 5px; background: #fff center / 12px no-repeat;
-  font-family: inherit !important;
+.ef-pf-opt:hover { background: #f1f8f1; color: var(--ef-brand-dark); }
+/* the real checkbox stays focusable, the box beside it is what shows */
+.ef-pf-opt input { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
+.ef-pf-box {
+  flex: 0 0 18px; height: 18px; box-sizing: border-box;
+  border: 1.5px solid #c3cad3; border-radius: 5px; background: #fff center / 12px no-repeat;
   transition: background-color .15s ease, border-color .15s ease;
 }
-#secondary .woocommerce-widget-layered-nav-list__item a:hover::before { border-color: var(--ef-brand); }
-#secondary .woocommerce-widget-layered-nav-list__item.chosen a,
-#secondary .woocommerce-widget-layered-nav-list__item--chosen a { color: var(--ef-brand-dark); font-weight: 600; border: 0; }
-#secondary .woocommerce-widget-layered-nav-list__item.chosen a::before,
-#secondary .woocommerce-widget-layered-nav-list__item--chosen a::before {
+.ef-pf-opt:hover .ef-pf-box { border-color: var(--ef-brand); }
+.ef-pf-opt input:focus-visible + .ef-pf-box { box-shadow: 0 0 0 3px rgba(34,139,34,.3); }
+.ef-pf-opt input:checked + .ef-pf-box {
   background-color: var(--ef-brand); border-color: var(--ef-brand);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2l2.3 2.3 4.7-5' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
-#secondary .woocommerce-widget-layered-nav-list__item.chosen .count { background: var(--ef-brand); color: #fff; }
+.ef-pf-opt:has(input:checked) { color: var(--ef-brand-dark); font-weight: 600; }
+.ef-pf-name { flex: 1 1 auto; min-width: 0; }
+.ef-pf-count {
+  flex: 0 0 auto; margin-left: auto; min-width: 26px; padding: 1px 8px; border-radius: 999px;
+  background: #eef1f4; color: #4b5563; font-size: .72rem; font-weight: 600; text-align: center;
+}
+.ef-pf-opt:has(input:checked) .ef-pf-count { background: var(--ef-brand); color: #fff; }
+/* the chevron that opens a group (reset Astra's global button look) */
+.ef-pf .ef-pf-toggle {
+  flex: 0 0 30px; width: 30px; height: 30px; min-height: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  margin: 0 0 2px; padding: 0 !important; border: 0; border-radius: 8px;
+  background: transparent !important; color: var(--ef-brand) !important; box-shadow: none; line-height: 1; cursor: pointer;
+}
+.ef-pf .ef-pf-toggle:hover { background: #f1f8f1 !important; }
+.ef-pf .ef-pf-toggle:focus-visible { outline: 2px solid var(--ef-brand); outline-offset: 1px; }
+.ef-pf-toggle svg { transition: transform .2s ease; }
+.ef-pf-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+/* a group's ranges: indented under a thin guide line */
+.ef-pf-sub { margin: 0 0 4px 19px; padding-left: 8px; border-left: 2px solid var(--ef-divider); }
+.ef-pf-sub[hidden] { display: none; }
+.ef-pf-sub .ef-pf-opt { padding: 6px 8px; font-size: .85rem; }
+/* while the next filtered page loads */
+.ef-pf-loading #primary { opacity: .55; pointer-events: none; transition: opacity .2s ease; }
 
 /* price filter: slim track, round handles, value pills, full-width button */
 #secondary .widget_price_filter .price_slider_wrapper .ui-widget-content,
