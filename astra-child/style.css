@@ -380,6 +380,10 @@ html.ef-drawer-open { overflow: hidden; }
 .ef-drawer #secondary .widget:not(.ef-open) > :not(.widget-title):not(.widgettitle) { display: none; }
 .ef-drawer #secondary .widget.ef-open > :not(.widget-title):not(.widgettitle) { padding-bottom: 14px; }
 
+/* Astra's "Out of stock" label on product cards: red, so it stands out */
+.woocommerce ul.products li.product .ast-shop-product-out-of-stock,
+.woocommerce-page ul.products li.product .ast-shop-product-out-of-stock { color: #c62828; font-weight: 700; }
+
 /* Product grid card — subtle border like the original */
 .ef-product-card {
   border: 1px solid var(--ef-border);
