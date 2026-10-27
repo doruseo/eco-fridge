@@ -696,7 +696,9 @@ class EF_Product_Filter_Widget extends WP_Widget {
 		$badge = $selected ? ' <span class="ef-pf-n" aria-label="' . count( $selected ) . ' selected">' . count( $selected ) . '</span>' : '';
 		echo $args['before_widget']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo $args['before_title'] . esc_html( $title ) . $badge . $args['after_title']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo '<div class="ef-pf" data-facet="' . esc_attr( $facet ) . '"><ul class="ef-pf-list">' . $html . '</ul></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
+		// Categories is a long list: on desktop it starts closed under its title (shop-filters.php).
+		$collapsible = 'categories' === $facet ? ' data-collapsible="1"' : '';
+		echo '<div class="ef-pf" data-facet="' . esc_attr( $facet ) . '"' . $collapsible . '><ul class="ef-pf-list">' . $html . '</ul></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
 		echo $args['after_widget']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
