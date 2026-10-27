@@ -15,6 +15,9 @@
  *     Products are matched by ID and checked by title, so the script stops
  *     instead of filing the wrong product on a database where IDs differ.
  *  2. The six categories go under "Bakery & Ovens" in the Commercial menu.
+ *     Bakery Fridges / Freezers also go under Storage Fridge / Storage Freezer
+ *     (Commercial Fridges / Freezers), and their products are filed under
+ *     Commercial Fridges / Freezers too: they are fridges and freezers as well.
  *  3. The product tags "Bakery Fridges" and "Bakery Freezers" of an earlier
  *     version of this migration are deleted: the categories replace them (the
  *     products are Upright Storage Fridges / Freezers in the Type filter,
@@ -127,6 +130,50 @@ if ( ! $under ) {
 			'menu-item-status'    => 'publish',
 		) );
 		WP_CLI::log( "Menu: added {$categories[ $slug ][0]} under Bakery & Ovens." );
+	}
+}
+
+// 2b. A bakery fridge is a fridge and a bakery freezer a freezer: the products
+// are filed under Commercial Fridges / Freezers too, and the two categories also
+// sit under Storage Fridge / Storage Freezer in the menu (the filter bar's
+// Fridges and Freezers groups follow the menu).
+$also = array(
+	'bakery-fridges'  => array( 'product_cat' => 'commercial-fridge', 'menu_under' => 'storage-fridge' ),
+	'bakery-freezers' => array( 'product_cat' => 'commercial-freezer', 'menu_under' => 'storage-freezer' ),
+);
+foreach ( $also as $slug => $where ) {
+	$extra = get_term_by( 'slug', $where['product_cat'], 'product_cat' );
+	if ( $extra ) {
+		foreach ( array_keys( $categories[ $slug ][1] ) as $id ) {
+			wp_set_object_terms( $id, (int) $extra->term_id, 'product_cat', true );
+		}
+		WP_CLI::log( "{$categories[ $slug ][0]}: products also in {$extra->name}." );
+	}
+	$host = get_term_by( 'slug', $where['menu_under'], 'product_cat' );
+	$item = 0;
+	$have = false;
+	foreach ( (array) $items as $it ) {
+		if ( $host && 'taxonomy' === $it->type && 'product_cat' === $it->object && (int) $it->object_id === (int) $host->term_id ) {
+			$item = (int) $it->ID;
+		}
+	}
+	foreach ( (array) $items as $it ) {
+		if ( $item && (int) $it->menu_item_parent === $item && (int) $it->object_id === $cat_ids[ $slug ] ) {
+			$have = true;
+		}
+	}
+	if ( ! $item ) {
+		WP_CLI::warning( "No menu entry for {$where['menu_under']}: {$categories[ $slug ][0]} not added there." );
+	} elseif ( ! $have ) {
+		wp_update_nav_menu_item( $menu_id, 0, array(
+			'menu-item-title'     => $categories[ $slug ][0],
+			'menu-item-object'    => 'product_cat',
+			'menu-item-object-id' => $cat_ids[ $slug ],
+			'menu-item-type'      => 'taxonomy',
+			'menu-item-parent-id' => $item,
+			'menu-item-status'    => 'publish',
+		) );
+		WP_CLI::log( "Menu: added {$categories[ $slug ][0]} under {$host->name}." );
 	}
 }
 
