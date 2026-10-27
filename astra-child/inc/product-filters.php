@@ -161,8 +161,9 @@ function ef_pf_category_options() {
 }
 
 /**
- * Type tags, in display order (migration 64). The bakery and oven tags are left
- * out: they are already options under Categories.
+ * Type tags, in display order (migration 64), then the bakery / oven ones that
+ * have no general type (migration 63). Bakery Fridges / Freezers are left out:
+ * those products are Upright Storage Fridges / Freezers here.
  *
  * @return string[]
  */
@@ -173,7 +174,7 @@ function ef_pf_type_tags() {
 		'heated-displays', 'upright-display-freezers', 'chest-freezers', 'upright-storage-fridges',
 		'gastronorm-fridges', 'upright-storage-freezers', 'gastronorm-freezers', 'counter-fridges',
 		'counter-freezers', 'under-counter-fridges', 'under-counter-freezers', 'low-temperature-freezers',
-		'medical-fridges',
+		'medical-fridges', 'retarder-provers', 'ovens', 'grills', 'oven-stands',
 	);
 }
 

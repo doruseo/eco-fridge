@@ -9,8 +9,9 @@
  *  1. Type tags (new): every visible product gets the tag(s) of what it is —
  *     Multideck Fridges, Patisserie Display Fridges, Under Counter Freezers, …
  *     Classified by hand from each product's title and categories; a product
- *     can be two types (e.g. a low-temperature chest freezer). The bakery and
- *     oven tags come from migration 63.
+ *     can be two types (e.g. a low-temperature chest freezer). The bakery fridge
+ *     and freezer are upright storage ones too; their bakery tags and the oven
+ *     tags come from migration 63.
  *     These tag pages repeat category pages, so they are noindex (Rank Math)
  *     to keep the categories as the pages that rank.
  *  2. Feature tags (existing): added where the product's title says so —
@@ -38,9 +39,9 @@ $types = array(
 	'heated-displays' => array( 'Heated Displays', array( 20, 24, 91, 122, 123, 124 ) ),
 	'upright-display-freezers' => array( 'Upright Display Freezers', array( 19, 30, 31, 84 ) ),
 	'chest-freezers' => array( 'Chest Freezers', array( 83, 128, 129, 130 ) ),
-	'upright-storage-fridges' => array( 'Upright Storage Fridges', array( 38, 40, 47, 50, 77, 134 ) ),
+	'upright-storage-fridges' => array( 'Upright Storage Fridges', array( 38, 40, 47, 50, 77, 132, 134 ) ),
 	'gastronorm-fridges' => array( 'Gastronorm & Meat Fridges', array( 66, 67, 121, 136 ) ),
-	'upright-storage-freezers' => array( 'Upright Storage Freezers', array( 39, 41, 46, 78, 139 ) ),
+	'upright-storage-freezers' => array( 'Upright Storage Freezers', array( 39, 41, 46, 78, 133, 139 ) ),
 	'gastronorm-freezers' => array( 'Gastronorm Freezers', array( 68, 69 ) ),
 	'counter-fridges' => array( 'Counter Fridges', array( 14, 16, 116 ) ),
 	'counter-freezers' => array( 'Counter Freezers', array( 15, 17 ) ),
@@ -159,6 +160,8 @@ $titles = array(
 	128 => 'Low Temperature Chest Fr',
 	129 => 'Low Temperature Chest Fr',
 	130 => 'Ultra Low Temperature Ch',
+	132 => 'Stainless Steel Upright ',
+	133 => 'Stainless Steel Upright ',
 	134 => 'Medical White Upright St',
 	135 => 'Silver Steel Patisserie ',
 	136 => 'Double Door Upright Gast',
