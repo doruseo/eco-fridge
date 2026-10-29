@@ -1650,6 +1650,10 @@ form.cart .ef-addon-group__body .ef-addon--radio input { margin-top: 0; }
   background: var(--ef-brand); color: #fff; border-color: #fff;
 }
 .wc-block-checkout a { color: var(--ef-brand); }
+/* the order summary lists name, price and quantity only: the product's short
+   description (finance badge, "Click Here For Energy Specification") is for
+   the product page */
+.wc-block-checkout .wc-block-components-order-summary-item .wc-block-components-product-metadata__description { display: none; }
 
 /* =========================================================================
    HOMEPAGE — rhythm/spacing + long-form SEO content (responsive)

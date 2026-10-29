@@ -327,6 +327,22 @@ function ef_pf_is_filtered() {
 	return false;
 }
 
+/**
+ * Whether the URL is a parameter variant of a listing for search engines: any
+ * filter, a price range or a sort order (?orderby= repeats the same products).
+ */
+function ef_pf_is_parameterised() {
+	if ( ef_pf_is_filtered() ) {
+		return true;
+	}
+	foreach ( array_keys( $_GET ) as $key ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only.
+		if ( 'orderby' === $key || 0 === strpos( $key, 'query_type_' ) ) {
+			return true;
+		}
+	}
+	return false;
+}
+
 /** Whether the filter bar runs on this request (shop + product archives). */
 function ef_pf_applies() {
 	return ! is_admin() && function_exists( 'is_shop' ) && ( is_shop() || is_product_taxonomy() ) && ! is_search();
@@ -614,17 +630,17 @@ function ef_pf_active_filters() {
 }
 
 /* =========================================================================
- * 6. SEO — filtered URLs are noindex and disallowed in robots.txt.
+ * 6. SEO — filtered and sorted URLs are noindex and disallowed in robots.txt.
  * ========================================================================= */
 add_filter( 'rank_math/frontend/robots', function ( $robots ) {
-	if ( ef_pf_applies() && ef_pf_is_filtered() ) {
+	if ( ef_pf_applies() && ef_pf_is_parameterised() ) {
 		$robots['index']  = 'noindex';
 		$robots['follow'] = 'follow';
 	}
 	return $robots;
 } );
 add_filter( 'wp_robots', function ( $robots ) {
-	if ( ef_pf_applies() && ef_pf_is_filtered() ) {
+	if ( ef_pf_applies() && ef_pf_is_parameterised() ) {
 		unset( $robots['index'] );
 		$robots['noindex'] = true;
 		$robots['follow']  = true;
@@ -633,7 +649,10 @@ add_filter( 'wp_robots', function ( $robots ) {
 } );
 
 add_filter( 'robots_txt', function ( $output ) {
-	$rules = "Disallow: /*?filter_\nDisallow: /*&filter_\nDisallow: /*?min_price=\nDisallow: /*&min_price=\nDisallow: /*?max_price=\nDisallow: /*&max_price=\n";
+	$rules = '';
+	foreach ( array( 'filter_', 'query_type_', 'min_price=', 'max_price=', 'orderby=' ) as $param ) {
+		$rules .= "Disallow: /*?$param\nDisallow: /*&$param\n";
+	}
 	if ( preg_match( '/^User-agent:\s*\*\s*$/mi', $output, $m, PREG_OFFSET_CAPTURE ) ) {
 		$at = $m[0][1] + strlen( $m[0][0] );
 		return substr( $output, 0, $at ) . "\n" . rtrim( $rules ) . substr( $output, $at );
