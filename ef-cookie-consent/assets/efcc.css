@@ -1,0 +1,162 @@
+/* EF Cookie Consent — banner, preferences dialog, cookie button, placeholders, policy tables.
+   Colours and sizes come from CSS variables printed from the settings. */
+
+.efcc-banner, .efcc-modal, .efcc-float, .efcc-placeholder {
+	--efcc-border: color-mix(in srgb, var(--efcc-text) 14%, transparent);
+	font-size: var(--efcc-font);
+	line-height: 1.5;
+	color: var(--efcc-text);
+	box-sizing: border-box;
+}
+.efcc-banner *, .efcc-modal *, .efcc-placeholder * { box-sizing: border-box; }
+.efcc-banner[hidden], .efcc-modal[hidden], .efcc-float[hidden] { display: none !important; }
+
+/* —— buttons —— */
+.efcc-btn {
+	display: inline-flex; align-items: center; justify-content: center;
+	min-height: 44px; margin: 0; padding: 10px 20px;
+	border: 2px solid var(--efcc-primary); border-radius: calc(var(--efcc-radius) * .8);
+	font: inherit; font-weight: 700; line-height: 1.2; letter-spacing: 0; text-transform: none;
+	cursor: pointer; white-space: nowrap; transition: background-color .15s ease, color .15s ease, box-shadow .15s ease;
+}
+.efcc-btn--primary { background: var(--efcc-primary) !important; color: var(--efcc-primary-text) !important; }
+.efcc-btn--primary:hover { box-shadow: 0 4px 14px color-mix(in srgb, var(--efcc-primary) 40%, transparent); }
+.efcc-btn--secondary { background: transparent !important; color: var(--efcc-primary) !important; }
+.efcc-btn--secondary:hover { background: color-mix(in srgb, var(--efcc-primary) 8%, transparent) !important; }
+.efcc-btn:focus-visible, .efcc-float:focus-visible, .efcc-cat__toggle:focus-visible, .efcc-modal__close:focus-visible {
+	outline: 3px solid var(--efcc-primary); outline-offset: 2px;
+}
+/* Capital letters on every button, never on one only. */
+.efcc-buttons--upper .efcc-btn { text-transform: uppercase; letter-spacing: .03em; }
+/* "Equal prominence": every choice looks the same (ICO guidance). */
+.efcc-buttons--equal .efcc-btn--secondary { background: var(--efcc-primary) !important; color: var(--efcc-primary-text) !important; }
+
+/* —— banner —— */
+.efcc-banner {
+	position: fixed; z-index: var(--efcc-z); background: var(--efcc-bg);
+	box-shadow: var(--efcc-shadow); border: 1px solid var(--efcc-border);
+}
+.efcc-banner--bar { left: 0; right: 0; bottom: 0; border-width: 1px 0 0; }
+.efcc-banner--bar .efcc-banner__inner {
+	max-width: var(--efcc-max); margin: 0 auto; padding: 18px 24px;
+	display: flex; align-items: center; gap: 24px;
+}
+.efcc-banner--box-left, .efcc-banner--box-right {
+	bottom: 20px; width: min(460px, calc(100vw - 32px)); border-radius: var(--efcc-radius);
+}
+.efcc-banner--box-left { left: 20px; }
+.efcc-banner--box-right { right: 20px; }
+.efcc-banner--center {
+	left: 50%; top: 50%; transform: translate(-50%, -50%);
+	width: min(560px, calc(100vw - 32px)); border-radius: var(--efcc-radius);
+}
+.efcc-banner--box-left .efcc-banner__inner, .efcc-banner--box-right .efcc-banner__inner, .efcc-banner--center .efcc-banner__inner { padding: 22px; }
+.efcc-banner__text { flex: 1 1 auto; min-width: 0; }
+.efcc-banner__title { margin: 0 0 4px; font-weight: 700; font-size: 1.1em; }
+.efcc-banner__message { margin: 0; }
+.efcc-banner__message a, .efcc-modal a { color: var(--efcc-primary); text-decoration: underline; }
+.efcc-banner__buttons { display: flex; flex-wrap: wrap; gap: 10px; flex: 0 0 auto; }
+.efcc-banner--box-left .efcc-banner__buttons, .efcc-banner--box-right .efcc-banner__buttons, .efcc-banner--center .efcc-banner__buttons { margin-top: 16px; }
+.efcc-banner--box-left .efcc-btn, .efcc-banner--box-right .efcc-btn, .efcc-banner--center .efcc-btn { flex: 1 1 auto; }
+
+/* —— preferences dialog —— */
+.efcc-modal { position: fixed; inset: 0; z-index: calc(var(--efcc-z) + 1); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.efcc-modal__backdrop { position: absolute; inset: 0; background: rgba(17, 24, 39, .55); }
+.efcc-modal__dialog {
+	position: relative; width: min(680px, 100%); max-height: calc(100vh - 32px);
+	display: flex; flex-direction: column; background: var(--efcc-bg); border-radius: var(--efcc-radius);
+	box-shadow: 0 20px 60px rgba(0, 0, 0, .3); outline: none;
+}
+.efcc-modal__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--efcc-border); }
+.efcc-modal__head h2 { margin: 0; font-size: 1.25em; line-height: 1.3; color: var(--efcc-text); }
+.efcc-modal__close {
+	width: 40px; height: 40px; min-height: 0; padding: 0 !important; border: 0; border-radius: 8px;
+	background: transparent !important; color: var(--efcc-text) !important; font-size: 1.8em; line-height: 1; cursor: pointer;
+}
+.efcc-modal__body { padding: 16px 20px; overflow-y: auto; overscroll-behavior: contain; }
+.efcc-modal__foot { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; padding: 14px 20px; border-top: 1px solid var(--efcc-border); }
+html.efcc-modal-open { overflow: hidden; }
+
+.efcc-cat { border: 1px solid var(--efcc-border); border-radius: calc(var(--efcc-radius) * .8); margin: 0 0 10px; }
+.efcc-cat__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; }
+.efcc-cat__toggle {
+	display: inline-flex; align-items: center; gap: 10px; margin: 0; padding: 4px 0 !important; border: 0;
+	background: transparent !important; color: var(--efcc-text) !important; font: inherit; font-weight: 700; cursor: pointer; text-transform: none; letter-spacing: 0;
+}
+.efcc-chevron { width: 8px; height: 8px; border-right: 2px solid var(--efcc-primary); border-bottom: 2px solid var(--efcc-primary); transform: rotate(-45deg); transition: transform .2s ease; }
+.efcc-cat__toggle[aria-expanded="true"] .efcc-chevron { transform: rotate(45deg); }
+.efcc-cat__body { padding: 0 14px 12px; }
+.efcc-cat__body[hidden] { display: none; }
+.efcc-cat__body p { margin: 0 0 8px; }
+.efcc-always { font-size: .85em; font-weight: 700; color: var(--efcc-primary); }
+.efcc-sub { font-weight: 700; margin-top: 8px !important; }
+.efcc-services { list-style: none; margin: 0 0 8px; padding: 0; }
+.efcc-services li { padding: 8px 0; border-top: 1px solid var(--efcc-border); }
+.efcc-service { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.efcc-service small { opacity: .75; }
+.efcc-service__purpose { margin: 4px 0 0 !important; font-size: .9em; opacity: .85; }
+.efcc-cookies summary { cursor: pointer; font-weight: 700; color: var(--efcc-primary); }
+.efcc-cookies table { width: 100%; margin-top: 8px; border-collapse: collapse; font-size: .85em; }
+.efcc-cookies th, .efcc-cookies td { padding: 6px 8px; border: 1px solid var(--efcc-border); text-align: left; vertical-align: top; }
+.efcc-consent-id { font-size: .85em; opacity: .8; }
+
+/* —— switches —— */
+.efcc-switch { position: relative; display: inline-flex; align-items: center; cursor: pointer; flex: 0 0 auto; }
+.efcc-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+.efcc-switch__ui { width: 44px; height: 24px; border-radius: 999px; background: #c3c4c7; position: relative; transition: background-color .15s ease; }
+.efcc-switch__ui::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .15s ease; }
+.efcc-switch input:checked + .efcc-switch__ui { background: var(--efcc-primary); }
+.efcc-switch input:checked + .efcc-switch__ui::after { transform: translateX(20px); }
+.efcc-switch input:focus-visible + .efcc-switch__ui { outline: 3px solid var(--efcc-primary); outline-offset: 2px; }
+.efcc-switch--small .efcc-switch__ui { width: 36px; height: 20px; }
+.efcc-switch--small .efcc-switch__ui::after { width: 14px; height: 14px; }
+.efcc-switch--small input:checked + .efcc-switch__ui::after { transform: translateX(16px); }
+
+/* —— cookie button —— */
+.efcc-float {
+	position: fixed; bottom: 18px; z-index: calc(var(--efcc-z) - 1);
+	width: 52px; height: 52px; min-height: 0; padding: 0 !important; display: flex; align-items: center; justify-content: center;
+	border: 1px solid var(--efcc-border); border-radius: 50%; background: var(--efcc-bg) !important;
+	box-shadow: 0 6px 20px rgba(0, 0, 0, .18); cursor: pointer; transition: transform .2s ease, box-shadow .2s ease;
+}
+.efcc-float--left { left: 18px; }
+.efcc-float--right { right: 18px; }
+.efcc-float:hover { transform: rotate(-12deg) scale(1.06); box-shadow: 0 8px 26px rgba(0, 0, 0, .24); }
+.efcc-float--mono { color: var(--efcc-text); }
+
+/* —— blocked-content placeholder —— */
+.efcc-placeholder {
+	display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+	min-height: 220px; width: 100%; padding: 20px; text-align: center;
+	background: color-mix(in srgb, var(--efcc-primary) 6%, #f6f7f7); border: 1px dashed color-mix(in srgb, var(--efcc-primary) 45%, transparent);
+	border-radius: var(--efcc-radius);
+}
+.efcc-placeholder__text { max-width: 460px; }
+
+/* —— policy page —— */
+.efcc-table-wrap { overflow-x: auto; margin: 0 0 1.5em; }
+.efcc-cookie-table { width: 100%; border-collapse: collapse; font-size: .92em; }
+.efcc-cookie-table th, .efcc-cookie-table td { padding: 8px 10px; border: 1px solid #dfe3e8; text-align: left; vertical-align: top; }
+.efcc-cookie-table th { background: #f6f7f7; }
+.efcc-inline-button {
+	padding: 10px 18px; border: 2px solid var(--efcc-primary, #1f821f); border-radius: 8px;
+	background: transparent; color: var(--efcc-primary, #1f821f); font-weight: 700; cursor: pointer;
+}
+
+/* —— small screens —— */
+@media (max-width: 760px) {
+	.efcc-banner--bar .efcc-banner__inner { flex-direction: column; align-items: stretch; gap: 14px; padding: 16px; }
+	/* Same order as on desktop, so no choice is pushed to the top. */
+	.efcc-banner__buttons { flex-direction: column; }
+	.efcc-banner__buttons .efcc-btn { width: 100%; }
+	.efcc-banner--box-left, .efcc-banner--box-right { left: 12px; right: 12px; bottom: 12px; width: auto; }
+	.efcc-modal { padding: 0; align-items: stretch; }
+	.efcc-modal__dialog { max-height: 100vh; height: 100%; border-radius: 0; }
+	.efcc-modal__foot .efcc-btn { flex: 1 1 100%; }
+	.efcc-float { width: 46px; height: 46px; bottom: 12px; }
+	.efcc-float--left { left: 12px; }
+	.efcc-float--right { right: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+	.efcc-btn, .efcc-float, .efcc-chevron, .efcc-switch__ui, .efcc-switch__ui::after { transition: none; }
+}
