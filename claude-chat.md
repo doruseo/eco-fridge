@@ -1039,12 +1039,27 @@ Actualizate și pasul de 05:00 din „Calendar lansare" și procedura generală 
 
 ---
 
+## 53. Ce verifică de fapt Kass sâmbătă (2026-10-29)
+
+**Doru:**
+> dar plata de sambata dimineata pe noul site migrat live, daca trece de AG Lloyds Cardnet nu inseamna ca a ajuns la Eco-Fridge in cont? Nu este acelasi lucru ca acum?
+
+**Răspuns (Claude): ai dreptate, formularea mea era exagerată.** Dacă plata e aprobată și capturată, banii au intrat în același cont de comerciant Lloyds și se decontează ca orice vânzare — exact ca la cele două plăți de £1 din 28 octombrie. Site-ul singur ne spune asta: webhook-ul întoarce APPROVED/CAPTURED și comanda trece pe Processing. Deci „a ajuns banul?" **nu** e întrebarea pentru Kass.
+
+**Ce poate vedea doar Kass**, și de asta merită totuși o privire în Virtual Terminal: că tranzacția e **în contul de comerciant live**, sub referința corectă. Sâmbătă dimineață mutăm licența și setările pe domeniul live; dacă, din greșeală, acolo ar ajunge credențialele magazinului de test, site-ul ar arăta tot „plată aprobată" — doar că aprobarea ar veni de la magazinul de test și n-ar circula bani reali. Singurul mod de a exclude asta e să vedem tranzacția în contul real. Și, oricum, rambursarea se face de acolo.
+
+Riscul e mic (credențialele live sunt deja probate pe 28 octombrie, cu carduri reale), deci am scos și „fii disponibil între 8 și 9": îi trimitem referința, iar Kass confirmă când poate. Ideal în aceeași dimineață, ca să aflăm de orice problemă înainte să anunțăm magazinul deschis, dar e o treabă de două minute, nu o gardă la oră fixă.
+
+Emailul spune acum exact asta, fără să pretindă că plata „trebuie confirmată că a ajuns".
+
+---
+
 ## Stare la 2026-10-29 (final)
 
-- **Git:** `main` cu PR #16–#38 unite; local, staging și git sunt identice; working tree curat. Migrări: 01–79, plus uneltele din `migration/tools` (inclusiv pluginul de închidere).
-- **Lansare:** propusă sâmbătă **7 noiembrie 2026, 05:00–09:00**; calendarul din Drive are datele reale (30 oct → 7 dec). La 05:00 magazinul vechi se închide cu pluginul; la 05:10 copia finală; la 08:30 comanda reală de test pe live.
-- **De cerut de la Ambrit (prin Mads), simplificat:** un backup luni 9 noiembrie, hostingul ținut 30 de zile, fără intervenții pe DNS.
-- **Emailul către Mads** e gata de trimis: opt puncte pentru Mads (inclusiv pluginul de închidere, instalat din dashboard), patru pentru Kass (plata nouă de test, rambursările, confirmarea Lloyds, anunțarea contabilității).
+- **Git:** `main` cu PR #16–#39 unite; local, staging și git sunt identice; working tree curat. Migrări: 01–79, plus uneltele din `migration/tools`.
+- **Lansare:** propusă sâmbătă **7 noiembrie 2026, 05:00–09:00**; calendarul din Drive are datele reale (30 oct → 7 dec). La 05:00 magazinul vechi se închide cu pluginul `ef-close-shop`; la 05:10 copia finală; la 08:30 comanda reală de test pe live.
+- **De cerut de la Ambrit (prin Mads):** un backup luni 9 noiembrie, hostingul ținut 30 de zile, fără intervenții pe DNS.
+- **Emailul către Mads** e gata de trimis: opt puncte pentru Mads (inclusiv pluginul de închidere, instalat din dashboard), patru pentru Kass (privirea în Virtual Terminal pentru contul live, rambursările, confirmarea Lloyds, anunțarea contabilității).
 - **SEO:** Rank Math cu modulele pornite de Doru; Local SEO completat; `/llms.txt` funcțional.
 - **Plăți:** Lloyds Cardnet pe Live. Flux: card → Processing → Preparing → Processed → Shipped → Complete; transfer bancar → On hold → Preparing → …
 - **Emailuri:** SMTP IONOS funcțional; „New order" către mads@ + orders@ la toate comenzile; emailurile spun același lucru ca SMS-urile.
@@ -1052,4 +1067,4 @@ Actualizate și pasul de 05:00 din „Calendar lansare" și procedura generală 
 - **Cookies:** registrul rescanat de Doru; equal prominence implicit.
 - **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
 - **Urmează:** trimiterea emailului și confirmarea datei → pregătirile de până vineri 30 octombrie → copia la zi a site-ului vechi și importul datelor → curățenie → lansarea pe 7 noiembrie.
-- **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2, cu pluginul de închidere), checklistul eco-fridge și tabul „Calendar lansare".
+- **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge și tabul „Calendar lansare".
