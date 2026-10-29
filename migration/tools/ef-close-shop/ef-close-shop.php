@@ -1,23 +1,27 @@
 <?php
 /**
- * Pause the OLD eco-fridge.co.uk shop on launch morning.
+ * Plugin Name: ECO-Fridge - Close online ordering
+ * Description: Keeps the shop visible but stops any order being placed, for the morning the new website goes live. Products cannot be added to the basket, the checkout refuses to run, no payment method is offered, and visitors are asked to ring the office instead. Deactivate this plugin to open the shop again.
+ * Version: 1.0.0
+ * Author: O2 Digital
+ * Requires PHP: 7.0
  *
- * WHERE THIS GOES: on the old site, as
- *   wp-content/mu-plugins/ef-pause-shop.php
- * Create the mu-plugins folder if it is not there. Files in mu-plugins load on
- * every request and need no activation, so nothing has to be clicked in the
- * admin and nothing can be deactivated by accident.
+ * HOW TO INSTALL (about thirty seconds, no FTP and nothing for the host to do):
+ *   WordPress admin > Plugins > Add New > Upload Plugin > choose ef-close-shop.zip
+ *   > Install Now > Activate.
+ * HOW TO UNDO: Plugins > deactivate "ECO-Fridge - Close online ordering".
+ * The shop opens again the moment it is deactivated.
  *
  * WHAT IT DOES: turns the shop into a catalogue. Products can be read, but
  * nothing can be added to the basket, the basket and checkout pages say the
  * same thing, and a submitted checkout is refused on the server as well. A
  * notice tells the customer to ring the office.
  *
- * WHY NOT MAINTENANCE MODE: a 503 or a "be right back" page would be wrong
- * here. After the DNS change, visitors reach the old server for several hours
- * while the change spreads, and all of them would see a dead site. In catalogue
- * mode they see the shop exactly as before, with ordering by phone for one
- * morning, and Google sees a normal, indexable site throughout.
+ * WHY NOT MAINTENANCE MODE: a 503 or "be right back" page would be wrong here.
+ * After the DNS change, visitors reach the old server for several hours while
+ * the change spreads, and all of them would see a dead site. In catalogue mode
+ * they see the shop exactly as before, with ordering by phone for one morning,
+ * and Google sees a normal, indexable site throughout.
  *
  * WHY NOT WP_DEBUG: debugging does not stop a single order. On PHP 7.3 it would
  * only print warnings and file paths to visitors.
@@ -26,15 +30,9 @@
  * typed properties, no null-coalescing assignment, no str_contains, nothing
  * newer than PHP 7.0. Tested against WooCommerce 3.5 hook names.
  *
- * ORDER OF THE MORNING (7 November):
- *   1. upload this file;
- *   2. check a product page: no "Add to cart", and the notice shows;
- *   3. in WooCommerce > Settings > Payments switch every gateway off, as a
- *      second layer in case a cached page still shows a button;
- *   4. take the final copy of the site;
- *   5. leave this file in place through the DNS change and for the 30-day
- *      rollback window. To sell from the old site again (rollback), delete the
- *      file and switch the gateways back on.
+ * SECOND LAYER: also switch every gateway off in WooCommerce > Settings >
+ * Payments, and disable any 100% discount coupon - a zero-total order needs no
+ * payment method at all.
  *
  * @package EcoFridgeMigration
  */
@@ -113,7 +111,7 @@ add_action( 'woocommerce_before_checkout_form', $ef_pause_notice, 5 );
 add_action(
 	'wp_head',
 	function () {
-		echo '<style id="ef-pause-shop">form.cart, .add_to_cart_button, .single_add_to_cart_button, .ajax_add_to_cart, .wc-block-components-product-button { display: none !important; }</style>' . "
+		echo '<style id="ef-close-shop">form.cart, .add_to_cart_button, .single_add_to_cart_button, .ajax_add_to_cart, .wc-block-components-product-button { display: none !important; }</style>' . "
 ";
 	},
 	99
@@ -138,7 +136,7 @@ add_action(
 add_action(
 	'admin_notices',
 	function () {
-		echo '<div class="notice notice-warning"><p><strong>Online ordering is paused</strong> while the new website goes live. '
-			. 'Remove wp-content/mu-plugins/ef-pause-shop.php to open the shop again.</p></div>';
+		echo '<div class="notice notice-warning"><p><strong>Online ordering is closed</strong> while the new website goes live. '
+			. 'Deactivate the plugin "ECO-Fridge - Close online ordering" to open the shop again.</p></div>';
 	}
 );
