@@ -495,12 +495,46 @@ Nu se preia: log-urile de email, sesiunile, cache-ul, tokenii de plată (Lloyds 
 
 ---
 
-## Stare la 2026-10-29
+## 30. Avertismentele pluginului AG și regula pentru comenzile noi (2026-10-29)
 
-- **Git:** `main` are PR #16; restul muncii e în PR nou (secțiunea 29). Local, staging și git sunt acum **identice**.
-- **Plăți:** Lloyds Cardnet merge pe Live, testat de Doru și de Kass; licența e a Eco-Fridge și se mută pe domeniul live.
+**Doru:**
+> Pluginul AG scrie în debug.log avertismente „dynamic property … is deprecated" pe PHP 8.3 - este problema, ma poate afecta?
+
+**Ce am verificat (Claude):**
+- Cauza e în pluginul AG: în constructorul fiecărui gateway rulează `foreach ( $this->settings as $key => $value ) { $this->$key = $value; }`, deci fiecare setare devine o proprietate nedeclarată a clasei. Din PHP 8.2, asta produce un avertisment de tip „deprecated"; codul funcționează în continuare, nimic nu se pierde.
+- Pe **staging nu există `debug.log`**: `WP_DEBUG` nu e definit acolo, deci avertismentele nici nu se scriu. Apar doar pe local, unde `WP_DEBUG` e pornit din `.wp-env.json` (277 KB, 858 linii).
+- Pe site-ul live, cu debug oprit, nu apar nici în pagină, nici în log.
+
+**Răspuns (Claude):** nu e o problemă acum. Trei lucruri de ținut minte:
+1. **`WP_DEBUG_DISPLAY` nu trebuie pornit niciodată pe live.** Dacă avertismentele s-ar afișa în pagină, ar putea strica răspunsul webhook-ului Lloyds sau redirectul de după plată. Pe live se lasă debug oprit (sau, cel mult, `WP_DEBUG_LOG` pornit și `WP_DEBUG_DISPLAY` oprit).
+2. **La PHP 9 avertismentul devine eroare fatală.** Până atunci e nevoie de o versiune nouă a pluginului de la AG. Rămânem pe PHP 8.3 și cerem actualizarea înainte de orice trecere la PHP 9.
+3. Local, avertismentele ascund erorile reale în `debug.log`. Se pot opri cu `E_DEPRECATED` scos din `error_reporting` într-un mu-plugin, dacă devine deranjant.
+
+**Doru:**
+> Ce mai trebuie preluat din copia la zi: asigura-te ca vei prelua inclusiv (pe langa tot ce am scris si ai scris tu) toate comenzile noi (si vezi mai intai sa stergi comenzile noastre de test, sa nu ratezi vreo comanda nou din site-ul live care poate trebuie sa fie predata/livrata).
+
+**Ce am verificat (Claude):**
+- Ultima comandă reală adusă din site-ul vechi este **#7261, din 10 iulie 2026**. Tot ce a intrat pe site-ul vechi după această dată trebuie preluat — în ritmul actual (aproximativ 20 de comenzi pe lună) sunt în jur de 70–90 de comenzi, iar unele pot fi încă neexpediate.
+- Comenzile noastre de test de pe staging: **#8007** (transfer bancar, £1.542), **#8029** (£2.760) și **#8030** (£1.908, amândouă anulate), **#8036** și **#8037** (câte £1,00, plătite real cu cardul, una de mine și una de Kass, amândouă pe Processing, fără rambursare înregistrată).
+- Riscul pe care îl semnalează Doru e real: numerele 8007–8037 sunt deja ocupate de teste, iar site-ul vechi continuă să-și numeroteze comenzile din 7261 în sus. Dacă o comandă reală ar nimeri peste un număr de test, ar putea fi sărită la import.
+
+**Regula stabilită:**
+1. **Întâi se șterg comenzile de test** (#8007, #8029, #8030, #8036, #8037) și coșurile abandonate de test, abia apoi se importă.
+2. Se importă **toate** comenzile apărute după #7261, cu numerele lor originale, cu liniile de produs, notele, rambursările și statusurile — în special cele neexpediate, care trebuie livrate după lansare.
+3. **Reconciliere 1:1:** lista numerelor de comandă din copia la zi se compară cu lista din site-ul nou; diferența trebuie să fie zero. Se verifică și totalul încasat.
+4. După import, secvența de ID-uri a site-ului nou se pornește peste cel mai mare număr importat.
+5. Cele două plăți reale de £1,00 se rambursează din Lloyds Virtual Terminal (sau se lasă, dar apar în decontare) **înainte** de ștergerea comenzilor, altfel se pierde urma lor.
+
+Regula a intrat în `claude-chat.md`, în memoria proiectului, în checklistul eco-fridge (faza 15), în calendarul de lansare și în procedura generală (ziua lansării).
+
+---
+
+## Stare la 2026-10-29 (actualizat)
+
+- **Git:** `main` cu PR #16 și #17 unite; local, staging și git sunt identice.
+- **Plăți:** Lloyds Cardnet pe Live, testat de Doru și de Kass; licența e a Eco-Fridge și se mută pe domeniul live. Avertismentele PHP ale pluginului sunt inofensive cu debug oprit.
 - **Emailuri:** SMTP IONOS funcțional; cereri din formular → mads@ + kass@; emailuri de comandă pentru firmă → mads@ + orders@; expeditor noreply@, Reply-To mads@.
 - **Cookies:** registrul rescanat de Doru; equal prominence implicit.
-- **Imagini:** 838 convertite pe staging (AVIF ≈ 196 MB, WebP ≈ 134 MB economisiți); pozele noi se convertesc singure.
-- **Urmează:** copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → import date noi → curățenie → lansare din staging pe eco-fridge.co.uk (hosting: același cont Hostinger). Data lansării încă nu e fixată; calendarul are termene relative (T-7 … Ziua Z).
+- **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
+- **Urmează:** copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor de test → importul tuturor comenzilor noi (de la #7261 încolo) și al celorlalte date la zi → reconciliere → curățenie → lansare din staging pe eco-fridge.co.uk (același cont Hostinger). Data lansării încă nu e fixată; calendarul are termene relative (T-7 … Ziua Z).
 - **De la Mads:** numărul de companie și codul de TVA, revizuirea paginilor legale, backupul de la Ambrit.
