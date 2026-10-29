@@ -1054,12 +1054,26 @@ Emailul spune acum exact asta, fără să pretindă că plata „trebuie confirm
 
 ---
 
+## 54. Emailul nu mai dă numărul plăților de test (2026-10-29)
+
+**Doru:**
+> nu mai mentiona cate plati de test sunt, poate mai plasam vreuna.
+
+**Ce am făcut (Claude):** am scos din email orice număr și orice dată legată de plățile de test, ca să rămână valabil oricâte mai facem:
+- la Kass, punctul 1: „o comandă de test de £1,00 pe site-ul live" (în loc de „una nouă");
+- punctul 2: „plățile noastre de test de mai devreme au ajuns deja în cont" (fără „cele două din 28 octombrie");
+- punctul 4, pentru contabilitate: „plățile noastre de test ajung în cont prin decontarea normală Lloyds, fiecare de £1,00, cu rambursarea alături, dacă se rambursează" (fără numărătoare).
+
+Referințele de tranzacție le trimitem separat, la fel ca până acum, deci contabilitatea are oricum lista exactă, indiferent câte ies până la lansare.
+
+---
+
 ## Stare la 2026-10-29 (final)
 
-- **Git:** `main` cu PR #16–#39 unite; local, staging și git sunt identice; working tree curat. Migrări: 01–79, plus uneltele din `migration/tools`.
-- **Lansare:** propusă sâmbătă **7 noiembrie 2026, 05:00–09:00**; calendarul din Drive are datele reale (30 oct → 7 dec). La 05:00 magazinul vechi se închide cu pluginul `ef-close-shop`; la 05:10 copia finală; la 08:30 comanda reală de test pe live.
+- **Git:** `main` cu PR #16–#40 unite; local, staging și git sunt identice; working tree curat. Migrări: 01–79, plus uneltele din `migration/tools`.
+- **Lansare:** propusă sâmbătă **7 noiembrie 2026, 05:00–09:00**; calendarul din Drive are datele reale (30 oct → 7 dec). La 05:00 magazinul vechi se închide cu pluginul `ef-close-shop`; la 05:10 copia finală; la 08:30 comanda de test pe live.
 - **De cerut de la Ambrit (prin Mads):** un backup luni 9 noiembrie, hostingul ținut 30 de zile, fără intervenții pe DNS.
-- **Emailul către Mads** e gata de trimis: opt puncte pentru Mads (inclusiv pluginul de închidere, instalat din dashboard), patru pentru Kass (privirea în Virtual Terminal pentru contul live, rambursările, confirmarea Lloyds, anunțarea contabilității).
+- **Emailul către Mads** e gata de trimis: opt puncte pentru Mads, patru pentru Kass, fără numere fixe la plățile de test.
 - **SEO:** Rank Math cu modulele pornite de Doru; Local SEO completat; `/llms.txt` funcțional.
 - **Plăți:** Lloyds Cardnet pe Live. Flux: card → Processing → Preparing → Processed → Shipped → Complete; transfer bancar → On hold → Preparing → …
 - **Emailuri:** SMTP IONOS funcțional; „New order" către mads@ + orders@ la toate comenzile; emailurile spun același lucru ca SMS-urile.
