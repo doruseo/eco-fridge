@@ -982,16 +982,41 @@ Actualizat și în Drive: pasul de 05:00 din „Calendar lansare" descrie acum m
 
 ---
 
+## 50. Patru corecții în emailul către Mads (2026-10-29)
+
+**Doru** a pus patru întrebări pe ciorna de email; două au dus la corecții de fond.
+
+**1. „Backupul de la Ambrit — n-ar fi mai bine luni, ca să comparăm cu ce avem noi?"**
+Da și nu: ne trebuie **două**. Cel de **vineri 6 noiembrie, după închidere**, e plasa de siguranță dinainte să atingem ceva — dacă sâmbătă dimineață se întâmplă orice cu serverul vechi, avem o arhivă bună. Cel de **luni 9 noiembrie** e exact ce zice Doru: luat după comutare, de pe serverul vechi, de o terță parte, bun pentru comparația comandă cu comandă și pentru arhivă. Între sâmbătă 05:00 și luni, pe site-ul vechi nu se mai poate plasa nimic (mod catalog), deci cele două copii trebuie să conțină aceleași comenzi — tocmai de asta comparația are sens. Emailul cere acum ambele, cu explicația pentru fiecare.
+
+**2. „Stocul și prețurile se preiau automat până la comutare — e adevărat?"**
+Adevărat, dar formularea era prea largă. Se preia tot ce e pe site-ul vechi **până sâmbătă la 05:00**, când luăm copia finală; de acolo importăm comenzi, clienți, stoc și prețuri. Orice modificare făcută **după** acel moment pe site-ul vechi s-ar pierde, pentru că nu mai citim de acolo. Emailul spune acum explicit „până sâmbătă 7 noiembrie la 05:00", iar după acel punct modificările se fac în dashboardul nou.
+
+**3. „Nu e de ajuns să opresc metodele de plată?"**
+E un strat bun, dar nu e etanș. Pe WooCommerce, fără nicio metodă de plată, checkout-ul chiar eșuează la validare — **dar**:
+- o comandă cu **cod de discount de 100%** are total zero, deci nu are nevoie de nicio metodă de plată și trece (iar Eco-Fridge folosește un astfel de cupon);
+- dacă rămâne pornit din greșeală un gateway de tip cec sau plata la livrare, comenzile intră în continuare;
+- clientul completează tot checkout-ul și abia apoi vede o eroare, fără să înțeleagă de ce.
+De aceea păstrăm fișierul de mod catalog ca strat principal (refuză coșul și checkout-ul pe server, scoate butoanele, afișează mesajul cu telefonul) **și** oprim metodele de plată ca al doilea strat. Emailul explică asta și cere, nou: **acces FTP pentru sâmbătă dimineață sau urcarea fișierului de către Ambrit**.
+Dacă nu obținem niciun acces, varianta minimă rămâne: metodele de plată oprite + notificarea de magazin din Customizer cu telefonul firmei; acoperă aproape tot, mai puțin cazul cu cuponul de 100%, pe care îl putem dezactiva manual din admin.
+
+**4. „Cum adică dacă a ajuns plata de test? De ce sâmbătă, acum nu au ajuns?"**
+Confuzia venea din formulare. Cele două plăți de **£1 din 28 octombrie au ajuns deja** în contul Lloyds — ele se pot rambursa oricând. Ce îi cerem lui Kass sâmbătă e pentru **o plată nouă**: la ora 08:30, după ce site-ul nou e pe domeniul live, plasăm o comandă reală de £1 cu cardul. E prima plată luată de pe site-ul nou, la adresa reală, cu licența și setările live — deci trebuie văzută cum intră în cont: Kass o confirmă în Virtual Terminal și o rambursează. Emailul spune acum explicit că e o plată nouă și de ce poate fi verificată doar în ziua aceea.
+
+Am renumerotat lista pentru Mads (are acum opt puncte) și am corectat și punctul 8: site-ul **rămâne vizibil** sâmbătă dimineață, doar comenzile online sunt închise câteva ore, iar comenzile se preiau telefonic.
+
+---
+
 ## Stare la 2026-10-29 (final)
 
-- **Git:** `main` cu PR #16–#35 unite; local, staging și git sunt identice; working tree curat. Migrări: 01–79, plus uneltele din `migration/tools`.
-- **Lansare:** propusă sâmbătă **7 noiembrie 2026, 05:00–09:00**; calendarul din Drive are datele reale (30 oct → 7 dec). Pasul de 05:00: site-ul vechi trece în mod catalog.
-- **De cerut de la Ambrit (prin Mads):** backup complet vineri 6 nov după închidere, hostingul ținut 30 de zile, fără intervenții pe DNS, **plus acces FTP sau urcarea fișierului de pauză** sâmbătă dimineață.
+- **Git:** `main` cu PR #16–#36 unite; local, staging și git sunt identice; working tree curat. Migrări: 01–79, plus uneltele din `migration/tools`.
+- **Lansare:** propusă sâmbătă **7 noiembrie 2026, 05:00–09:00**; calendarul din Drive are datele reale (30 oct → 7 dec). La 05:00 site-ul vechi trece în mod catalog; la 05:10 copia finală; la 08:30 comanda reală de test pe live.
+- **De cerut de la Ambrit (prin Mads):** backup vineri 6 nov după închidere **și** backup luni 9 nov, hostingul ținut 30 de zile, fără intervenții pe DNS, plus acces FTP sau urcarea fișierului de pauză sâmbătă dimineață.
 - **SEO:** Rank Math cu modulele pornite de Doru; Local SEO completat; `/llms.txt` funcțional.
 - **Plăți:** Lloyds Cardnet pe Live. Flux: card → Processing → Preparing → Processed → Shipped → Complete; transfer bancar → On hold → Preparing → …
 - **Emailuri:** SMTP IONOS funcțional; „New order" către mads@ + orders@ la toate comenzile; emailurile spun același lucru ca SMS-urile.
 - **SMS:** sender ID ECOFRIDGE aprobat; mesaje doar pe statusurile cu zile de așteptare.
 - **Cookies:** registrul rescanat de Doru; equal prominence implicit.
 - **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
-- **Urmează:** confirmarea datei → pregătirile de până vineri 30 octombrie → copia la zi a site-ului vechi și importul datelor → curățenie → lansarea pe 7 noiembrie.
+- **Urmează:** trimiterea emailului și confirmarea datei → pregătirile de până vineri 30 octombrie → copia la zi a site-ului vechi și importul datelor → curățenie → lansarea pe 7 noiembrie.
 - **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2, cu modul catalog), checklistul eco-fridge și tabul „Calendar lansare".
