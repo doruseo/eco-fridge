@@ -1087,11 +1087,24 @@ Referințele de tranzacție le trimitem separat, la fel ca până acum, deci con
 
 ---
 
+## 56. Lista pentru Kass, scurtată la trei puncte (2026-10-29)
+
+**Doru:**
+> Confirmarea că nimic nu se schimbă la Lloyds - Nu se schimba nimic, garantez eu. Rambursarea plăților de test, când îi e comod (nu daca ii e comod, ci daca are timp, pentru ca ajunge in contabilitate)
+
+**Ce am făcut (Claude):**
+- **Am scos punctul cu confirmarea de la Lloyds.** Doru garantează că nu se schimbă nimic la contul de comerciant, deci nu are rost să cerem o confirmare pe care o avem deja.
+- **Am rescris punctul cu rambursările.** Nu mai e „când îi e comod", ca și cum ar fi opțional: acum spune să le facă **imediat ce are un moment liber**, cu motivul pe față — fiecare plată ajunge în contul bancar și în contabilitate prin decontarea normală Lloyds, așa că e mai simplu de închis dacă rambursarea stă lângă plată.
+
+Lista pentru Kass are acum trei puncte: o privire în Virtual Terminal oricând înainte de lansare, rambursările cât mai repede, și un cuvânt pentru contabilitate. Nimic în dimineața lansării.
+
+---
+
 ## Stare la 2026-10-29 (final)
 
-- **Git:** `main` cu PR #16–#41 unite; local, staging și git sunt identice; working tree curat. Migrări: 01–79, plus uneltele din `migration/tools`.
-- **Lansare:** propusă sâmbătă **7 noiembrie 2026, 05:00–09:00**; calendarul are datele reale (30 oct → 7 dec). 05:00 magazinul vechi închis cu pluginul `ef-close-shop`; 05:10 copia finală; 08:00 licențele mutate și amprenta credențialelor comparată; 08:30 comanda de test urmărită de noi.
-- **De la client:** o privire în Virtual Terminal oricând înainte de lansare, rambursările când îi e comod, confirmarea Lloyds, un cuvânt pentru contabilitate. Nicio sarcină în dimineața lansării.
+- **Git:** `main` cu PR #16–#42 unite; local, staging și git sunt identice; working tree curat. Migrări: 01–79, plus uneltele din `migration/tools`.
+- **Lansare:** propusă sâmbătă **7 noiembrie 2026, 05:00–09:00**; calendarul are datele reale (30 oct → 7 dec). 05:00 magazinul vechi închis cu pluginul `ef-close-shop`; 05:10 copia finală; 08:00 licențele mutate și amprenta setărilor de plată comparată; 08:30 comanda de test urmărită de noi.
+- **Emailul către Mads** e gata de trimis: opt puncte pentru Mads, trei pentru Kass, nimic de făcut de client în dimineața lansării.
 - **De cerut de la Ambrit (prin Mads):** un backup luni 9 noiembrie, hostingul ținut 30 de zile, fără intervenții pe DNS.
 - **SEO:** Rank Math cu modulele pornite de Doru; Local SEO completat; `/llms.txt` funcțional.
 - **Plăți:** Lloyds Cardnet pe Live. Flux: card → Processing → Preparing → Processed → Shipped → Complete; transfer bancar → On hold → Preparing → …
@@ -1100,4 +1113,4 @@ Referințele de tranzacție le trimitem separat, la fel ca până acum, deci con
 - **Cookies:** registrul rescanat de Doru; equal prominence implicit.
 - **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
 - **Urmează:** trimiterea emailului și confirmarea datei → pregătirile de până vineri 30 octombrie → copia la zi a site-ului vechi și importul datelor → curățenie → lansarea pe 7 noiembrie.
-- **Documentație la zi:** acest fișier, memoria proiectului (inclusiv amprenta credențialelor), documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge și tabul „Calendar lansare".
+- **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge și tabul „Calendar lansare".
