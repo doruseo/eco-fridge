@@ -3,12 +3,12 @@
   "core": null,
   "phpVersion": "8.3",
   "plugins": [
-    "https://downloads.wordpress.org/plugin/woocommerce.zip",
-    "https://downloads.wordpress.org/plugin/two-factor.zip",
+    "https://downloads.wordpress.org/plugin/woocommerce.11.2.1.zip",
+    "https://downloads.wordpress.org/plugin/two-factor.0.17.0.zip",
     "./ecofridge-blocks"
   ],
   "themes": [
-    "https://downloads.wordpress.org/theme/astra.zip"
+    "https://downloads.wordpress.org/theme/astra.4.14.1.zip"
   ],
   "mappings": {
     "wp-content/source-dump": "./source-dump",
