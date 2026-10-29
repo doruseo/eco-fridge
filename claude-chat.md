@@ -923,16 +923,39 @@ Emailul nu conține referințe de tranzacție, parole sau alte date de plată.
 
 ---
 
+## 48. Date reale în calendarul de lansare (2026-10-29)
+
+**Doru:**
+> pune datele reale in calendarul de lansare din Drive
+
+**Ce am făcut (Claude):** tabul **„Calendar lansare"** din checklistul eco-fridge are acum date, nu termene relative, calculate de la sâmbătă 7 noiembrie 2026:
+
+| Moment | Data |
+| --- | --- |
+| Confirmări și pregătiri (T-7) | până **vineri 30 octombrie** |
+| TTL scăzut, repetiția copiei, teste finale (T-2) | **joi 5 noiembrie** |
+| Înghețarea conținutului la 17:00, curățenie, verificări (T-1) | **vineri 6 noiembrie** |
+| Lansarea, oră cu oră (05:00 → 09:15) | **sâmbătă 7 noiembrie** |
+| Primele verificări (Z+1) | **duminică 8 noiembrie** |
+| Search Console și feed (Z+3) | **marți 10 noiembrie** |
+| Analytics și performanță (Z+7) | **sâmbătă 14 noiembrie** |
+| Închiderea migrării, hostingul vechi se poate opri (Z+30) | **luni 7 decembrie** |
+
+Primul rând („Data și ora lansării stabilite") spune acum explicit că 7 noiembrie e **propus** lui Mads și lui Kass pe 29 octombrie, cu motivele, și e pe „◐ Parțial" până la confirmarea în scris. În checklist a intrat și rândul **F14-13** cu toată cronologia, ca să se vadă din checklist fără să deschizi calendarul.
+
+Dacă Mads propune alt weekend, mut tot calendarul cu o săptămână dintr-o singură rundă.
+
+---
+
 ## Stare la 2026-10-29 (final)
 
-- **Git:** `main` cu PR #16–#33 unite; local, staging și git sunt identice; working tree curat. Migrări: 01–79.
-- **Lansare propusă:** **sâmbătă 7 noiembrie 2026**, 05:00–09:00, în așteptarea confirmării de la Mads și Kass. Până atunci: verificările finale, apoi copia la zi a site-ului vechi și importul datelor.
+- **Git:** `main` cu PR #16–#34 unite; local, staging și git sunt identice; working tree curat. Migrări: 01–79.
+- **Lansare:** propusă **sâmbătă 7 noiembrie 2026, 05:00–09:00**, în așteptarea confirmării; calendarul din Drive are datele reale (30 oct → 7 dec), iar emailul către Mads e `email-mads-go-live-2026-11-07.html`.
 - **SEO:** Rank Math cu modulele pornite de Doru; Local SEO completat (migrarea 79); `/llms.txt` funcțional.
 - **Plăți:** Lloyds Cardnet pe Live, un singur gateway în listă. Flux: card → Processing → Preparing → Processed → Shipped → Complete; transfer bancar → On hold → Preparing → …
 - **Emailuri:** SMTP IONOS funcțional; „New order" către mads@ + orders@ la toate comenzile; emailurile spun același lucru ca SMS-urile.
 - **SMS:** sender ID ECOFRIDGE aprobat, livrare confirmată pe numărul lui Mads; mesaje doar pe statusurile cu zile de așteptare.
 - **Cookies:** registrul rescanat de Doru; equal prominence implicit.
 - **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
-- **Urmează:** confirmarea datei → copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor și a produsului de test → importul tuturor comenzilor noi (de la #7261) și al celorlalte date → reconciliere 1:1 → curățenie finală → lansarea din staging. Calendarul din Drive are pașii pe T-7 … Ziua Z … Z+30; acum se pot pune date reale, dacă Mads confirmă 7 noiembrie.
-- **De la Mads și Kass:** cele două liste din emailul de mai sus.
-- **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge cu fazele 15–16 și tabul „Calendar lansare", checklistul general cu rândurile noi.
+- **Urmează:** confirmarea datei de la Mads și Kass → pregătirile de până vineri 30 octombrie → copia la zi a site-ului vechi și importul datelor → curățenie → lansarea pe 7 noiembrie.
+- **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge (fazele 15–16, rândul F14-13) și tabul „Calendar lansare" cu date reale.
