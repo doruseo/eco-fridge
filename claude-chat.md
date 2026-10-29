@@ -815,14 +815,32 @@ Rulată pe local (16 setări scrise, 13 statusuri acoperite) și pe staging (0 s
 
 ---
 
+## 43. WooCommerce → Home deschidea wizardul; Lloyds apărea de două ori (2026-10-29)
+
+**Doru:**
+> atunci cand dau click in dashboard-ul de WordPress pe Woocommerce - Home, mi se deschide fereastra de setari a magazinului online. Nu este setat deja? De ce mai imi cere? […] Iar la Woocommerce - Payments imi apare Lloyds Cardnet de doua ori, odata active, apoi din nou dar inactive, iar cand am dat pe … Deactivate pe Lloyds Cardnet care este inactive, s-a dezactivat pluginul, asa ca l-am reactivat.
+
+**1. Wizardul de setare.** Magazinul **era** configurat: adresa 18 Top Angel, Buckingham Industrial Park, Buckingham MK18 1TH, țara GB, moneda GBP, TVA, livrare, plăți, emailuri — iar lista de sarcini era deja marcată terminată. Wizardul apărea dintr-un singur motiv: opțiunea `woocommerce_onboarding_profile` **nu fusese scrisă niciodată**, pentru că site-ul a fost construit din scripturi de migrare, nu făcând clic prin setup. WooCommerce arată wizardul ori de câte ori lipsește steagul `completed` din acea opțiune.
+
+**Migrarea 77** completează profilul cu ce este magazinul în realitate (produse fizice, 101–1000 produse, vânzare și la sediu, nu doar online) și îl marchează terminat, apoi ascunde lista de sarcini, ca WooCommerce → Home să deschidă direct tabloul de bord. Starea veche e în `ef_onboarding_before_77`.
+
+**2. Lloyds de două ori.** Nu e pluginul instalat de două ori: pluginul AG înregistrează **două gateway-uri** — cel folosit de magazin, „Credit or Debit Card" (`ag_cardnet_checkout`), și o variantă alternativă, „Lloyds Cardnet Checkout" (`ag_lloyds_hosted_checkout`), care a rămas inactivă. Ambele apar în listă, iar meniul „…" de lângă ele oferă acțiuni **la nivel de plugin**, nu de gateway — de aceea „Deactivate" a oprit tot pluginul, inclusiv plățile cu cardul. Bine că l-ai reactivat imediat.
+
+Am scos gateway-ul nefolosit din listă, printr-un filtru în `ecofridge-blocks/includes/woocommerce.php`, cu explicația în cod: dacă vreodată se dorește varianta hosted checkout, se șterge filtrul și se activează din WooCommerce → Payments. Verificat pe staging: lista are acum `ag_cardnet_checkout` (activ), `bacs` (activ), `cheque` și `cod` (inactive, cele standard WooCommerce).
+
+**Observație separată:** `woocommerce_allow_tracking` e pe „yes", adică WooCommerce trimite date de utilizare către woocommerce.com. Nu am schimbat-o — spune dacă vrei pe „no".
+
+---
+
 ## Stare la 2026-10-29 (final)
 
-- **Git:** `main` cu PR #16–#28 unite; local, staging și git sunt identice; working tree curat.
-- **Plăți:** Lloyds Cardnet pe Live. Flux: card → Processing → Preparing → Processed → Shipped → Complete; transfer bancar → On hold → Preparing → … Licența e a Eco-Fridge și se mută pe domeniul live.
+- **Git:** `main` cu PR #16–#29 unite; local, staging și git sunt identice; working tree curat.
+- **Plăți:** Lloyds Cardnet pe Live, un singur gateway în listă. Flux: card → Processing → Preparing → Processed → Shipped → Complete; transfer bancar → On hold → Preparing → … Licența e a Eco-Fridge și se mută pe domeniul live.
+- **Admin:** WooCommerce → Home deschide tabloul de bord, nu wizardul (migrarea 77).
 - **Emailuri:** SMTP IONOS funcțional; „New order" către mads@ + orders@ la toate comenzile; emailurile spun același lucru ca SMS-urile; datele bancare apar în emailul de On hold; Shipped și Complete rămân doar pe email.
-- **SMS:** sender ID ECOFRIDGE aprobat, livrare confirmată pe un număr real din UK. Mesaje doar pe Processing, Preparing, Processed, On hold și rambursări (≈3 pe comandă, ≈120 de credite). Oprite: Pending, Shipped, Complete, coșuri abandonate, cereri de recenzie, SMS la recenzie, „back in stock", share cart și **toate** alertele către firmă, pe toate statusurile (migrarea 76). Sold 4.885 de credite, alertă pe email sub 200.
+- **SMS:** sender ID ECOFRIDGE aprobat, livrare confirmată pe un număr real din UK. Mesaje doar pe Processing, Preparing, Processed, On hold și rambursări. Oprite: Pending, Shipped, Complete, coșuri abandonate, cereri de recenzie, SMS la recenzie, „back in stock", share cart și toate alertele către firmă, pe toate statusurile. Sold 4.885 de credite, alertă pe email sub 200.
 - **Cookies:** registrul rescanat de Doru; equal prominence implicit.
 - **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
-- **Urmează, în această ordine:** copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor și a produsului de test → importul tuturor comenzilor noi (de la #7261, 10 iulie 2026, încolo, inclusiv cele neexpediate) și al celorlalte date la zi → reconciliere 1:1 → curățenie finală → lansare din staging pe eco-fridge.co.uk (același cont Hostinger, DNS din IONOS). **La lansare se rulează din nou migrarea 76**, ca o bifă nouă să nu apară pe live. Data lansării nu e fixată; calendarul din Drive are termene relative (T-7 … Ziua Z … Z+30).
+- **Urmează, în această ordine:** copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor și a produsului de test → importul tuturor comenzilor noi (de la #7261, 10 iulie 2026, încolo, inclusiv cele neexpediate) și al celorlalte date la zi → reconciliere 1:1 → curățenie finală → lansare din staging pe eco-fridge.co.uk (același cont Hostinger, DNS din IONOS). La lansare se rulează din nou migrarea 76. Data lansării nu e fixată; calendarul din Drive are termene relative (T-7 … Ziua Z … Z+30).
 - **De la Mads:** numărul de companie și codul de TVA, revizuirea paginilor legale, backupul de la Ambrit.
 - **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge cu fazele 15–16 și tabul „Calendar lansare", checklistul general cu rândurile noi.
