@@ -780,14 +780,32 @@ Starea veche e în `ef_order_emails_before_72`. Migrarea rulată pe local și pe
 
 ---
 
+## 40. Fluxul aprobat și urcat în git (2026-10-29)
+
+**Doru:**
+> de acord: On hold → Preparing → Processed → Shipped → Complete. Save, push, commit, merge.
+
+**Claude:** fluxul e confirmat și pus în git. **PR #26** adună cele trei commit-uri ale rundei:
+1. emailurile de comandă scrise la fel ca SMS-urile (migrarea 72 plus textele din temă);
+2. renunțarea la Pending pentru card și statusul nou **Preparing** (migrarea 73, `card-payments.php` și emailul „Payment received (card)" șterse);
+3. fără SMS la Shipped și Complete (migrarea 74).
+
+Fluxul final, cum a fost aprobat:
+- **card:** Pending (neplătită) → Processing (plata a intrat, așteptăm banii în cont) → Preparing → Processed → Shipped → Complete;
+- **transfer bancar:** On hold (datele bancare în email) → Preparing → Processed → Shipped → Complete.
+
+SMS către client doar pe Processing, Preparing, Processed, On hold și la rambursări. Email „New order" către mads@ și orders@ pentru toate comenzile, indiferent de metoda de plată. Migrările 72, 73 și 74 sunt rulate pe local și pe staging.
+
+---
+
 ## Stare la 2026-10-29 (final)
 
-- **Git:** `main` cu PR #16–#25 unite; trei commit-uri locale (emailuri aliniate, fluxul Preparing, SMS-urile reduse) așteaptă push — auto mode blochează `git push`. Local și staging sunt identice.
-- **Plăți:** Lloyds Cardnet pe Live. Comenzile cu cardul rămân pe **Processing** (nativ), pregătirea în depozit e **Preparing**; transferul bancar pe On hold → Preparing. Licența e a Eco-Fridge și se mută pe domeniul live.
-- **Emailuri:** „New order" către mads@ + orders@ pentru toate comenzile plasate cu succes, indiferent de metoda de plată; emailurile de comandă spun același lucru ca SMS-urile; datele bancare apar în emailul de On hold.
-- **SMS:** sender ID ECOFRIDGE aprobat; mesaje doar pe Processing, Preparing, Processed, On hold și la rambursări; fără Pending, Shipped, Complete, fără SMS către firmă, fără coșuri abandonate. ≈40 de credite pe mesaj către UK, sold 4.885. Livrarea către numărul virtual NUMERO nu s-a confirmat — de testat pe un SIM real.
+- **Git:** `main` cu PR #16–#26 unite; local, staging și git sunt identice; working tree curat.
+- **Plăți:** Lloyds Cardnet pe Live. Fluxul aprobat: card → Processing → Preparing → Processed → Shipped → Complete; transfer bancar → On hold → Preparing → … Licența e a Eco-Fridge și se mută pe domeniul live.
+- **Emailuri:** SMTP IONOS funcțional; „New order" către mads@ + orders@ la toate comenzile; emailurile de comandă spun același lucru ca SMS-urile; datele bancare apar în emailul de On hold; emailurile de Shipped și Complete rămân active.
+- **SMS:** sender ID ECOFRIDGE aprobat; mesaje doar pe Processing, Preparing, Processed, On hold și rambursări (≈3 SMS pe comandă, ≈120 de credite); fără SMS către firmă, fără coșuri abandonate, fără share cart. Sold 4.885 de credite. Livrarea către numărul virtual NUMERO nu s-a confirmat — de testat pe un SIM real din UK.
 - **Cookies:** registrul rescanat de Doru; equal prominence implicit.
 - **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
-- **Urmează, în această ordine:** copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor și a produsului de test (inclusiv #8038) → importul tuturor comenzilor noi (de la #7261, 10 iulie 2026, încolo, inclusiv cele neexpediate) și al celorlalte date la zi → reconciliere 1:1 → curățenie finală → lansare din staging pe eco-fridge.co.uk. Data lansării nu e fixată; calendarul din Drive are termene relative.
+- **Urmează, în această ordine:** copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor și a produsului de test (inclusiv #8038) → importul tuturor comenzilor noi (de la #7261, 10 iulie 2026, încolo, inclusiv cele neexpediate) și al celorlalte date la zi → reconciliere 1:1 → curățenie finală → lansare din staging pe eco-fridge.co.uk (același cont Hostinger, DNS din IONOS). Data lansării nu e fixată; calendarul din Drive are termene relative (T-7 … Ziua Z … Z+30).
 - **De la Mads:** numărul de companie și codul de TVA, revizuirea paginilor legale, backupul de la Ambrit.
-- **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge cu fazele 15–16 și tabul „Calendar lansare".
+- **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge cu fazele 15–16 și tabul „Calendar lansare", checklistul general cu rândurile noi.
