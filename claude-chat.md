@@ -671,14 +671,41 @@ Mesajele pentru client, cum arată la randare:
 
 ---
 
+## 36. Plățile cu cardul rămân pe Pending, plus alerta de credite SMS (2026-10-29)
+
+**Doru:**
+> pe mine ma anunta pe email daca scad creditele sub 200 de credite, corect? Termenul de 3–4 zile lucrătoare din SMS-ul de Pending — lasa-l. Cand clientii platesc cu cardul, trimite comanda in pending, ca sa astepte intrarea banilor de pe card in contul bancar.
+
+**Alerta de credite — confirmat.** Pluginul rulează din oră în oră jobul `smsalert_balance_notify` (WP-Cron) și, când creditele scad la **200 sau mai puțin**, trimite un email la **doru.hanganu@gmail.com**, cel mult o dată pe zi (ține minte data ultimei alerte). Depinde de două lucruri: cronul să ruleze (pe staging rulează; pe live e pe checklist un cron real) și SMTP-ul să funcționeze (WP Mail SMTP e deja configurat). Raportul zilnic de balanță e oprit, doar avertismentul de credit scăzut e activ.
+
+**Plățile cu cardul pe Pending — ce a implicat.** WooCommerce consideră Pending „neplătită", deci simpla schimbare de status ar fi stricat patru lucruri. Modulul nou `astra-child/inc/card-payments.php` le rezolvă:
+1. Gateway-ul AG apelează `payment_complete()`, care ar pune Processing. Filtrul pune **Pending**, iar restul rămâne: tranzacția, data plății și scăderea stocului.
+2. **„Hold stock (60 minutes)" ar fi anulat comanda plătită după o oră** (exact capcana de la transferul bancar din secțiunile 1–2). Comenzile cu dată de plată nu mai sunt atinse de jobul de anulare.
+3. O comandă Pending e plătibilă, deci clientul ar fi putut primi un link de plată pentru o comandă deja plătită. Comenzile plătite nu mai sunt plătibile (nici pagina de plată, nici linkul din emailuri).
+4. **Emailul „New order" pentru firmă pornește doar la intrarea în Processing, Completed sau On hold**, deci o comandă care stă pe Pending nu ar fi fost anunțată niciodată — iar Mads nu primește SMS, doar emailuri. Acum se trimite din `payment_complete`, o singură dată, cu urmă în meta, și nu se repetă când magazinul preia comanda.
+
+**Email nou pentru client:** „Payment received (card)" (`EF_Email_Customer_Payment_Received`), trimis când plata cu cardul a trecut: spune că plata a intrat, că verificăm stocul și așteptăm banii, „usually 3 to 4 working days", și că urmează un email la aprobare. Apare în WooCommerce → Settings → Emails, cu subiect, titlu și text editabile. Se trimite doar pentru comenzi plătite cu cardul (o comandă Pending abandonată nu primește confirmare de plată) și o singură dată pe comandă.
+
+**Migrarea 71:** emailul de Processing spunea „Your order has been received" — acum, când Processing înseamnă „preluată și în pregătire", scrie „Your order #… has been approved", cu „Delivery is usually 5 to 10 working days from cleared payment", la fel ca SMS-ul. Starea veche e în `ef_processing_email_before_71`.
+
+**Testat pe local**, cu o comandă de test ștearsă după: statusul rămâne `pending`, data plății e setată, stocul scăzut, comanda nu e plătibilă, jobul de anulare o lasă în pace, pleacă exact două emailuri (firmă + client), un webhook repetat nu trimite nimic în plus, iar la trecerea pe Processing pleacă doar emailul clientului. Fișierele sunt urcate pe staging (verificate cu `php -l`, cu copia veche a `functions.php` în `/tmp/functions.php.before-card-pending`), migrarea 71 rulată acolo, iar filtrul verificat pe staging: pentru o comandă cu `ag_cardnet_checkout` întoarce `pending`.
+
+**Transferul bancar și cecul rămân neatinse** — merg în continuare pe On hold.
+
+**Două lucruri de ținut minte:**
+- **WooCommerce Analytics exclude Pending din rapoarte** în mod implicit, deci încasările de pe card apar în rapoarte abia când comanda trece pe Processing. Dacă deranjează, se poate adăuga Pending în statusurile raportate.
+- Funcțiile AG „status check" și „self healing" sunt **oprite** (`statusCheck=no`, `self_healing=no`), deci nu pot schimba ele statusul; de confirmat oricum la testul real cu cardul.
+
+---
+
 ## Stare la 2026-10-29 (final)
 
-- **Git:** `main` cu PR #16–#24 unite; local, staging și git sunt identice; working tree curat.
-- **Plăți:** Lloyds Cardnet pe Live, testat de Doru și de Kass (£1,00 fiecare, nerambursate — efectele sunt în secțiunea 31). Licența e a Eco-Fridge și se mută pe domeniul live. Avertismentele PHP ale pluginului AG sunt inofensive cu debug oprit (secțiunea 30).
-- **SMS:** credite cumpărate, sender ID **ECOFRIDGE** aprobat, fără aprobare de template (cont Global). Mesajele pe statusuri sunt scrise prin migrarea 70 (telefon doar la On hold, livrare cu mașinile proprii la Shipped), fără SMS către firmă și fără SMS de coș abandonat. Rămâne testul pe staging (secțiunile 32–35).
-- **Emailuri:** SMTP IONOS funcțional; cereri din formular → mads@ + kass@; emailuri de comandă pentru firmă → mads@ + orders@; expeditor noreply@, Reply-To mads@.
+- **Git:** `main` cu PR #16–#25 unite; local, staging și git sunt identice; working tree curat.
+- **Plăți:** Lloyds Cardnet pe Live, testat de Doru și de Kass. **Comenzile plătite cu cardul rămân pe Pending** până la preluare (secțiunea 36); transferul bancar rămâne pe On hold. Licența e a Eco-Fridge și se mută pe domeniul live. Avertismentele PHP ale pluginului AG sunt inofensive cu debug oprit (secțiunea 30).
+- **Emailuri:** SMTP IONOS funcțional; cereri din formular → mads@ + kass@; emailuri de comandă pentru firmă → mads@ + orders@; expeditor noreply@, Reply-To mads@. Nou: „Payment received (card)" pentru client; emailul de Processing spune acum „approved".
+- **SMS:** sender ID ECOFRIDGE aprobat, mesajele pe statusuri scrise prin migrarea 70, fără SMS către firmă și fără coșuri abandonate; alerta de credite sub 200 vine pe emailul lui Doru. Rămâne testul pe staging (secțiunile 32–36).
 - **Cookies:** registrul rescanat de Doru; equal prominence implicit.
 - **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
 - **Urmează, în această ordine:** copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor și a produsului de test → importul tuturor comenzilor noi (de la #7261, 10 iulie 2026, încolo, inclusiv cele neexpediate) și al celorlalte date la zi → reconciliere 1:1 → curățenie finală → lansare din staging pe eco-fridge.co.uk (același cont Hostinger, DNS din IONOS). Data lansării nu e fixată; calendarul din Drive are termene relative (T-7 … Ziua Z … Z+30).
-- **De la Mads:** numărul de companie și codul de TVA, revizuirea paginilor legale, backupul de la Ambrit, confirmarea termenului de procesare a plăților cu cardul.
-- **Documentație la zi:** acest fișier, memoria proiectului (inclusiv notele despre plățile de test și despre preluarea datelor), documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge cu fazele 15–16 și tabul „Calendar lansare", checklistul general cu rândurile noi.
+- **De la Mads:** numărul de companie și codul de TVA, revizuirea paginilor legale, backupul de la Ambrit.
+- **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge cu fazele 15–16 și tabul „Calendar lansare", checklistul general cu rândurile noi.
