@@ -1,4 +1,4 @@
-# Claude chat – 2026-10-19 → 2026-10-27
+# Claude chat – jurnal de lucru (din 19 octombrie 2026, actualizat continuu)
 
 Jurnalul de lucru pentru site-ul nou Eco-Fridge: ce a cerut Doru, ce s-a făcut, ce s-a decis și ce a rămas de făcut, secțiune cu secțiune, de la statusurile comenzilor și pluginul de plăți Lloyds Cardnet până la lansare.
 
