@@ -1,6 +1,8 @@
 # Claude chat – 2026-10-19 → 2026-10-27
 
-Conversație despre statusul comenzilor (bank transfer), pluginul de plăți Lloyds Cardnet, footer, bara de filtre a magazinului (desktop și mobil), categoriile bakery și afișarea „Out of stock” pe site-ul nou Eco-Fridge.
+Jurnalul de lucru pentru site-ul nou Eco-Fridge: ce a cerut Doru, ce s-a făcut, ce s-a decis și ce a rămas de făcut, secțiune cu secțiune, de la statusurile comenzilor și pluginul de plăți Lloyds Cardnet până la lansare.
+
+> **Regulă de lucru (cerută de Doru pe 29 octombrie 2026):** de acum înainte, Claude actualizează acest fișier **direct, fără să mai fie nevoie să i se ceară**, după fiecare lucru făcut sau decizie luată. Fiecare intrare nouă cuprinde: ce a cerut Doru (citat), ce s-a verificat și s-a făcut, ce s-a decis și ce rămâne de făcut; la final se actualizează blocul „Stare". Modificarea se și comite în git. Dacă schimbarea atinge și procedurile, se actualizează în aceeași rundă memoria proiectului și fișierele din Drive (documentul de proces, procedura generală, checklistul eco-fridge și calendarul de lansare). Datele de plată (coduri de aprobare, referințe de tranzacție, credențiale) nu intră niciodată în acest fișier sau în git — ele stau doar în nota de proiect din memorie.
 
 ---
 
@@ -553,13 +555,43 @@ Regula a intrat în `claude-chat.md`, în memoria proiectului, în checklistul e
 
 ---
 
+## 32. SMS Alert: sample de SMS, răspunsul către suport și decizia de testare (2026-10-29)
+
+**Doru:**
+> scrie un sample de sms pentru o comanda pentru pluginul SMS alert. Vor cei de la suportul lor.
+> […] vor sa stie si ce website va trimite SMS. […] Vreau sa trimit SMS cu sender ID: "ECOFRIDGE". Ce facem? Are rost sa mai testam pe staging sau il setam direct pe live ca sa nu am probleme tehnice la SMS Alert?
+
+**Ce am verificat (Claude), în codul pluginului de pe local:**
+- Variabilele se scriu cu paranteze drepte: `[billing_first_name]`, `[order_id]`, `[order_amount]`, `[order_total]`, `[order_status]`, `[payment_method_title]`, `[tracking_number]`, `[tracking_link]`, `[store_name]`, `[item_name_qty]`, `[pdf_invoice_link]` și altele.
+- Lista de statusuri o ia din `wc_get_order_statuses()` și se leagă de `woocommerce_order_status_changed`, deci statusurile noastre proprii (Processed, Shipped, Returned) ar trebui să apară și să declanșeze SMS-uri.
+- **Risc găsit:** checkout-ul nostru e blocul WooCommerce Checkout (Store API), iar pluginul **nu are niciun hook pe Store API**. Notificarea „comandă plasată" se bazează pe `woocommerce_checkout_order_processed` și `woocommerce_checkout_update_order_meta`, care rulează doar la checkout-ul clasic. Deci SMS-urile pe schimbarea de status ar trebui să funcționeze, dar cel de la plasarea comenzii probabil nu pornește. Dacă se confirmă la test, soluția e o adăugire mică în pluginul nostru (`woocommerce_store_api_checkout_order_processed` → declanșatorul lor) sau ne bazăm doar pe SMS-urile de status, care acoperă ambele metode de plată.
+
+**Sample-urile de SMS** (fiecare un singur segment de 160 de caractere, GSM-7, fără emoji):
+- Plată confirmată (card): `Eco-Fridge: thanks [billing_first_name], payment for order #[order_id] ([order_amount]) is confirmed. We are preparing your delivery and will confirm the date. Help: 01280 811411` (151 de caractere la randare).
+- Transfer bancar în așteptare: `Eco-Fridge: thanks [billing_first_name], order #[order_id] for [order_amount] received. On hold until your bank transfer clears; bank details are in your email. Help: 01280 811411` (152).
+- Expediat: `Eco-Fridge: order #[order_id] has been dispatched. Tracking [tracking_number]: [tracking_link] Questions: 01280 811411` (127).
+- Expediat, fără tracking: `Eco-Fridge: order #[order_id] is on its way. Our carrier will call you before delivery. Questions: 01280 811411` (105).
+- Finalizat: `Eco-Fridge: order #[order_id] is complete. Thank you for your business. For parts or service call 01280 811411.` (105).
+- Alertă internă: `Eco-Fridge: new order #[order_id], [order_amount], [payment_method_title], [billing_first_name] [billing_phone].` (87).
+
+**Răspunsul către suportul SMS Alert** (ei au cerut „website url and sample sms content"): le-am dat **https://www.eco-fridge.co.uk/** — site-ul live al firmei, verificabil, același domeniu pe care va rula magazinul nou. Staging-ul nu se dă, fiindcă răspunde 401 și recenzorul lor nu ar putea deschide site-ul. În mesaj: adresa firmei și telefonul, sender ID **ECOFRIDGE** (9 caractere, deci în limita de 11; sender alfanumeric înseamnă că clientul nu poate răspunde la SMS, de aceea numărul de telefon apare în fiecare mesaj), caracterul strict tranzacțional (fără marketing), volumul estimat (20–40 de comenzi pe lună, circa 60–120 de mesaje) și cele cinci sample-uri. Le-am cerut să confirme aprobarea sender ID-ului pentru UK, dacă template-urile trebuie înregistrate la ei și prețul pe mesaj pentru numerele UK.
+
+**Decizia: se configurează și se testează pe staging**, pentru că setările călătoresc cu baza de date (configurat pe staging = configurat la lansare, ca la WP Mail SMTP, cookies și Lloyds), pentru că statusurile proprii trebuie dovedite și pentru că riscul cu Store API trebuie prins înainte de ziua lansării. Costul e de 2–3 SMS-uri către numărul lui Doru; contul SMS Alert e legat de API, nu de domeniu.
+
+**Precauție la testare:** baza de date de pe staging are 5.936 de comenzi cu numere reale de clienți. Funcțiile de campanii în masă și SMS-urile pentru coșuri abandonate rămân **oprite** cât timp testăm; se testează doar cu o comandă manuală pe numărul propriu.
+
+**Rămâne de făcut:** contul SMS Alert activ și sender ID-ul aprobat, apoi testul pe staging (comandă pe card și pe transfer bancar, schimbare de status spre Shipped, verificarea SMS-ului de la plasarea comenzii pe checkout-ul bloc), apoi notarea rezultatului și a eventualei corecții.
+
+---
+
 ## Stare la 2026-10-29 (final)
 
-- **Git:** `main` la `a103997`, cu PR #16, #17 și #18 unite; local, staging și git sunt identice; working tree curat.
+- **Git:** `main` cu PR #16, #17, #18 și #19 unite; local, staging și git sunt identice; working tree curat.
 - **Plăți:** Lloyds Cardnet pe Live, testat de Doru și de Kass (£1,00 fiecare, nerambursate — efectele sunt în secțiunea 31). Licența e a Eco-Fridge și se mută pe domeniul live. Avertismentele PHP ale pluginului AG sunt inofensive cu debug oprit (secțiunea 30).
+- **SMS:** SMS Alert instalat pe staging; sender ID cerut **ECOFRIDGE**, tranzacția e în verificare la furnizor; sample-urile și decizia de testare sunt în secțiunea 32.
 - **Emailuri:** SMTP IONOS funcțional; cereri din formular → mads@ + kass@; emailuri de comandă pentru firmă → mads@ + orders@; expeditor noreply@, Reply-To mads@.
 - **Cookies:** registrul rescanat de Doru; equal prominence implicit.
 - **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
 - **Urmează, în această ordine:** copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor și a produsului de test → importul tuturor comenzilor noi (de la #7261, 10 iulie 2026, încolo, inclusiv cele neexpediate) și al celorlalte date la zi → reconciliere 1:1 → curățenie finală → lansare din staging pe eco-fridge.co.uk (același cont Hostinger, DNS din IONOS). Data lansării nu e fixată; calendarul din Drive are termene relative (T-7 … Ziua Z … Z+30).
 - **De la Mads:** numărul de companie și codul de TVA, revizuirea paginilor legale, backupul de la Ambrit.
-- **Documentație la zi:** acest fișier, memoria proiectului (inclusiv o notă separată despre plățile de test), documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge cu fazele 15–16 și tabul „Calendar lansare", checklistul general cu rândurile noi.
+- **Documentație la zi:** acest fișier, memoria proiectului (inclusiv notele despre plățile de test și despre preluarea datelor), documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge cu fazele 15–16 și tabul „Calendar lansare", checklistul general cu rândurile noi.
