@@ -800,14 +800,29 @@ Rulată pe local și pe staging. Verificat pe staging: `smsalert_or_general: cus
 
 ---
 
+## 42. SMS către firmă: scăparea de la statusul nou Preparing (2026-10-29)
+
+**Doru:**
+> mai era bifat sa trimita SMS si catre admin la status order = preparing. L-am debifat eu.
+
+**Cauza, găsită în cod:** pluginul citește o setare lipsă ca **pornită** — `smsalert_get_option( "admin_notification_" . $status, "smsalert_general", "on" )`. Migrarea 70 a oprit alertele către firmă parcurgând cheile **existente** la acel moment, iar statusul **Preparing** a fost creat abia mai târziu (migrarea 73), deci cheia lui nu exista și a apărut bifată din start. Aceeași capcană ar fi apărut la orice status adăugat ulterior, inclusiv pe site-ul live.
+
+**Nu s-a trimis nimic însă:** pluginul cere și un număr de mobil al firmei, iar câmpul e gol, deci niciun SMS nu a plecat și nu s-au consumat credite. Bifa ar fi devenit reală în clipa în care cineva completa numărul.
+
+**Migrarea 76** scrie explicit `off` pentru **toate** statusurile pe care le cunoaște WooCommerce (inclusiv cele proprii, plus `partially_refunded` și `checkout-draft`), nu doar pentru cheile deja salvate, și reconfirmă alertele care nu țin de status (înregistrare, stoc scăzut, stoc epuizat). Se rulează din nou după ce se adaugă un status sau pe live, dacă acolo apare ceva nou.
+
+Rulată pe local (16 setări scrise, 13 statusuri acoperite) și pe staging (0 schimbări — Doru debifase deja Preparing, restul erau oprite). Verificat pe staging: **alerte către companie pornite: niciuna**; numărul firmei: gol; SMS către client doar pe processing, preparing, processed, on-hold, refunded, partially_refunded.
+
+---
+
 ## Stare la 2026-10-29 (final)
 
-- **Git:** `main` cu PR #16–#27 unite; local, staging și git sunt identice; working tree curat.
+- **Git:** `main` cu PR #16–#28 unite; local, staging și git sunt identice; working tree curat.
 - **Plăți:** Lloyds Cardnet pe Live. Flux: card → Processing → Preparing → Processed → Shipped → Complete; transfer bancar → On hold → Preparing → … Licența e a Eco-Fridge și se mută pe domeniul live.
 - **Emailuri:** SMTP IONOS funcțional; „New order" către mads@ + orders@ la toate comenzile; emailurile spun același lucru ca SMS-urile; datele bancare apar în emailul de On hold; Shipped și Complete rămân doar pe email.
-- **SMS:** sender ID ECOFRIDGE aprobat, livrare confirmată pe un număr real din UK. Mesaje doar pe Processing, Preparing, Processed, On hold și rambursări (≈3 pe comandă, ≈120 de credite). Oprite: Pending, Shipped, Complete, coșuri abandonate, cereri de recenzie, SMS la recenzie, „back in stock", share cart și toate alertele către firmă. Sold 4.885 de credite, alertă pe email sub 200.
+- **SMS:** sender ID ECOFRIDGE aprobat, livrare confirmată pe un număr real din UK. Mesaje doar pe Processing, Preparing, Processed, On hold și rambursări (≈3 pe comandă, ≈120 de credite). Oprite: Pending, Shipped, Complete, coșuri abandonate, cereri de recenzie, SMS la recenzie, „back in stock", share cart și **toate** alertele către firmă, pe toate statusurile (migrarea 76). Sold 4.885 de credite, alertă pe email sub 200.
 - **Cookies:** registrul rescanat de Doru; equal prominence implicit.
 - **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
-- **Urmează, în această ordine:** copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor și a produsului de test (inclusiv #8038 și comanda de test cu numărul lui Mads) → importul tuturor comenzilor noi (de la #7261, 10 iulie 2026, încolo, inclusiv cele neexpediate) și al celorlalte date la zi → reconciliere 1:1 → curățenie finală → lansare din staging pe eco-fridge.co.uk (același cont Hostinger, DNS din IONOS). Data lansării nu e fixată; calendarul din Drive are termene relative (T-7 … Ziua Z … Z+30).
+- **Urmează, în această ordine:** copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor și a produsului de test → importul tuturor comenzilor noi (de la #7261, 10 iulie 2026, încolo, inclusiv cele neexpediate) și al celorlalte date la zi → reconciliere 1:1 → curățenie finală → lansare din staging pe eco-fridge.co.uk (același cont Hostinger, DNS din IONOS). **La lansare se rulează din nou migrarea 76**, ca o bifă nouă să nu apară pe live. Data lansării nu e fixată; calendarul din Drive are termene relative (T-7 … Ziua Z … Z+30).
 - **De la Mads:** numărul de companie și codul de TVA, revizuirea paginilor legale, backupul de la Ambrit.
 - **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge cu fazele 15–16 și tabul „Calendar lansare", checklistul general cu rândurile noi.
