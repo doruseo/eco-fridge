@@ -886,16 +886,33 @@ Verificat în JSON-LD pe home, Contact și About: `Organization` cu nume ECO-Fri
 
 ---
 
+## 46. Runda de SEO și mesaje, acceptată (2026-10-29)
+
+**Doru:**
+> totul e perfect. Actualizeaza claude-chat.md, apoi push in gir, commit, merge
+
+**Claude:** confirmat și închis. Tot ce s-a făcut astăzi e pe staging, pe local și în `main`, prin PR-urile #26–#31: emailurile aliniate cu SMS-urile, fluxul Processing → Preparing, SMS-urile reduse la statusurile cu zile de așteptare, toate funcțiile SMS opționale oprite, alertele către firmă oprite pe toate statusurile, wizardul de WooCommerce închis, un singur gateway Lloyds în listă, urmărirea WooCommerce oprită și Local SEO completat din datele firmei.
+
+**Ce a rămas de făcut până la lansare** (pe scurt, în ordinea execuției):
+1. Copia la zi a site-ului vechi pe **eco-fridge-backup.o2dev.de**.
+2. Ștergerea comenzilor de test (#8007, #8029, #8030, #8036, #8037, plus cea cu numărul lui Mads) și a produsului de test #8035.
+3. Importul **tuturor** comenzilor noi apărute după #7261 (10 iulie 2026), inclusiv cele neexpediate, plus clienți, stoc, prețuri, produse noi, cupoane, media, conținut editat, recenzii, redirect-uri și meta SEO.
+4. Reconciliere 1:1 a listei de comenzi și a totalului încasat; secvența de numere pornită peste cel mai mare număr importat.
+5. Curățenie finală (backupul `.ef-backup-2026-10-14`, tabelele vechi `43lz2ypq8_`, log-uri, jurnalul de consimțământ de test).
+6. Lansarea din staging pe eco-fridge.co.uk: domeniul adăugat în același cont Hostinger, protecțiile de staging scoase, LiteSpeed pornit, `search-replace` + `wp rewrite flush --hard` (și pentru `/llms.txt`), DNS-ul schimbat din IONOS (doar A/AAAA și CNAME www), licențele AG și Astra Pro mutate, parola SMTP retastată, migrarea 76 rulată din nou, GTM și Consent Mode v2, Merchant Center 133011514.
+7. De la Mads: numele legal, numărul de companie și codul de TVA, revizuirea paginilor legale, backupul de la Ambrit.
+
+---
+
 ## Stare la 2026-10-29 (final)
 
-- **Git:** `main` cu PR #16–#31 unite; local, staging și git sunt identice; working tree curat.
-- **SEO:** Rank Math cu modulele pornite de Doru (Local SEO, Image SEO, LLMs.txt, AI Visibility); Local SEO completat din datele firmei (migrarea 79); `/llms.txt` funcțional după flush. De completat la final: numele legal, numărul de companie și codul de TVA.
+- **Git:** `main` cu PR #16–#32 unite; local, staging și git sunt identice; working tree curat. Migrări: 01–79.
+- **SEO:** Rank Math cu modulele pornite de Doru; Local SEO completat (migrarea 79); `/llms.txt` funcțional. De completat la final: numele legal, numărul de companie, codul de TVA.
 - **Plăți:** Lloyds Cardnet pe Live, un singur gateway în listă. Flux: card → Processing → Preparing → Processed → Shipped → Complete; transfer bancar → On hold → Preparing → …
-- **Admin:** WooCommerce → Home deschide tabloul de bord; urmărirea WooCommerce e oprită.
+- **Admin:** WooCommerce → Home deschide tabloul de bord; urmărirea WooCommerce oprită.
 - **Emailuri:** SMTP IONOS funcțional; „New order" către mads@ + orders@ la toate comenzile; emailurile spun același lucru ca SMS-urile; datele bancare apar în emailul de On hold.
-- **SMS:** sender ID ECOFRIDGE aprobat, livrare confirmată pe numărul lui Mads. Mesaje doar pe Processing, Preparing, Processed, On hold și rambursări; toate celelalte funcții SMS oprite. Sold 4.885 de credite.
+- **SMS:** sender ID ECOFRIDGE aprobat, livrare confirmată pe numărul lui Mads. Mesaje doar pe Processing, Preparing, Processed, On hold și rambursări; restul funcțiilor oprite. Sold 4.885 de credite, alertă pe email sub 200.
 - **Cookies:** registrul rescanat de Doru; equal prominence implicit.
 - **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
-- **Urmează, în această ordine:** copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor și a produsului de test → importul tuturor comenzilor noi (de la #7261, 10 iulie 2026, încolo, inclusiv cele neexpediate) și al celorlalte date la zi → reconciliere 1:1 → curățenie finală → lansare din staging pe eco-fridge.co.uk (același cont Hostinger, DNS din IONOS). La lansare: migrarea 76 din nou, `wp rewrite flush --hard` (și pentru /llms.txt) și verificarea că `url` din Knowledge Graph a devenit domeniul live.
-- **De la Mads:** numele legal, numărul de companie și codul de TVA, revizuirea paginilor legale, backupul de la Ambrit.
+- **Urmează:** pașii 1–7 din secțiunea de mai sus. Data lansării nu e fixată; calendarul din Drive are termene relative (T-7 … Ziua Z … Z+30).
 - **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge cu fazele 15–16 și tabul „Calendar lansare", checklistul general cu rândurile noi.
