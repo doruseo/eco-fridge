@@ -47,6 +47,9 @@ require_once get_stylesheet_directory() . '/inc/header-controls.php';
 // Order statuses: the shop's fulfilment flow (Processed / Shipped / Returned).
 require_once get_stylesheet_directory() . '/inc/order-statuses.php';
 
+/** Card payments: a paid card order waits on Pending until the shop picks it up. */
+require_once get_stylesheet_directory() . '/inc/card-payments.php';
+
 // Product grids: quantity − / + next to "Add to cart".
 require_once get_stylesheet_directory() . '/inc/shop-loop.php';
 
