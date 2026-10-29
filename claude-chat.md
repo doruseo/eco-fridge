@@ -529,12 +529,37 @@ Regula a intrat în `claude-chat.md`, în memoria proiectului, în checklistul e
 
 ---
 
-## Stare la 2026-10-29 (actualizat)
+## 31. Dacă nu rambursăm comenzile de test (2026-10-29)
 
-- **Git:** `main` cu PR #16 și #17 unite; local, staging și git sunt identice.
-- **Plăți:** Lloyds Cardnet pe Live, testat de Doru și de Kass; licența e a Eco-Fridge și se mută pe domeniul live. Avertismentele PHP ale pluginului sunt inofensive cu debug oprit.
+**Doru:**
+> daca nu mai rambursam nimic din comenzile de test, afecteaza procesul nostru de lansare sau altceva (inafara de decontare in contabilitate)? Retine ce efecte are nerambursarea comenzilor de test ca sa-i explicam lui Kass pe scurt.
+
+**Ce am verificat (Claude), în baza de date:**
+- Comenzile **#8036** (plătită de Doru) și **#8037** (plătită de Kass) sunt amândouă de **£1,00**, pe Processing, cu `TRANSACTIONSTATE = CAPTURED` și **fără TVA** (`_order_tax = 0`).
+- Produsul folosit e **#8035 „Live payment test – do not buy"**, £1,00: ascuns din catalog și din căutare, fără stoc gestionat, nu apare în feed-ul Merchant și nici în sitemap, dar URL-ul direct răspunde 200 și produsul e încă cumpărabil — deci se șterge la curățenie, împreună cu comenzile.
+- Referințele de tranzacție (023387 pentru #8036 și 030469 pentru #8037, plus codurile de aprobare și ID-urile IPG) dispar din WooCommerce odată cu comenzile. Le-am salvat în nota de proiect din memorie, nu în repository: datele de plată nu intră în Git.
+
+**Răspuns (Claude): asupra lansării și a site-ului — niciun efect.** Rambursarea e o operațiune la procesator, complet separată de WordPress: ștergerea comenzilor nu atinge Lloyds, iar banii sunt deja capturați. Ce rămâne, pe scurt (varianta pentru Kass):
+
+1. **Decontare și contabilitate:** 2 × £1,00 intră în contul de comerciant Eco-Fridge, minus comisionul pe tranzacție (comisionul fix poate depăși £1, deci net poate fi ușor negativ). După ștergerea comenzilor nu mai există comandă sau factură corespondentă, iar cele £1 nu au TVA, deci nu arată ca o linie de vânzare obișnuită.
+2. **Referințele se pierd din site** la ștergerea comenzilor; o rambursare ulterioară se face din Virtual Terminal, pe baza referințelor salvate în nota de proiect.
+3. **Fereastra de rambursare la procesator e limitată** (de regulă în jur de șase luni); după aceea rămâne doar transferul bancar.
+4. **Risc de dispută:** dacă un deținător de card ar contesta un £1 nerecunoscut, ar fi chargeback plus taxa lui. Practic zero aici, amândoi știu de plăți.
+5. **Nu ține de rambursare, ci de ștergere:** rândurile din `wp_wc_order_stats` trebuie să dispară împreună cu comenzile, altfel rapoartele WooCommerce arată venituri fantomă. Se verifică rapoartele după ștergere.
+6. **GA4 și Google Ads:** evenimentele `purchase` de test pot fi deja în proprietatea GA4 live (traficul de pe staging merge acolo). O rambursare nu le șterge; se filtrează după hostname `eco-fridge.o2dev.de`.
+7. Un £1 a fost plătit de Doru din banii lui, deci rămâne la Eco-Fridge — neglijabil, dar e corect spus.
+
+**Concluzie:** a nu rambursa e o alegere validă; e suficient să-i dăm lui Kass cele două referințe, ca decontarea să fie explicabilă. O rambursare din Virtual Terminal ia două minute și lasă registrele curate, dar trebuie făcută **înainte** de ștergerea comenzilor. În ambele variante, comenzile #8007, #8029, #8030, #8036, #8037 și produsul #8035 se șterg la curățenia de dinaintea lansării.
+
+---
+
+## Stare la 2026-10-29 (final)
+
+- **Git:** `main` la `a103997`, cu PR #16, #17 și #18 unite; local, staging și git sunt identice; working tree curat.
+- **Plăți:** Lloyds Cardnet pe Live, testat de Doru și de Kass (£1,00 fiecare, nerambursate — efectele sunt în secțiunea 31). Licența e a Eco-Fridge și se mută pe domeniul live. Avertismentele PHP ale pluginului AG sunt inofensive cu debug oprit (secțiunea 30).
 - **Emailuri:** SMTP IONOS funcțional; cereri din formular → mads@ + kass@; emailuri de comandă pentru firmă → mads@ + orders@; expeditor noreply@, Reply-To mads@.
 - **Cookies:** registrul rescanat de Doru; equal prominence implicit.
 - **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
-- **Urmează:** copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor de test → importul tuturor comenzilor noi (de la #7261 încolo) și al celorlalte date la zi → reconciliere → curățenie → lansare din staging pe eco-fridge.co.uk (același cont Hostinger). Data lansării încă nu e fixată; calendarul are termene relative (T-7 … Ziua Z).
+- **Urmează, în această ordine:** copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor și a produsului de test → importul tuturor comenzilor noi (de la #7261, 10 iulie 2026, încolo, inclusiv cele neexpediate) și al celorlalte date la zi → reconciliere 1:1 → curățenie finală → lansare din staging pe eco-fridge.co.uk (același cont Hostinger, DNS din IONOS). Data lansării nu e fixată; calendarul din Drive are termene relative (T-7 … Ziua Z … Z+30).
 - **De la Mads:** numărul de companie și codul de TVA, revizuirea paginilor legale, backupul de la Ambrit.
+- **Documentație la zi:** acest fișier, memoria proiectului (inclusiv o notă separată despre plățile de test), documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge cu fazele 15–16 și tabul „Calendar lansare", checklistul general cu rândurile noi.
