@@ -2,8 +2,9 @@
 /**
  * Eco-Fridge order statuses — the fulfilment flow used by the shop.
  *
- *   Pending    → order placed, not yet picked up
- *   Processing → order picked up
+ *   Pending    → order placed, payment not taken yet
+ *   Processing → paid, waiting for the money to reach the bank account
+ *   Preparing  → approved, being prepared in the warehouse
  *   Processed  → order processed, ready for delivery
  *   Shipped    → order out for delivery
  *   On hold    → order waiting (e.g. for payment by bank transfer)
@@ -13,10 +14,13 @@
  *   Returned   → order returned
  *   Refunded   → order refunded
  *
- * Processed / Shipped / Returned are registered here; the rest are core WooCommerce
- * statuses, relabelled and reordered to match the flow: Processed and Shipped right
- * after Processing, then the other statuses. On hold stays – existing orders use it
- * and bank transfer payments are put on hold.
+ * Preparing / Processed / Shipped / Returned are registered here; the rest are core
+ * WooCommerce statuses, relabelled and reordered to match the flow. On hold stays –
+ * existing orders use it and bank transfer payments are put on hold.
+ *
+ * Card payments stay on WooCommerce's own Processing, so nothing in the gateway or
+ * in WooCommerce has to be worked around: both read Processing as paid. The warehouse
+ * step the shop wanted is Preparing, between Processing and Processed.
  *
  * @package Eco-Fridge-Child
  */
@@ -25,6 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /** The custom statuses, without the `wc-` prefix, in flow order. */
 const EF_CUSTOM_ORDER_STATUSES = array(
+	'preparing' => 'Preparing',
 	'processed' => 'Processed',
 	'shipped'   => 'Shipped',
 	'returned'  => 'Returned',
@@ -54,8 +59,9 @@ add_action( 'init', function () {
  * ========================================================================= */
 add_filter( 'wc_order_statuses', function ( $statuses ) {
 	$flow = array(
-		'wc-pending'    => 'Pending',    // placed, not picked up yet
-		'wc-processing' => 'Processing', // picked up
+		'wc-pending'    => 'Pending',    // placed, not paid yet
+		'wc-processing' => 'Processing', // paid, waiting for the money in the bank
+		'wc-preparing'  => 'Preparing',  // approved, being prepared
 		'wc-processed'  => 'Processed',  // ready for delivery
 		'wc-shipped'    => 'Shipped',    // out for delivery
 		'wc-on-hold'    => 'On hold',    // waiting (e.g. bank transfer)
@@ -81,23 +87,25 @@ add_filter( 'wc_order_statuses', function ( $statuses ) {
  * ========================================================================= */
 
 /**
- * Processed and Shipped come after payment, so they count as paid: the order keeps
- * its paid date, stays out of "needs payment", and shows up in the sales reports.
+ * Preparing, Processed and Shipped come after payment, so they count as paid: the
+ * order keeps its paid date, stays out of "needs payment", and shows up in the sales
+ * reports.
  */
 add_filter( 'woocommerce_order_is_paid_statuses', function ( $statuses ) {
-	return array_merge( $statuses, array( 'processed', 'shipped' ) );
+	return array_merge( $statuses, array( 'preparing', 'processed', 'shipped' ) );
 } );
 
 /**
  * Stock: an order moved straight to Processed or Shipped (e.g. from Pending) has its
  * stock reduced like on Processing / Complete. WooCommerce does it once per order.
  */
+add_action( 'woocommerce_order_status_preparing', 'wc_maybe_reduce_stock_levels' );
 add_action( 'woocommerce_order_status_processed', 'wc_maybe_reduce_stock_levels' );
 add_action( 'woocommerce_order_status_shipped', 'wc_maybe_reduce_stock_levels' );
 
 /** Reports count the fulfilled statuses alongside processing/completed. */
 add_filter( 'woocommerce_reports_order_statuses', function ( $statuses ) {
-	return array_merge( $statuses, array( 'processed', 'shipped' ) );
+	return array_merge( $statuses, array( 'preparing', 'processed', 'shipped' ) );
 } );
 
 /* =========================================================================
@@ -176,6 +184,7 @@ add_action( 'admin_head', function () {
  * the status.
  */
 add_filter( 'woocommerce_email_actions', function ( $actions ) {
+	$actions[] = 'woocommerce_order_status_preparing';
 	$actions[] = 'woocommerce_order_status_processed';
 	$actions[] = 'woocommerce_order_status_shipped';
 	return $actions;
@@ -184,7 +193,7 @@ add_filter( 'woocommerce_email_actions', function ( $actions ) {
 /** Register the emails so they appear under WooCommerce → Settings → Emails. */
 add_filter( 'woocommerce_email_classes', function ( $emails ) {
 	require_once __DIR__ . '/emails/class-ef-email-order-status.php';
-	foreach ( array( 'EF_Email_Customer_Processed_Order', 'EF_Email_Customer_Shipped_Order', 'EF_Email_Admin_Shipped_Order', 'EF_Email_Admin_Completed_Order' ) as $class ) {
+	foreach ( array( 'EF_Email_Customer_Preparing_Order', 'EF_Email_Customer_Processed_Order', 'EF_Email_Customer_Shipped_Order', 'EF_Email_Admin_Shipped_Order', 'EF_Email_Admin_Completed_Order' ) as $class ) {
 		if ( class_exists( $class ) ) {
 			$emails[ $class ] = new $class();
 		}

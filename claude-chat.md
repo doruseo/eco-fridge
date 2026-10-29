@@ -732,14 +732,42 @@ Starea veche e în `ef_order_emails_before_72`. Migrarea rulată pe local și pe
 
 ---
 
+## 38. Renunțăm la Pending pentru card; status nou „Preparing" (2026-10-29)
+
+**Doru:**
+> sigur modificarea pentru comenzile platite in AG Lloyds Cardnet catre pending nu strica pluginul AG? Sigur la actualizarea pluginului AG nu se modifica nimic la loc? Sigur nu vom avea erori? Daca exista riscuri, atunci hai sa mutam inapoi pe processing si sa inventam un nou status pentru pregatirea comenzii in depozit (preparing sau ceva) […] La on-hold, ai bank details ale Eco-Fridge din vechiul site? Apar in emailurile de on-hold?
+
+**Ce am verificat (Claude):**
+- **Actualizarea pluginului AG nu poate anula modificarea:** codul nostru stă în tema copil, nu în plugin. Un update rescrie doar fișierele pluginului.
+- **Dar riscul invers e real.** Pluginul AG verifică în vreo zece locuri `has_status( array( "processing", "completed", "on-hold" ) )` ca să decidă dacă o comandă e plătită — în gateway-ul hosted checkout, în webhook, în verificarea de status și în „self healing". O comandă plătită care stă pe **Pending** e văzută de acel cod ca neplătită. Acum cele două funcții sunt oprite, dar un update poate adăuga alte verificări de același fel, iar noi nu controlăm asta.
+- În plus, WooCommerce însuși citește Pending ca „neplătită": a trebuit să blocăm anularea automată după 60 de minute, re-plata, emailul „New order" care nu mai pornea și rapoartele care exclud Pending. Patru ocolișuri pentru un singur status.
+
+**Verdict: varianta ta e mai sigură**, așa că am trecut pe ea.
+
+**Fluxul nou (fără niciun ocoliș):** Pending (neplătită, checkout abandonat) → **Processing** (plătită cu cardul, aștept banii în cont) → **Preparing** (aprobată, se pregătește în depozit) → Processed (gata de expediere) → Shipped (pe drum, cu mașinile noastre) → Complete (livrată). Transferul bancar rămâne pe On hold.
+
+- Statusul nou **Preparing** e înregistrat în `astra-child/inc/order-statuses.php`, imediat după Processing, cu culoare și acțiuni în masă în admin, numărat ca plătit, cu stoc scăzut și inclus în rapoarte, exact ca Processed și Shipped.
+- Email nou pentru client, **„Order being prepared"** (`EF_Email_Customer_Preparing_Order`): „Your order is approved and we are preparing it. Delivery is usually 5 to 10 working days."
+- Emailul de **Processing** spune acum ce spunea cel de Pending: „We have received your payment… We are checking stock and waiting for the payment to reach our account, which usually takes 3 to 4 working days."
+- **Modulul `card-payments.php` și emailul „Payment received (card)" au fost șterse** — nu mai sunt necesare. Emailul „New order" către firmă pornește din nou nativ, la trecerea pe Processing.
+- **SMS-urile s-au mutat cu un pas** (migrarea 73): textul de plată confirmată e acum pe Processing, cel cu „approved and we are preparing it" pe Preparing, iar **Pending nu mai trimite SMS** (e starea de checkout neplătit) — ceea ce scade și costul. Starea veche: `ef_smsalert_message_before_73` și `ef_processing_email_before_73`.
+
+**Testat pe local**, cu o comandă ștearsă după: plata cu cardul duce comanda pe `processing`, data plății și stocul sunt în regulă, comanda nu e plătibilă, pleacă emailul „New order" către firmă și „We have received your payment" către client; la trecerea pe Preparing pleacă „has been approved", la Processed „is ready to be shipped". Pe staging: fișierele urcate, cele două fișiere vechi șterse, migrarea 73 rulată, fluxul verificat (Pending | Processing | Preparing | Processed | Shipped | On hold | Complete …), Preparing numărat ca plătit, iar SMS-urile pe processing, preparing, processed, shipped, on-hold, completed, refunded.
+
+**Datele bancare la On hold — da, le avem.** Au venit din site-ul vechi cu migrarea 38 și sunt în setările WooCommerce → Direct bank transfer: cont **ECO Fridge UK Ltd**, banca **Lloyds**, cu sort code și număr de cont completate (fără IBAN). Am randat emailul de On hold pentru comanda de test #8007 și apar: secțiunea „Our bank details", numele contului, „Sort code", „Account number", plus textul nostru „on hold until your bank transfer clears" și numărul de telefon. Deci clientul primește datele bancare în email, exact ca pe site-ul vechi.
+
+**De decis (cost SMS):** chiar și fără Pending, o comandă normală trece prin Processing, Preparing, Processed, Shipped și Complete, adică 5 SMS-uri ≈ 200 de credite. Dacă vrei să scazi costul, cele mai utile pentru client sunt Processing (plata a intrat) și Shipped (vine livrarea); restul le acoperă emailurile.
+
+---
+
 ## Stare la 2026-10-29 (final)
 
-- **Git:** `main` cu PR #16–#26 unite; local, staging și git sunt identice; working tree curat.
-- **Plăți:** Lloyds Cardnet pe Live; comanda de test #8038 plătită cu 3D Secure. Comenzile cu cardul rămân de acum pe **Pending** (secțiunea 36); transferul bancar pe On hold. Licența e a Eco-Fridge și se mută pe domeniul live.
-- **SMS:** sender ID ECOFRIDGE aprobat; mesajele pe statusuri scrise prin migrarea 70; fără SMS către firmă, fără coșuri abandonate, fără share cart. Cost aproximativ 40 de credite pe mesaj către UK, sold 4.885. SMS-urile pleacă (API acceptă), dar livrarea către numărul virtual NUMERO nu s-a confirmat — de testat pe un SIM real.
-- **Emailuri:** SMTP IONOS funcțional; cereri din formular → mads@ + kass@; emailuri de comandă pentru firmă → mads@ + orders@; expeditor noreply@, Reply-To mads@. Toate emailurile de comandă spun acum același lucru ca SMS-urile (migrările 71 și 72 plus textele din temă).
+- **Git:** `main` cu PR #16–#25 unite; commit-urile pentru emailurile aliniate și pentru fluxul nou așteaptă push (auto mode a blocat `git push`, vezi mai jos). Local și staging sunt identice.
+- **Plăți:** Lloyds Cardnet pe Live. **Comenzile cu cardul rămân pe Processing** (nativ), iar pregătirea în depozit e statusul nou **Preparing**; transferul bancar pe On hold. Licența e a Eco-Fridge și se mută pe domeniul live.
+- **SMS:** sender ID ECOFRIDGE aprobat; textele mutate pe noul flux (migrarea 73), Pending fără SMS; fără SMS către firmă, fără coșuri abandonate, fără share cart. Aproximativ 40 de credite pe mesaj către UK, sold 4.885. Livrarea către numărul virtual NUMERO nu s-a confirmat — de testat pe un SIM real.
+- **Emailuri:** SMTP IONOS funcțional; toate emailurile de comandă spun același lucru ca SMS-urile; datele bancare apar în emailul de On hold.
 - **Cookies:** registrul rescanat de Doru; equal prominence implicit.
 - **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
-- **Urmează, în această ordine:** copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor și a produsului de test (acum inclusiv #8038) → importul tuturor comenzilor noi (de la #7261, 10 iulie 2026, încolo, inclusiv cele neexpediate) și al celorlalte date la zi → reconciliere 1:1 → curățenie finală → lansare din staging pe eco-fridge.co.uk (același cont Hostinger, DNS din IONOS). Data lansării nu e fixată; calendarul din Drive are termene relative (T-7 … Ziua Z … Z+30).
+- **Urmează, în această ordine:** copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor și a produsului de test (inclusiv #8038) → importul tuturor comenzilor noi (de la #7261, 10 iulie 2026, încolo, inclusiv cele neexpediate) și al celorlalte date la zi → reconciliere 1:1 → curățenie finală → lansare din staging pe eco-fridge.co.uk. Data lansării nu e fixată; calendarul din Drive are termene relative.
 - **De la Mads:** numărul de companie și codul de TVA, revizuirea paginilor legale, backupul de la Ambrit.
-- **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge cu fazele 15–16 și tabul „Calendar lansare", checklistul general cu rândurile noi.
+- **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge cu fazele 15–16 și tabul „Calendar lansare".

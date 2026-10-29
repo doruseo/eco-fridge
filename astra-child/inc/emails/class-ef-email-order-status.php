@@ -137,6 +137,40 @@ abstract class EF_Email_Order_Status extends WC_Email {
 }
 
 /**
+ * Customer: "Order being prepared" – approved, in the warehouse.
+ */
+class EF_Email_Customer_Preparing_Order extends EF_Email_Order_Status {
+
+	public function __construct() {
+		$this->id             = 'customer_preparing_order';
+		$this->customer_email = true;
+		$this->ef_status      = 'preparing';
+		$this->title          = 'Order being prepared';
+		$this->description    = 'Sent to the customer when their order is marked Preparing: the payment has reached us and the order is being prepared in the warehouse.';
+		parent::__construct();
+	}
+
+	public function get_default_subject() {
+		return 'Your {site_title} order #{order_number} has been approved';
+	}
+
+	public function get_default_heading() {
+		return 'Your order has been approved';
+	}
+
+	public function get_default_additional_content() {
+		return 'Thanks for shopping with us.';
+	}
+
+	public function get_intro() {
+		return array(
+			'Your order is approved and we are preparing it. Delivery is usually 5 to 10 working days.',
+			'Here is a summary of your order:',
+		);
+	}
+}
+
+/**
  * Customer: "Order processed" – ready for delivery.
  */
 class EF_Email_Customer_Processed_Order extends EF_Email_Order_Status {
