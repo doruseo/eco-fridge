@@ -947,15 +947,51 @@ Dacă Mads propune alt weekend, mut tot calendarul cu o săptămână dintr-o si
 
 ---
 
+## 49. Oprirea comenzilor pe site-ul vechi în timpul migrării (2026-10-29)
+
+**Doru:**
+> putem opri cumva site-ul actual (vechi) al eco-fridge cat facem update si migrarea noului site, ca sa nu se poata face nicio comanda in acest timp? Ceva de genul, maintenance, sau sa-l bagam in debugging, ceva. Nu uita ca site-ul vechi are php 7.3, sa consideri aceasta problema
+
+**Răspuns (Claude): da, dar nu cu mod mentenanță și în niciun caz cu debugging.**
+
+- **Mod mentenanță / 503 ar fi greșit aici.** După schimbarea DNS, o parte din vizitatori mai ajung **ore în șir** pe serverul vechi, până se propagă adresa. Cu mentenanță, toți aceia văd un site mort, iar Google vede un site indisponibil exact în ziua lansării.
+- **Debugging nu oprește nicio comandă.** `WP_DEBUG` doar afișează avertismente; pe PHP 7.3 ar scoate și căi de fișiere în pagină, pentru vizitatori.
+- **Soluția: mod catalog.** Site-ul vechi rămâne în picioare și arată normal, dar nu se mai poate cumpăra nimic.
+
+**Fișierul `migration/tools/old-site-pause-shop.php`**, de urcat în ziua lansării pe site-ul vechi ca `wp-content/mu-plugins/ef-pause-shop.php` (mu-plugins se încarcă singur, fără activare, și nu poate fi dezactivat din greșeală din admin). Ce face, pe straturi:
+
+1. produsele devin necumpărabile (`woocommerce_is_purchasable`);
+2. șabloanele standard de „Add to cart" sunt scoase, iar orice buton rămas de la temă e ascuns prin CSS;
+3. adăugarea în coș e refuzată pe server, deci nici dintr-o pagină din cache, nici dintr-un link direct;
+4. checkout-ul trimite înapoi la coș;
+5. o comandă totuși trimisă e refuzată în `woocommerce_checkout_process`;
+6. nicio metodă de plată nu mai e oferită;
+7. vizitatorul vede un mesaj cu telefonul și emailul firmei: comenzile se pot da telefonic în acea dimineață.
+
+**PHP 7.3:** scris intenționat fără nimic mai nou de PHP 7.0 — doar funcții și closure-uri clasice, fără arrow functions, fără `??=`, fără `str_contains`, fără proprietăți tipate. Verificat cu `php -l` și cu o căutare după construcțiile de 7.4+. Hook-urile folosite există din WooCommerce 2.x, deci merg și pe WooCommerce 3.5.10 al site-ului vechi.
+
+**Testat pe local**, pe un WooCommerce modern: mesajul apare pe produs și în coș, `/checkout/` redirecționează la coș, iar un POST real de `add-to-cart` nu adaugă nimic și întoarce mesajul. Apoi am șters fișierul de pe local și am verificat că site-ul e din nou normal.
+
+**Al doilea strat, din admin:** pe lângă fișier, oprim toate metodele de plată din WooCommerce → Settings → Payments pe site-ul vechi. Chiar dacă o pagină din cache ar arăta un buton, fără gateway nu se poate finaliza nimic.
+
+**Când:** sâmbătă 7 noiembrie, ora 05:00, înainte de copia finală. Fișierul **rămâne pe loc** prin toată propagarea DNS și pe toată perioada de rollback de 30 de zile; se șterge doar dacă ar trebui vreodată să vindem iar de pe site-ul vechi (atunci se repun și gateway-urile).
+
+**Cine urcă fișierul:** are nevoie de FTP/SFTP la Ambrit. Fie îl urcăm noi, dacă primim acces, fie îl trimitem lui Ambrit cu instrucțiunea de o linie. Am adăugat asta la lista de cerut de la Mads.
+
+Actualizat și în Drive: pasul de 05:00 din „Calendar lansare" descrie acum modul catalog, iar procedura generală (Faza 8) înlocuiește „mod mentenanță" cu această metodă, pentru orice site viitor.
+
+---
+
 ## Stare la 2026-10-29 (final)
 
-- **Git:** `main` cu PR #16–#34 unite; local, staging și git sunt identice; working tree curat. Migrări: 01–79.
-- **Lansare:** propusă **sâmbătă 7 noiembrie 2026, 05:00–09:00**, în așteptarea confirmării; calendarul din Drive are datele reale (30 oct → 7 dec), iar emailul către Mads e `email-mads-go-live-2026-11-07.html`.
-- **SEO:** Rank Math cu modulele pornite de Doru; Local SEO completat (migrarea 79); `/llms.txt` funcțional.
-- **Plăți:** Lloyds Cardnet pe Live, un singur gateway în listă. Flux: card → Processing → Preparing → Processed → Shipped → Complete; transfer bancar → On hold → Preparing → …
+- **Git:** `main` cu PR #16–#35 unite; local, staging și git sunt identice; working tree curat. Migrări: 01–79, plus uneltele din `migration/tools`.
+- **Lansare:** propusă sâmbătă **7 noiembrie 2026, 05:00–09:00**; calendarul din Drive are datele reale (30 oct → 7 dec). Pasul de 05:00: site-ul vechi trece în mod catalog.
+- **De cerut de la Ambrit (prin Mads):** backup complet vineri 6 nov după închidere, hostingul ținut 30 de zile, fără intervenții pe DNS, **plus acces FTP sau urcarea fișierului de pauză** sâmbătă dimineață.
+- **SEO:** Rank Math cu modulele pornite de Doru; Local SEO completat; `/llms.txt` funcțional.
+- **Plăți:** Lloyds Cardnet pe Live. Flux: card → Processing → Preparing → Processed → Shipped → Complete; transfer bancar → On hold → Preparing → …
 - **Emailuri:** SMTP IONOS funcțional; „New order" către mads@ + orders@ la toate comenzile; emailurile spun același lucru ca SMS-urile.
-- **SMS:** sender ID ECOFRIDGE aprobat, livrare confirmată pe numărul lui Mads; mesaje doar pe statusurile cu zile de așteptare.
+- **SMS:** sender ID ECOFRIDGE aprobat; mesaje doar pe statusurile cu zile de așteptare.
 - **Cookies:** registrul rescanat de Doru; equal prominence implicit.
 - **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
-- **Urmează:** confirmarea datei de la Mads și Kass → pregătirile de până vineri 30 octombrie → copia la zi a site-ului vechi și importul datelor → curățenie → lansarea pe 7 noiembrie.
-- **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge (fazele 15–16, rândul F14-13) și tabul „Calendar lansare" cu date reale.
+- **Urmează:** confirmarea datei → pregătirile de până vineri 30 octombrie → copia la zi a site-ului vechi și importul datelor → curățenie → lansarea pe 7 noiembrie.
+- **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2, cu modul catalog), checklistul eco-fridge și tabul „Calendar lansare".
