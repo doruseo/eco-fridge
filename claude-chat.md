@@ -1068,12 +1068,31 @@ Referințele de tranzacție le trimitem separat, la fel ca până acum, deci con
 
 ---
 
+## 55. Verificarea de la Kass devine inutilă în ziua lansării (2026-10-29)
+
+**Doru:**
+> daca AG imi spune ca este live store, iar platile din zilele astea au trecut la el n cont, nu e acelasi lucru si cu plata de sambata? Nu e acelasi lucru daca ii cerem de acum sa verifice in terminal daca platile actuale au trecut? Ce rost are sa ma verifice si atunci?
+
+**Răspuns (Claude): ai dreptate, iar argumentul meu nu stătea.** Plățile de zilele acestea au trecut prin aceleași setări live, în același cont de comerciant. Ce se schimbă sâmbătă e **doar domeniul și licența AG** — Store ID, shared secret și modul Live **călătoresc cu baza de date și nu se retastează**. Deci dacă acum banii ajung în contul real, sâmbătă ajung în același cont. Nu are rost să-i cerem lui Kass să confirme a doua oară ceva deja dovedit.
+
+**Și pot dovedi asta fără nicio întrebare către client.** Am luat acum, de pe staging, o amprentă criptografică a setărilor gateway-ului (un md5 peste valorile stocate), plus faptul că magazinul e pe `live` și operațiunea `sale`. După mutarea pe producție recalculez aceeași amprentă: dacă iese identică, site-ul nou plătește în exact același cont ca plățile de test — verificat matematic, fără să ating sau să afișez vreo valoare. Amprenta stă doar în nota de proiect din memorie, nu în git și nu în Drive, fiindcă e derivată din datele de plată.
+
+**Ce am schimbat în email:** lista lui Kass nu mai conține nicio sarcină pentru dimineața lansării.
+1. O singură privire în Virtual Terminal, **oricând până la lansare**: dacă vede plățile de test în contul lui, e dovada că site-ul plătește în contul real — iar atunci în ziua lansării nu mai e nevoie de nimic de la el.
+2. Rambursarea plăților de test, când îi e comod.
+3. Confirmarea că nimic nu se schimbă la Lloyds.
+4. Un cuvânt pentru contabilitate.
+
+În pasul de 08:30 din calendar, comanda reală de test o urmărim noi cap-coadă (webhook, status, emailuri, SMS), fără să depindem de cineva din partea clientului.
+
+---
+
 ## Stare la 2026-10-29 (final)
 
-- **Git:** `main` cu PR #16–#40 unite; local, staging și git sunt identice; working tree curat. Migrări: 01–79, plus uneltele din `migration/tools`.
-- **Lansare:** propusă sâmbătă **7 noiembrie 2026, 05:00–09:00**; calendarul din Drive are datele reale (30 oct → 7 dec). La 05:00 magazinul vechi se închide cu pluginul `ef-close-shop`; la 05:10 copia finală; la 08:30 comanda de test pe live.
+- **Git:** `main` cu PR #16–#41 unite; local, staging și git sunt identice; working tree curat. Migrări: 01–79, plus uneltele din `migration/tools`.
+- **Lansare:** propusă sâmbătă **7 noiembrie 2026, 05:00–09:00**; calendarul are datele reale (30 oct → 7 dec). 05:00 magazinul vechi închis cu pluginul `ef-close-shop`; 05:10 copia finală; 08:00 licențele mutate și amprenta credențialelor comparată; 08:30 comanda de test urmărită de noi.
+- **De la client:** o privire în Virtual Terminal oricând înainte de lansare, rambursările când îi e comod, confirmarea Lloyds, un cuvânt pentru contabilitate. Nicio sarcină în dimineața lansării.
 - **De cerut de la Ambrit (prin Mads):** un backup luni 9 noiembrie, hostingul ținut 30 de zile, fără intervenții pe DNS.
-- **Emailul către Mads** e gata de trimis: opt puncte pentru Mads, patru pentru Kass, fără numere fixe la plățile de test.
 - **SEO:** Rank Math cu modulele pornite de Doru; Local SEO completat; `/llms.txt` funcțional.
 - **Plăți:** Lloyds Cardnet pe Live. Flux: card → Processing → Preparing → Processed → Shipped → Complete; transfer bancar → On hold → Preparing → …
 - **Emailuri:** SMTP IONOS funcțional; „New order" către mads@ + orders@ la toate comenzile; emailurile spun același lucru ca SMS-urile.
@@ -1081,4 +1100,4 @@ Referințele de tranzacție le trimitem separat, la fel ca până acum, deci con
 - **Cookies:** registrul rescanat de Doru; equal prominence implicit.
 - **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
 - **Urmează:** trimiterea emailului și confirmarea datei → pregătirile de până vineri 30 octombrie → copia la zi a site-ului vechi și importul datelor → curățenie → lansarea pe 7 noiembrie.
-- **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge și tabul „Calendar lansare".
+- **Documentație la zi:** acest fișier, memoria proiectului (inclusiv amprenta credențialelor), documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge și tabul „Calendar lansare".
