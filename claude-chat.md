@@ -1007,11 +1007,22 @@ Am renumerotat lista pentru Mads (are acum opt puncte) și am corectat și punct
 
 ---
 
+## 51. Contabilitatea anunțată despre încasările de test (2026-10-29)
+
+**Doru:**
+> adauga si sa anunte contabilitatea despre incasarile acestor comenzi de test
+
+**Ce am adăugat în email**, ca punctul 4 din lista lui Kass: cineva să anunțe persoana care ține contabilitatea despre cele trei încasări de test, pentru că ele intră în contul bancar prin decontarea normală Lloyds și vor apărea în registre — **două de £1,00 din 28 octombrie** și **una de £1,00 în ziua lansării**, fiecare cu rambursarea ei, dacă se rambursează. În email scrie clar că sunt teste, nu vânzări, că nu există client și nici factură în spatele lor, și că trimitem referințele de tranzacție ca să poată fi potrivite și închise curat în contabilitate.
+
+Emailul are acum 1.296 de cuvinte: lista lui Mads cu opt puncte, lista lui Kass cu patru.
+
+---
+
 ## Stare la 2026-10-29 (final)
 
-- **Git:** `main` cu PR #16–#36 unite; local, staging și git sunt identice; working tree curat. Migrări: 01–79, plus uneltele din `migration/tools`.
+- **Git:** `main` cu PR #16–#37 unite; local, staging și git sunt identice; working tree curat. Migrări: 01–79, plus uneltele din `migration/tools`.
 - **Lansare:** propusă sâmbătă **7 noiembrie 2026, 05:00–09:00**; calendarul din Drive are datele reale (30 oct → 7 dec). La 05:00 site-ul vechi trece în mod catalog; la 05:10 copia finală; la 08:30 comanda reală de test pe live.
-- **De cerut de la Ambrit (prin Mads):** backup vineri 6 nov după închidere **și** backup luni 9 nov, hostingul ținut 30 de zile, fără intervenții pe DNS, plus acces FTP sau urcarea fișierului de pauză sâmbătă dimineață.
+- **Emailul către Mads** (`email-mads-go-live-2026-11-07.html`) e gata de trimis: starea proiectului, cronologia, data propusă cu motive, opt puncte pentru Mads (inclusiv cele două backupuri de la Ambrit și accesul FTP pentru fișierul de pauză) și patru pentru Kass (plata nouă de test, rambursările, confirmarea Lloyds, anunțarea contabilității).
 - **SEO:** Rank Math cu modulele pornite de Doru; Local SEO completat; `/llms.txt` funcțional.
 - **Plăți:** Lloyds Cardnet pe Live. Flux: card → Processing → Preparing → Processed → Shipped → Complete; transfer bancar → On hold → Preparing → …
 - **Emailuri:** SMTP IONOS funcțional; „New order" către mads@ + orders@ la toate comenzile; emailurile spun același lucru ca SMS-urile.
