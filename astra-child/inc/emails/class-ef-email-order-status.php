@@ -151,11 +151,11 @@ class EF_Email_Customer_Processed_Order extends EF_Email_Order_Status {
 	}
 
 	public function get_default_subject() {
-		return 'Your {site_title} order #{order_number} has been processed';
+		return 'Your {site_title} order #{order_number} is ready to be shipped';
 	}
 
 	public function get_default_heading() {
-		return 'Your order has been processed';
+		return 'Your order is ready to be shipped';
 	}
 
 	public function get_default_additional_content() {
@@ -164,7 +164,7 @@ class EF_Email_Customer_Processed_Order extends EF_Email_Order_Status {
 
 	public function get_intro() {
 		return array(
-			'Your order has been processed and is ready for delivery. We will email you again as soon as it is on its way.',
+			'Your order is ready to be shipped. We will contact you before we deliver.',
 			'Here is a summary of your order:',
 		);
 	}
@@ -185,11 +185,11 @@ class EF_Email_Customer_Shipped_Order extends EF_Email_Order_Status {
 	}
 
 	public function get_default_subject() {
-		return 'Your {site_title} order #{order_number} is on its way';
+		return 'Your {site_title} order #{order_number} is out for delivery';
 	}
 
 	public function get_default_heading() {
-		return 'Your order is on its way';
+		return 'Your order is out for delivery';
 	}
 
 	public function get_default_additional_content() {
@@ -198,7 +198,7 @@ class EF_Email_Customer_Shipped_Order extends EF_Email_Order_Status {
 
 	public function get_intro() {
 		return array(
-			'Good news — your order is on its way to you.',
+			'Your order goes out for delivery with our own vehicles and engineers, so we can make sure it arrives in good condition. We will contact you before we deliver.',
 			"Here's a reminder of what's coming:",
 		);
 	}
@@ -231,7 +231,7 @@ class EF_Email_Admin_Shipped_Order extends EF_Email_Order_Status {
 	}
 
 	public function get_intro() {
-		return array( 'Order #{order_number} for {customer} has been marked Shipped and is out for delivery.' );
+		return array( 'Order #{order_number} for {customer} has been marked Shipped and goes out for delivery with our own vehicles and engineers.' );
 	}
 }
 

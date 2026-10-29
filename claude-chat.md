@@ -698,14 +698,48 @@ Mesajele pentru client, cum arată la randare:
 
 ---
 
+## 37. Comanda de test #8038: ce s-a trimis, cât a costat, și emailurile aliniate cu SMS-urile (2026-10-29)
+
+**Doru:**
+> am dezactivat notificarile din share cart din SMS Alert - Woocommerce. Am plasat comanda de test […] 8038 […] am pus numar de telefon de UK (insa este numar virtual de la NUMERO care primeste SMS […]), in platforma SMS Alert mi s-au scazut 80 de credite, insa nu am primit SMS inca. Scrie toate emailuri la fel ca mesajele din SMS.
+
+**Ce am găsit pe staging la comanda #8038** (ora serverului, UTC, cu două ore în urma orei locale):
+- `11:10:00` comanda creată pe Pending la checkout, `11:11:00` plata confirmată de Lloyds (cod 059993, 3D Secure „Successful authentication"), total £1,00, telefon +447575885965.
+- `11:10:01` **SMS trimis** („SMS Send to buyer Successfully") — cel de Pending, la crearea comenzii.
+- `11:11:02` emailurile „New order" și „Processing order", `11:11:03` **al doilea SMS** — cel de Processing.
+- Statusul final: **processing**, nu pending, pentru că fișierele cu noua logică au ajuns pe staging la `11:20:32`–`11:24:33`, adică **după** comandă. Următorul test cu cardul va rămâne pe Pending.
+- Un lucru bun aflat din asta: **SMS-ul de la crearea comenzii a pornit pe checkout-ul bloc**, deci îngrijorarea cu Store API din secțiunea 32 nu se confirmă pentru SMS — pluginul prinde comanda prin hook-ul generic de schimbare de status.
+
+**Creditele:** 80 de credite pentru **2 SMS-uri** înseamnă aproximativ **40 de credite pe mesaj** către un număr din UK (ruta „global"). Soldul rămas, citit din API: **4.885 de credite**. Cu toate cele cinci statusuri dintr-o comandă normală (pending, processing, processed, shipped, completed) un singur client ar primi 5 SMS-uri, adică în jur de **200 de credite pe comandă** — la 20–40 de comenzi pe lună, 4.000–8.000 de credite lunar. De aceea am recomandat să păstrăm bifate doar statusurile care contează pentru client (de exemplu Pending sau On hold, plus Shipped), nu toate.
+
+**SMS-ul nu a ajuns:** API-ul l-a acceptat de două ori, deci problema e la livrare, nu în site. Pluginul nu are endpoint de raport de livrare (doar push, credite, senderlist, templatelist), așa că raportul se vede doar în contul SMS Alert → Reports. Cauza cea mai probabilă e numărul virtual NUMERO: rutele internaționale resping des numerele VoIP. De verificat raportul de livrare pentru cele două mesaje (29 octombrie, 11:10 și 11:11 UTC, sender ECOFRIDGE, +447575885965) și de repetat testul pe un SIM real din UK (Kass sau Mads).
+
+**Emailurile scrise la fel ca SMS-urile.** În cod (tema), pentru emailurile proprii:
+- **Processed:** subiect „…is ready to be shipped", titlu „Your order is ready to be shipped", text „Your order is ready to be shipped. We will contact you before we deliver."
+- **Shipped:** subiect „…is out for delivery", titlu „Your order is out for delivery", text „Your order goes out for delivery with our own vehicles and engineers, so we can make sure it arrives in good condition. We will contact you before we deliver." (fără curier, fără tracking)
+- **Shipped (companie):** aceeași formulare cu mașinile și inginerii proprii.
+- **Payment received (card):** rămâne cum a fost scris în secțiunea 36 — plata a trecut, verificăm stocul și banii, 3–4 zile lucrătoare.
+
+În migrarea **72**, pentru emailurile WooCommerce:
+- **On hold:** „Your order is on hold until your bank transfer clears; our bank details are below. Goods are not reserved until the payment has cleared. If anything is unclear, call us on 01280 811411." — singurul email cu numărul de telefon, la fel ca singurul SMS cu telefon.
+- **Complete:** „Your order is complete. Thank you for your business. If you need parts or service for your equipment, just reply to this email." (în loc de îndemnul vechi la telefon).
+- **Refunded:** „The funds should reach your account within 3 to 5 working days."
+- **Processing** era deja aliniat în migrarea 71 („has been approved", livrare 5–10 zile lucrătoare).
+
+Starea veche e în `ef_order_emails_before_72`. Migrarea rulată pe local și pe staging, clasa de emailuri urcată pe staging (copia veche în `/tmp/class-ef-email-order-status.before-72`). Verificat pe staging, subiectele acum: „We have received your payment…", „…is on hold", „…has been approved", „…is ready to be shipped", „…is out for delivery", „…is complete", „…has been refunded".
+
+**Rămâne de făcut:** raportul de livrare la cele două SMS-uri și un test pe un SIM real din UK; decizia pe ce statusuri păstrăm SMS-ul, având în vedere costul; iar la următoarea comandă de test cu cardul, verificarea că rămâne pe Pending și că pleacă emailul „Payment received".
+
+---
+
 ## Stare la 2026-10-29 (final)
 
-- **Git:** `main` cu PR #16–#25 unite; local, staging și git sunt identice; working tree curat.
-- **Plăți:** Lloyds Cardnet pe Live, testat de Doru și de Kass. **Comenzile plătite cu cardul rămân pe Pending** până la preluare (secțiunea 36); transferul bancar rămâne pe On hold. Licența e a Eco-Fridge și se mută pe domeniul live. Avertismentele PHP ale pluginului AG sunt inofensive cu debug oprit (secțiunea 30).
-- **Emailuri:** SMTP IONOS funcțional; cereri din formular → mads@ + kass@; emailuri de comandă pentru firmă → mads@ + orders@; expeditor noreply@, Reply-To mads@. Nou: „Payment received (card)" pentru client; emailul de Processing spune acum „approved".
-- **SMS:** sender ID ECOFRIDGE aprobat, mesajele pe statusuri scrise prin migrarea 70, fără SMS către firmă și fără coșuri abandonate; alerta de credite sub 200 vine pe emailul lui Doru. Rămâne testul pe staging (secțiunile 32–36).
+- **Git:** `main` cu PR #16–#26 unite; local, staging și git sunt identice; working tree curat.
+- **Plăți:** Lloyds Cardnet pe Live; comanda de test #8038 plătită cu 3D Secure. Comenzile cu cardul rămân de acum pe **Pending** (secțiunea 36); transferul bancar pe On hold. Licența e a Eco-Fridge și se mută pe domeniul live.
+- **SMS:** sender ID ECOFRIDGE aprobat; mesajele pe statusuri scrise prin migrarea 70; fără SMS către firmă, fără coșuri abandonate, fără share cart. Cost aproximativ 40 de credite pe mesaj către UK, sold 4.885. SMS-urile pleacă (API acceptă), dar livrarea către numărul virtual NUMERO nu s-a confirmat — de testat pe un SIM real.
+- **Emailuri:** SMTP IONOS funcțional; cereri din formular → mads@ + kass@; emailuri de comandă pentru firmă → mads@ + orders@; expeditor noreply@, Reply-To mads@. Toate emailurile de comandă spun acum același lucru ca SMS-urile (migrările 71 și 72 plus textele din temă).
 - **Cookies:** registrul rescanat de Doru; equal prominence implicit.
 - **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
-- **Urmează, în această ordine:** copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor și a produsului de test → importul tuturor comenzilor noi (de la #7261, 10 iulie 2026, încolo, inclusiv cele neexpediate) și al celorlalte date la zi → reconciliere 1:1 → curățenie finală → lansare din staging pe eco-fridge.co.uk (același cont Hostinger, DNS din IONOS). Data lansării nu e fixată; calendarul din Drive are termene relative (T-7 … Ziua Z … Z+30).
+- **Urmează, în această ordine:** copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor și a produsului de test (acum inclusiv #8038) → importul tuturor comenzilor noi (de la #7261, 10 iulie 2026, încolo, inclusiv cele neexpediate) și al celorlalte date la zi → reconciliere 1:1 → curățenie finală → lansare din staging pe eco-fridge.co.uk (același cont Hostinger, DNS din IONOS). Data lansării nu e fixată; calendarul din Drive are termene relative (T-7 … Ziua Z … Z+30).
 - **De la Mads:** numărul de companie și codul de TVA, revizuirea paginilor legale, backupul de la Ambrit.
 - **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge cu fazele 15–16 și tabul „Calendar lansare", checklistul general cu rândurile noi.
