@@ -14,10 +14,45 @@
  * (woocommerce_gpf_<original ID>), so Merchant Center keeps each product's
  * history; products created here use woocommerce_gpf_ef<ID>.
  *
+ * GTM4WP: the ecommerce items in the dataLayer use the same IDs, so Google Ads
+ * remarketing and conversions match the Merchant Center products.
+ *
  * @package EcofridgeBlocks
  */
 
 defined( 'ABSPATH' ) || exit;
+
+/**
+ * Merchant Center item ID of a product (variations use their parent's).
+ *
+ * @param int $id Product ID.
+ * @return string
+ */
+function efb_mc_item_id( $id ) {
+	$parent = wp_get_post_parent_id( $id );
+	$id     = $parent ? $parent : (int) $id;
+	$legacy = (int) get_post_meta( $id, '_ef_legacy_id', true );
+	return 'woocommerce_gpf_' . ( $legacy ? $legacy : 'ef' . $id );
+}
+
+/**
+ * GTM4WP ecommerce items: item_id and the Google Ads id = the feed's item ID
+ * (internal_id keeps the WordPress product ID).
+ *
+ * @param array $item Item.
+ * @return array
+ */
+function efb_mc_gtm4wp_item( $item ) {
+	if ( ! empty( $item['internal_id'] ) ) {
+		$feed_id         = efb_mc_item_id( (int) $item['internal_id'] );
+		$item['item_id'] = $feed_id;
+		if ( isset( $item['id'] ) ) {
+			$item['id'] = $feed_id;
+		}
+	}
+	return $item;
+}
+add_filter( 'gtm4wp_eec_item_with_source', 'efb_mc_gtm4wp_item', 20 );
 
 /**
  * Merchant Center condition of a product: new, used or refurbished.
@@ -226,14 +261,13 @@ function efb_mc_feed() {
 		if ( ! $product || '' === (string) $product->get_price() || ! $product->is_visible() ) {
 			continue;
 		}
-		$legacy = (int) get_post_meta( $id, '_ef_legacy_id', true );
-		$image  = wp_get_attachment_image_url( $product->get_image_id(), 'full' );
+		$image = wp_get_attachment_image_url( $product->get_image_id(), 'full' );
 		if ( ! $image ) {
 			continue; // Merchant Center rejects items without an image.
 		}
 		$description = efb_mc_text( $product->get_description() . ' ' . $product->get_short_description() );
 		$fields      = array(
-			'g:id'                      => 'woocommerce_gpf_' . ( $legacy ? $legacy : 'ef' . $id ),
+			'g:id'                      => efb_mc_item_id( $id ),
 			'g:title'                   => mb_substr( efb_mc_text( $product->get_name() ), 0, 150 ),
 			'g:description'             => mb_substr( '' !== $description ? $description : efb_mc_text( $product->get_name() ), 0, 5000 ),
 			'g:link'                    => get_permalink( $id ),

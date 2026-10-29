@@ -15,7 +15,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'EFB_VERSION', '1.5.8' );
+define( 'EFB_VERSION', '1.5.11' );
 define( 'EFB_FILE', __FILE__ );
 define( 'EFB_DIR', plugin_dir_path( __FILE__ ) );
 define( 'EFB_URL', plugin_dir_url( __FILE__ ) );
@@ -37,6 +37,7 @@ require_once EFB_DIR . 'includes/reviews.php';
 require_once EFB_DIR . 'includes/no-accounts.php';
 require_once EFB_DIR . 'includes/brands.php';
 require_once EFB_DIR . 'includes/merchant-center.php';
+require_once EFB_DIR . 'includes/analytics.php';
 require_once EFB_DIR . 'includes/category-landing.php';
 
 register_activation_hook(
