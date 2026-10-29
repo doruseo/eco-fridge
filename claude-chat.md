@@ -1018,11 +1018,33 @@ Emailul are acum 1.296 de cuvinte: lista lui Mads cu opt puncte, lista lui Kass 
 
 ---
 
+## 52. Închiderea magazinului vechi devine un plugin urcat din dashboard (2026-10-29)
+
+**Doru:**
+> renuntam la inchiderea magazinului vechi la migrare, e prea complicat, cerem prea mult de la Ambrit. Sterge fișierul de mod catalog, o sa primim noua baza de date luni pentru comparatie. Sau: Nu putem urca un plugin compatibil cu php 7.3 care inchide magazinul?
+
+**Răspuns (Claude): ba da, și e mai simplu decât varianta mea.** Un plugin se urcă **din dashboardul WordPress** — Plugins → Add New → Upload Plugin → Install → Activate — deci nu cere nici FTP, nici absolut nimic de la Ambrit. Dezactivarea lui redeschide magazinul cu un clic, ceea ce e mai bine decât fișierul în mu-plugins, care avea nevoie de acces la server și ca să fie scos.
+
+**Ce am făcut:** am transformat fișierul în pluginul **„ECO-Fridge – Close online ordering"** (`migration/tools/ef-close-shop/`, arhivat ca `ef-close-shop.zip` în rădăcina proiectului — zip-ul nu intră în git, sursa da). Codul e același, cu header de plugin, instrucțiuni de instalare și de anulare scrise în el, și nota din admin schimbată („dezactivează pluginul ca să redeschizi magazinul").
+
+**Testat ca plugin real pe local:** instalat din zip cu `wp plugin install --activate`, apoi verificat: mesajul apare pe produs, `/checkout/` trimite la coș, un POST real de `add-to-cart` nu adaugă nimic, iar numărul de metode de plată disponibile la checkout e **0**. Apoi l-am șters și am confirmat că magazinul e normal (2 metode de plată din nou).
+
+**Compatibilitate PHP 7.3:** neschimbată — nimic mai nou de PHP 7.0, hook-uri care există din WooCommerce 2.x, `php -l` curat. WordPress-ul vechi instalează pluginul fără probleme, fiindcă nu cere nici PHP nou, nici WP nou (ăsta era motivul pentru care UpdraftPlus nu se putea instala acolo).
+
+**Simplificat și cererea către Ambrit**, cum ai zis: nu mai cerem backup vineri. Rămân **trei lucruri simple**: un backup complet **luni 9 noiembrie** (pentru comparația comandă cu comandă și ca arhivă), hostingul ținut activ 30 de zile și să nu umble ei la DNS. Copia de siguranță de dinainte de comutare o facem noi sâmbătă dimineață, pe eco-fridge-backup.o2dev.de, deci backupul de la Ambrit e verificare încrucișată, nu singura copie.
+
+**În email**, punctul 4 din lista lui Mads spune acum: un plugin instalat din dashboard în treizeci de secunde, fără Ambrit și fără transfer de fișiere; dacă preferă, îl instalăm noi, cu un cont de administrator pentru dimineața aceea. Plus straturile doi și trei: metodele de plată oprite și cuponul de 100% dezactivat.
+
+Actualizate și pasul de 05:00 din „Calendar lansare" și procedura generală (Faza 8), ca la site-urile viitoare să pornim direct cu varianta plugin.
+
+---
+
 ## Stare la 2026-10-29 (final)
 
-- **Git:** `main` cu PR #16–#37 unite; local, staging și git sunt identice; working tree curat. Migrări: 01–79, plus uneltele din `migration/tools`.
-- **Lansare:** propusă sâmbătă **7 noiembrie 2026, 05:00–09:00**; calendarul din Drive are datele reale (30 oct → 7 dec). La 05:00 site-ul vechi trece în mod catalog; la 05:10 copia finală; la 08:30 comanda reală de test pe live.
-- **Emailul către Mads** (`email-mads-go-live-2026-11-07.html`) e gata de trimis: starea proiectului, cronologia, data propusă cu motive, opt puncte pentru Mads (inclusiv cele două backupuri de la Ambrit și accesul FTP pentru fișierul de pauză) și patru pentru Kass (plata nouă de test, rambursările, confirmarea Lloyds, anunțarea contabilității).
+- **Git:** `main` cu PR #16–#38 unite; local, staging și git sunt identice; working tree curat. Migrări: 01–79, plus uneltele din `migration/tools` (inclusiv pluginul de închidere).
+- **Lansare:** propusă sâmbătă **7 noiembrie 2026, 05:00–09:00**; calendarul din Drive are datele reale (30 oct → 7 dec). La 05:00 magazinul vechi se închide cu pluginul; la 05:10 copia finală; la 08:30 comanda reală de test pe live.
+- **De cerut de la Ambrit (prin Mads), simplificat:** un backup luni 9 noiembrie, hostingul ținut 30 de zile, fără intervenții pe DNS.
+- **Emailul către Mads** e gata de trimis: opt puncte pentru Mads (inclusiv pluginul de închidere, instalat din dashboard), patru pentru Kass (plata nouă de test, rambursările, confirmarea Lloyds, anunțarea contabilității).
 - **SEO:** Rank Math cu modulele pornite de Doru; Local SEO completat; `/llms.txt` funcțional.
 - **Plăți:** Lloyds Cardnet pe Live. Flux: card → Processing → Preparing → Processed → Shipped → Complete; transfer bancar → On hold → Preparing → …
 - **Emailuri:** SMTP IONOS funcțional; „New order" către mads@ + orders@ la toate comenzile; emailurile spun același lucru ca SMS-urile.
@@ -1030,4 +1052,4 @@ Emailul are acum 1.296 de cuvinte: lista lui Mads cu opt puncte, lista lui Kass 
 - **Cookies:** registrul rescanat de Doru; equal prominence implicit.
 - **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
 - **Urmează:** trimiterea emailului și confirmarea datei → pregătirile de până vineri 30 octombrie → copia la zi a site-ului vechi și importul datelor → curățenie → lansarea pe 7 noiembrie.
-- **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2, cu modul catalog), checklistul eco-fridge și tabul „Calendar lansare".
+- **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2, cu pluginul de închidere), checklistul eco-fridge și tabul „Calendar lansare".
