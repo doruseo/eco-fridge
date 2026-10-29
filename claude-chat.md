@@ -904,15 +904,35 @@ Verificat în JSON-LD pe home, Contact și About: `Organization` cu nume ECO-Fri
 
 ---
 
+## 47. Emailul către Mads cu propunerea de lansare pe 7 noiembrie (2026-10-29)
+
+**Doru:**
+> scrie-mi un email catre Mads in care il informam ca totul este instalat si setat pe site-ul de staging. Mai avem de facut cateva teste si verificari finale (cateva zile), apoi pregatim migrarea catre live pe eco-fridge.co.uk (alte cateva zile). As prefera sa fac migrarea noului site pe live sambata 7 Nov 2026, pentru ca….scrie motivele. […] scrie emailul intr-un fisier in format html colorat si organizat frumos cu design modern si structura clara sa poata intelege dintr-o privire.
+
+**Ce am făcut (Claude):** fișierul **`email-mads-go-live-2026-11-07.html`** în rădăcina proiectului — email HTML cu stiluri inline (ca să supraviețuiască lipit într-un client de email), în engleză, fără jargon tehnic. Verificat: 7 noiembrie 2026 **este** sâmbătă, la 9 zile de astăzi; 6 noiembrie e vineri, 9 noiembrie luni.
+
+Structura: antet verde cu întrebarea directă → „Where we are" (ce e gata) → cronologia în trei pași → caseta cu data propusă → motivele datei → ce ne trebuie de la Mads → ce ne trebuie de la Kass → „What does not change" → ce facem în ziua lansării → semnătură.
+
+**Motivele datei, așa cum le-am scris:** biroul e închis sâmbăta (program luni–vineri 8.30–17.00), deci nicio comandă nu rămâne între două site-uri; dimineața de sâmbătă e intervalul cu cel mai puțin trafic; schimbarea adresei are nevoie de câteva ore ca să se propage, iar sâmbăta oferă două zile de marjă până luni; nu lansăm niciodată vineri, când o problemă ar sta nesupravegheată tot weekendul; iar nouă zile sunt suficiente pentru verificări și pentru copia de date, fără grabă.
+
+**Cerut de la Mads:** confirmarea datei în scris; să ceară de la Ambrit un backup complet vineri 6 noiembrie după închidere, menținerea hostingului vechi minimum 30 de zile ca plasă de siguranță și confirmarea că nu umblă ei la DNS; înghețarea conținutului de vineri 6 noiembrie ora 17:00 (stocul și prețurile pot continua să se schimbe, se preiau automat); numărul de companie, codul de TVA și numele legal exact (avem și „ECO-Fridge Ltd" și „ECO Fridge UK Ltd"); citirea celor trei pagini legale; confirmarea că orders@eco-fridge.co.uk există și e urmărită; anunțarea echipei că sâmbătă dimineață magazinul e indisponibil o perioadă scurtă.
+
+**Cerut de la Kass:** o jumătate de oră sâmbătă dimineață (8.00–9.00) ca să confirme în Lloyds Virtual Terminal plata reală de test de pe site-ul live și să o ramburseze; rambursarea celor două plăți de £1,00 din 28 octombrie (referințele i le trimit separat, nu în email și nici în git); confirmarea că nimic nu se schimbă la Lloyds.
+
+Emailul nu conține referințe de tranzacție, parole sau alte date de plată.
+
+---
+
 ## Stare la 2026-10-29 (final)
 
-- **Git:** `main` cu PR #16–#32 unite; local, staging și git sunt identice; working tree curat. Migrări: 01–79.
-- **SEO:** Rank Math cu modulele pornite de Doru; Local SEO completat (migrarea 79); `/llms.txt` funcțional. De completat la final: numele legal, numărul de companie, codul de TVA.
+- **Git:** `main` cu PR #16–#33 unite; local, staging și git sunt identice; working tree curat. Migrări: 01–79.
+- **Lansare propusă:** **sâmbătă 7 noiembrie 2026**, 05:00–09:00, în așteptarea confirmării de la Mads și Kass. Până atunci: verificările finale, apoi copia la zi a site-ului vechi și importul datelor.
+- **SEO:** Rank Math cu modulele pornite de Doru; Local SEO completat (migrarea 79); `/llms.txt` funcțional.
 - **Plăți:** Lloyds Cardnet pe Live, un singur gateway în listă. Flux: card → Processing → Preparing → Processed → Shipped → Complete; transfer bancar → On hold → Preparing → …
-- **Admin:** WooCommerce → Home deschide tabloul de bord; urmărirea WooCommerce oprită.
-- **Emailuri:** SMTP IONOS funcțional; „New order" către mads@ + orders@ la toate comenzile; emailurile spun același lucru ca SMS-urile; datele bancare apar în emailul de On hold.
-- **SMS:** sender ID ECOFRIDGE aprobat, livrare confirmată pe numărul lui Mads. Mesaje doar pe Processing, Preparing, Processed, On hold și rambursări; restul funcțiilor oprite. Sold 4.885 de credite, alertă pe email sub 200.
+- **Emailuri:** SMTP IONOS funcțional; „New order" către mads@ + orders@ la toate comenzile; emailurile spun același lucru ca SMS-urile.
+- **SMS:** sender ID ECOFRIDGE aprobat, livrare confirmată pe numărul lui Mads; mesaje doar pe statusurile cu zile de așteptare.
 - **Cookies:** registrul rescanat de Doru; equal prominence implicit.
 - **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
-- **Urmează:** pașii 1–7 din secțiunea de mai sus. Data lansării nu e fixată; calendarul din Drive are termene relative (T-7 … Ziua Z … Z+30).
+- **Urmează:** confirmarea datei → copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor și a produsului de test → importul tuturor comenzilor noi (de la #7261) și al celorlalte date → reconciliere 1:1 → curățenie finală → lansarea din staging. Calendarul din Drive are pașii pe T-7 … Ziua Z … Z+30; acum se pot pune date reale, dacă Mads confirmă 7 noiembrie.
+- **De la Mads și Kass:** cele două liste din emailul de mai sus.
 - **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge cu fazele 15–16 și tabul „Calendar lansare", checklistul general cu rândurile noi.
