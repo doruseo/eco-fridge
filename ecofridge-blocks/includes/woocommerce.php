@@ -252,3 +252,32 @@ function efb_spec_table_from_html( $m ) {
 	}
 	return $out . '</tbody></table></div>';
 }
+
+/**
+ * One Lloyds Cardnet entry in the payments list.
+ *
+ * The AG plugin registers two gateways: the Connect one the shop uses
+ * (`ag_cardnet_checkout`) and a Hosted Checkout alternative
+ * (`ag_lloyds_hosted_checkout`). Both show up under WooCommerce → Payments, as
+ * "Credit or Debit Card" and "Lloyds Cardnet Checkout", which reads like the
+ * plugin is installed twice — and the "…" menu next to the unused one offers
+ * "Deactivate", which switches off the whole plugin, card payments included.
+ *
+ * The unused gateway is taken out of the list. To use it instead, remove this
+ * filter and enable it under WooCommerce → Payments.
+ */
+add_filter(
+	'woocommerce_payment_gateways',
+	function ( $gateways ) {
+		return array_values(
+			array_filter(
+				$gateways,
+				static function ( $gateway ) {
+					$id = is_string( $gateway ) ? strtolower( $gateway ) : '';
+					return 'ag_lloyds_hosted_checkout' !== $id;
+				}
+			)
+		);
+	},
+	100
+);
