@@ -1100,11 +1100,36 @@ Lista pentru Kass are acum trei puncte: o privire în Virtual Terminal oricând 
 
 ---
 
+## 57. Mads confirmă 7 noiembrie; ce facem cu comenzile de test (2026-10-29)
+
+**Mads, prin email:**
+> All good for the 7th start date, I have also checked the Lloyds Cardnet virtual terminal and all good the two £1 orders we did are showing on there, no need to do a refund.
+
+**Doru:**
+> ce facem cu comenzile, le putem anula fara probleme, stricam contabilitatea companiei daca anulam si stergem comenzile de test?
+
+**Data e confirmată:** sâmbătă 7 noiembrie 2026. Marcată ca ✅ în calendarul de lansare și în checklist (F14-13). Mads a verificat și Virtual Terminal-ul: plățile de test apar în contul de comerciant, deci contul live primește corect și **nu mai e nevoie de nicio verificare în ziua lansării** — exact cum spunea Doru. Și a decis că **nu se rambursează** nimic.
+
+**Atenție: sunt trei plăți de £1, nu două.** În Lloyds vor apărea **#8036** (cardul lui Doru), **#8037** (Kass) și **#8038** (testul de pe 29 octombrie, cu numărul NUMERO, aprobare 059993) — deci £3 în decontare, nu £2. Mads a menționat doar două, așa că merită să-i spunem de a treia înainte să ajungă la contabilitate. Restul comenzilor de test nu au bani în spate: **#8007** (transfer bancar, £1.542, neplătită), **#8029** și **#8030** (card, anulate la 3DS, neplătite) și **#8039** (transfer bancar, £1,00, testul SMS cu numărul lui Mads, neplătită).
+
+**Răspuns (Claude): ștergerea comenzilor de test nu strică nimic în contabilitatea companiei.** Motivele, verificate:
+1. **WooCommerce nu e sursa contabilității** aici. Registrele se fac din extrasul de cont și din decontarea Lloyds. Ștergerea unei comenzi din site nu atinge nici procesatorul, nici banca — banii încasați rămân încasați.
+2. **Nu există nicio factură pentru ele.** Pluginul WebToffee de facturi a fost dezactivat tot timpul, deci nu s-a generat niciun document numerotat și nu se rupe nicio serie de facturare.
+3. **Nu e TVA de desfăcut:** comenzile de £1 au avut `_order_tax = 0`, deci nu s-a colectat TVA pe ele.
+4. **Ce are nevoie contabilitatea** e o singură linie: trei încasări cu cardul de £1,00, teste ale site-ului nou, fără client și fără factură, nerambursate, minus comisioanele obișnuite. Referințele de tranzacție sunt în nota de proiect și le trimitem.
+5. **De ce merită totuși șterse:** ca rapoartele WooCommerce din prima lună să nu includă cele £3 (verificăm și că rândurile din `wp_wc_order_stats` dispar odată cu comenzile) și ca niciun număr de comandă de test să nu se lovească de o comandă reală importată de pe site-ul vechi — testele noastre stau exact în zona 8036–8039.
+
+**Alternativa**, dacă s-ar dori o urmă pe site: să le lăsăm, trecute pe Cancelled cu o notă „test, nu se livrează". Nu o recomand: ar rămâne în lista de comenzi a magazinului live pentru totdeauna și ar păstra riscul de coliziune de numere. Oricum, decizia nu e grăbită — ștergerea e programată în pasul de 05:40 din ziua lansării, chiar înainte de import, ca să mai putem face teste până atunci.
+
+**Ce rămâne de la Mads** din emailul trimis (a răspuns doar la dată și la terminal): backupul de luni 9 noiembrie de la Ambrit, hostingul ținut 30 de zile, fără intervenții pe DNS, înghețarea conținutului de vineri 17:00, numărul de companie și codul de TVA plus numele legal exact, citirea paginilor legale, confirmarea că orders@ e urmărită, instalarea pluginului de închidere sâmbătă dimineață și un cuvânt pentru echipă.
+
+---
+
 ## Stare la 2026-10-29 (final)
 
-- **Git:** `main` cu PR #16–#42 unite; local, staging și git sunt identice; working tree curat. Migrări: 01–79, plus uneltele din `migration/tools`.
-- **Lansare:** propusă sâmbătă **7 noiembrie 2026, 05:00–09:00**; calendarul are datele reale (30 oct → 7 dec). 05:00 magazinul vechi închis cu pluginul `ef-close-shop`; 05:10 copia finală; 08:00 licențele mutate și amprenta setărilor de plată comparată; 08:30 comanda de test urmărită de noi.
-- **Emailul către Mads** e gata de trimis: opt puncte pentru Mads, trei pentru Kass, nimic de făcut de client în dimineața lansării.
+- **Git:** `main` cu PR #16–#43 unite; local, staging și git sunt identice; working tree curat. Migrări: 01–79, plus uneltele din `migration/tools`.
+- **Lansare: CONFIRMATĂ pentru sâmbătă 7 noiembrie 2026, 05:00–09:00.** Calendarul are datele reale (30 oct → 7 dec).
+- **Plăți de test:** trei încasări reale de £1 (#8036, #8037, #8038), nerambursate la decizia lui Mads; de explicat o dată contabilității. Comenzile de test se șterg în pasul de 05:40 din ziua lansării.
 - **De cerut de la Ambrit (prin Mads):** un backup luni 9 noiembrie, hostingul ținut 30 de zile, fără intervenții pe DNS.
 - **SEO:** Rank Math cu modulele pornite de Doru; Local SEO completat; `/llms.txt` funcțional.
 - **Plăți:** Lloyds Cardnet pe Live. Flux: card → Processing → Preparing → Processed → Shipped → Complete; transfer bancar → On hold → Preparing → …
@@ -1112,5 +1137,5 @@ Lista pentru Kass are acum trei puncte: o privire în Virtual Terminal oricând 
 - **SMS:** sender ID ECOFRIDGE aprobat; mesaje doar pe statusurile cu zile de așteptare.
 - **Cookies:** registrul rescanat de Doru; equal prominence implicit.
 - **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
-- **Urmează:** trimiterea emailului și confirmarea datei → pregătirile de până vineri 30 octombrie → copia la zi a site-ului vechi și importul datelor → curățenie → lansarea pe 7 noiembrie.
+- **Urmează:** pregătirile de până vineri 30 octombrie → joi 5 noiembrie repetiția copiei → vineri 6 noiembrie înghețarea și curățenia → sâmbătă 7 noiembrie lansarea.
 - **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge și tabul „Calendar lansare".
