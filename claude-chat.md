@@ -654,14 +654,31 @@ Mesajele pentru client, cum arată la randare:
 
 ---
 
+## 35. SMS Alert: livrare cu mașinile proprii, fără SMS către firmă (2026-10-29)
+
+**Doru:**
+> la processing am sters „ from cleared payment" pentru ca clear payment se face la pending, deci e platita deja. Iar la refunded si partially refunded am inlocuit „a few" cu „3 to 5", pentru ca aproximativ atat dureaza. Ah, la tracking, Eco-Fridge livreaza cu masinile lor, deci am sters si „Tracking [tracking_number]: [tracking_link]". […] Nu vreau sa consum credite sa trimit SMS lui Mads, el va primi email. Opreste Alerta de înregistrare utilizator. Opreste SMS-urile de coș abandonat. Am pornit short URL in caz ca ne va trebui vreodata.
+
+**Ce am făcut (Claude):**
+- Am preluat în migrarea 70 textele editate de Doru, ca o rulare viitoare să nu le mai suprascrie: la **Processing** fără „from cleared payment" (plata e deja încasată la Pending), iar la **Refunded** și **Partially refunded** „within 3 to 5 working days" (am unificat și varianta cu cratimă, „3-5", la aceeași formă).
+- **Shipped** rămăsese doar „Eco-Fridge:" după ștergerea părții de tracking. Textul nou, fără curier, pentru că Eco-Fridge livrează cu mașinile și inginerii lor: „Eco-Fridge: your order #7262 goes out for delivery with our own vehicles and engineers. We will contact you before we deliver." (126 de caractere la randare).
+- **Niciun SMS către firmă:** migrarea oprește toate cele 12 notificări de admin pe statusuri, plus alerta de înregistrare, alerta de stoc scăzut și cea de stoc epuizat — 15 comutatoare oprite pe staging. Mads primește oricum emailurile de comandă, deci nu se consumă credite.
+- **SMS-urile de coș abandonat** oprite (`customer_notify` → off).
+- Starea de dinainte e salvată în opțiunea `ef_smsalert_switches_before_70`, pe lângă `ef_smsalert_message_before_70` pentru texte.
+- Migrarea rulată pe **local și pe staging**. Verificat pe staging: alerte către companie pornite — niciuna; coș abandonat — oprit; short URL — pornit (lăsat cum l-a setat Doru); statusurile cu SMS la client: pending, processing, processed, shipped, on-hold, completed, refunded, partially refunded.
+
+**Rămâne de făcut:** confirmarea termenului de 3–4 zile lucrătoare pentru plățile cu cardul (singura sursă e footerul emailurilor de pe site-ul vechi, nu e publicat pe site-ul nou) și testul pe staging — comandă cu cardul, comandă prin transfer bancar, trecere pe Processed și Shipped, plus verificarea dacă SMS-ul de la plasarea comenzii pornește pe checkout-ul bloc (riscul cu Store API din secțiunea 32).
+
+---
+
 ## Stare la 2026-10-29 (final)
 
-- **Git:** `main` cu PR #16–#23 unite; local, staging și git sunt identice; working tree curat.
+- **Git:** `main` cu PR #16–#24 unite; local, staging și git sunt identice; working tree curat.
 - **Plăți:** Lloyds Cardnet pe Live, testat de Doru și de Kass (£1,00 fiecare, nerambursate — efectele sunt în secțiunea 31). Licența e a Eco-Fridge și se mută pe domeniul live. Avertismentele PHP ale pluginului AG sunt inofensive cu debug oprit (secțiunea 30).
-- **SMS:** credite cumpărate, sender ID **ECOFRIDGE** aprobat, aprobarea de template nu se aplică (cont Global); mesajele pe statusuri sunt scrise prin migrarea 70, pe local și pe staging; rămân numărul pentru alerte interne, câteva comutatoare și testul pe staging (secțiunile 32–34).
+- **SMS:** credite cumpărate, sender ID **ECOFRIDGE** aprobat, fără aprobare de template (cont Global). Mesajele pe statusuri sunt scrise prin migrarea 70 (telefon doar la On hold, livrare cu mașinile proprii la Shipped), fără SMS către firmă și fără SMS de coș abandonat. Rămâne testul pe staging (secțiunile 32–35).
 - **Emailuri:** SMTP IONOS funcțional; cereri din formular → mads@ + kass@; emailuri de comandă pentru firmă → mads@ + orders@; expeditor noreply@, Reply-To mads@.
 - **Cookies:** registrul rescanat de Doru; equal prominence implicit.
 - **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
 - **Urmează, în această ordine:** copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor și a produsului de test → importul tuturor comenzilor noi (de la #7261, 10 iulie 2026, încolo, inclusiv cele neexpediate) și al celorlalte date la zi → reconciliere 1:1 → curățenie finală → lansare din staging pe eco-fridge.co.uk (același cont Hostinger, DNS din IONOS). Data lansării nu e fixată; calendarul din Drive are termene relative (T-7 … Ziua Z … Z+30).
-- **De la Mads:** numărul de companie și codul de TVA, revizuirea paginilor legale, backupul de la Ambrit, numărul de mobil pentru alertele SMS interne, confirmarea termenului de procesare a plăților cu cardul.
+- **De la Mads:** numărul de companie și codul de TVA, revizuirea paginilor legale, backupul de la Ambrit, confirmarea termenului de procesare a plăților cu cardul.
 - **Documentație la zi:** acest fișier, memoria proiectului (inclusiv notele despre plățile de test și despre preluarea datelor), documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge cu fazele 15–16 și tabul „Calendar lansare", checklistul general cu rândurile noi.
