@@ -760,12 +760,32 @@ Starea veche e în `ef_order_emails_before_72`. Migrarea rulată pe local și pe
 
 ---
 
+## 39. Emailul „New order" la toate comenzile; fără SMS la Shipped și Complete (2026-10-29)
+
+**Doru:**
+> atat comenzile platite cu cardul cat si comenzile prin transfer bancar trimit email de comanda noua si catre mads@ si order@ ? […] Hai sa nu mai trimitem SMS la shipped pentru ca vor suna soferul si inginerul pe client si nici complete pentru ca stie si clientul ca e livrata (ce zici?). Restul de status-uri merita SMS pentru ca au zile de asteptare, ce parere ai?
+
+**Verificat pe comenzi reale de pe staging, nu doar în teorie:**
+- **#8038, plată cu cardul:** nota „Email «New order» sent" + „Email «Processing order» sent".
+- **#8007, transfer bancar:** „Awaiting BACS payment. Order status changed from **Pending to On hold**", iar WooCommerce a încercat atât „New order", cât și „Order on-hold" — la vremea aceea au eșuat doar pentru că SMTP-ul nu era configurat („Could not instantiate mail function"). Acum SMTP merge.
+- **#8030, plată eșuată:** „Email «Failed order» sent" către firmă.
+
+**Deci da:** emailul „New order" pleacă pentru ambele metode — cardul îl declanșează la trecerea pe Processing, transferul bancar la trecerea pe On hold — iar destinatarii sunt aceiași, **mads@eco-fridge.co.uk și orders@eco-fridge.co.uk** (un singur set de destinatari, verificat: `enabled=yes`). Comanda nu se anunță de două ori: când transferul intră și muți comanda mai departe, „New order" nu se mai trimite.
+
+**SMS la Shipped și Complete — de acord, le-am oprit** (migrarea 74). La Shipped șoferul și inginerul sună oricum, iar la Complete clientul are marfa în față; ambele mesaje ar fi costat credite degeaba (≈40 de credite fiecare). **Emailurile pentru Shipped și Complete rămân active**, ca urmă scrisă a livrării.
+
+**Restul statusurilor merită SMS, de acord**, fiindcă fiecare are zile de așteptare: **Processing** (plata cu cardul a intrat, verificăm stocul și banii), **Preparing** (aprobată, 5–10 zile lucrătoare), **Processed** (gata de expediere, „we will contact you before we deliver"), **On hold** (clientul trebuie să facă transferul — singurul mesaj cu telefon) și **Refunded / Partially refunded** (3–5 zile lucrătoare). Verificat pe staging: SMS doar pe processing, preparing, processed, on-hold, refunded, partially_refunded. Textele rămân salvate, deci reactivarea unui status e o singură bifă. Cost estimat pe o comandă obișnuită: 3 SMS-uri ≈ 120 de credite.
+
+**O regulă de flux, de reținut pentru comenzile prin transfer bancar:** mesajul de Processing e scris pentru card („am primit plata, așteptăm banii în cont, 3–4 zile lucrătoare"). La o comandă prin transfer, banii sunt deja în cont când o scoți din On hold, așa că **mut-o direct pe Preparing**, nu prin Processing. Fluxul pe transfer bancar: On hold → Preparing → Processed → Shipped → Complete.
+
+---
+
 ## Stare la 2026-10-29 (final)
 
-- **Git:** `main` cu PR #16–#25 unite; commit-urile pentru emailurile aliniate și pentru fluxul nou așteaptă push (auto mode a blocat `git push`, vezi mai jos). Local și staging sunt identice.
-- **Plăți:** Lloyds Cardnet pe Live. **Comenzile cu cardul rămân pe Processing** (nativ), iar pregătirea în depozit e statusul nou **Preparing**; transferul bancar pe On hold. Licența e a Eco-Fridge și se mută pe domeniul live.
-- **SMS:** sender ID ECOFRIDGE aprobat; textele mutate pe noul flux (migrarea 73), Pending fără SMS; fără SMS către firmă, fără coșuri abandonate, fără share cart. Aproximativ 40 de credite pe mesaj către UK, sold 4.885. Livrarea către numărul virtual NUMERO nu s-a confirmat — de testat pe un SIM real.
-- **Emailuri:** SMTP IONOS funcțional; toate emailurile de comandă spun același lucru ca SMS-urile; datele bancare apar în emailul de On hold.
+- **Git:** `main` cu PR #16–#25 unite; trei commit-uri locale (emailuri aliniate, fluxul Preparing, SMS-urile reduse) așteaptă push — auto mode blochează `git push`. Local și staging sunt identice.
+- **Plăți:** Lloyds Cardnet pe Live. Comenzile cu cardul rămân pe **Processing** (nativ), pregătirea în depozit e **Preparing**; transferul bancar pe On hold → Preparing. Licența e a Eco-Fridge și se mută pe domeniul live.
+- **Emailuri:** „New order" către mads@ + orders@ pentru toate comenzile plasate cu succes, indiferent de metoda de plată; emailurile de comandă spun același lucru ca SMS-urile; datele bancare apar în emailul de On hold.
+- **SMS:** sender ID ECOFRIDGE aprobat; mesaje doar pe Processing, Preparing, Processed, On hold și la rambursări; fără Pending, Shipped, Complete, fără SMS către firmă, fără coșuri abandonate. ≈40 de credite pe mesaj către UK, sold 4.885. Livrarea către numărul virtual NUMERO nu s-a confirmat — de testat pe un SIM real.
 - **Cookies:** registrul rescanat de Doru; equal prominence implicit.
 - **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
 - **Urmează, în această ordine:** copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor și a produsului de test (inclusiv #8038) → importul tuturor comenzilor noi (de la #7261, 10 iulie 2026, încolo, inclusiv cele neexpediate) și al celorlalte date la zi → reconciliere 1:1 → curățenie finală → lansare din staging pe eco-fridge.co.uk. Data lansării nu e fixată; calendarul din Drive are termene relative.
