@@ -781,31 +781,33 @@ Starea veche e în `ef_order_emails_before_72`. Migrarea rulată pe local și pe
 ---
 
 ## 40. Fluxul aprobat și urcat în git (2026-10-29)
+## 41. SMS: coșul abandonat era deja oprit, dar am găsit alte trei funcții pornite (2026-10-29)
 
 **Doru:**
-> de acord: On hold → Preparing → Processed → Shipped → Complete. Save, push, commit, merge.
+> am facut o comanda de test cu numarul lui Mads si a functionat. La produsele lasate in cos, hai sa dezactivam SMS momentan. Te anunt eu ulterior daca se doreste.
 
-**Claude:** fluxul e confirmat și pus în git. **PR #26** adună cele trei commit-uri ale rundei:
-1. emailurile de comandă scrise la fel ca SMS-urile (migrarea 72 plus textele din temă);
-2. renunțarea la Pending pentru card și statusul nou **Preparing** (migrarea 73, `card-payments.php` și emailul „Payment received (card)" șterse);
-3. fără SMS la Shipped și Complete (migrarea 74).
+**Livrarea SMS e confirmată:** cu numărul real al lui Mads mesajul a ajuns, deci problema era numărul virtual NUMERO (rutele internaționale resping frecvent numerele VoIP). Nu mai e nimic de reparat pe partea de livrare.
 
-Fluxul final, cum a fost aprobat:
-- **card:** Pending (neplătită) → Processing (plata a intrat, așteptăm banii în cont) → Preparing → Processed → Shipped → Complete;
-- **transfer bancar:** On hold (datele bancare în email) → Preparing → Processed → Shipped → Complete.
+**Coșul abandonat era deja oprit** din migrarea 70 (`customer_notify = off`, `cart_exit_intent_status` gol). Dar, verificând restul pluginului, am găsit **trei funcții care trimiteau SMS pe setările lor implicite**, fără să le fi pornit nimeni:
 
-SMS către client doar pe Processing, Preparing, Processed, On hold și la rambursări. Email „New order" către mads@ și orders@ pentru toate comenzile, indiferent de metoda de plată. Migrările 72, 73 și 74 sunt rulate pe local și pe staging.
+1. **Cerere de recenzie.** `smsalert_or_general.customer_notify` era „on", cu mesaj gata scris („Can you take 1 minute to leave a review…"), `review_status = pending` și `schedule_day = 1`. Cu alte cuvinte: **la o zi după ce orice comandă intra pe Pending — inclusiv fiecare checkout abandonat — clientul ar fi primit un SMS cu cerere de recenzie**, cu „Powered by www.smsalert.co.in" la final. Ar fi fost și jenant și scump.
+2. **SMS la recenzie postată**, către cel care lasă recenzia și către firmă.
+3. **„Notify me when back in stock"**, pornit implicit pentru client și pentru abonat.
+
+**Migrarea 75** le oprește pe toate trei, reconfirmă oprirea coșului abandonat (ca starea să nu mai poată aluneca) și scoate „Powered by www.smsalert.co.in" din textele rămase în acele grupuri (3 texte curățate), ca să nu plece nimic cu reclama lor dacă vreodată se repornește ceva. Textele se păstrează, deci reactivarea e o bifă. Starea veche e în `ef_smsalert_extras_before_75`.
+
+Rulată pe local și pe staging. Verificat pe staging: `smsalert_or_general: customer_notify=off`, `smsalert_review: review_added_user_msg=off, review_added_admin_msg=off`, `smsalert_bis_general: customer_bis_notify=off, subscribed_bis_notify=off`, `smsalert_abandoned_cart: customer_notify=off`. **SMS către client rămâne doar pe Processing, Preparing, Processed, On hold, Refunded și Partially refunded.**
 
 ---
 
 ## Stare la 2026-10-29 (final)
 
-- **Git:** `main` cu PR #16–#26 unite; local, staging și git sunt identice; working tree curat.
-- **Plăți:** Lloyds Cardnet pe Live. Fluxul aprobat: card → Processing → Preparing → Processed → Shipped → Complete; transfer bancar → On hold → Preparing → … Licența e a Eco-Fridge și se mută pe domeniul live.
-- **Emailuri:** SMTP IONOS funcțional; „New order" către mads@ + orders@ la toate comenzile; emailurile de comandă spun același lucru ca SMS-urile; datele bancare apar în emailul de On hold; emailurile de Shipped și Complete rămân active.
-- **SMS:** sender ID ECOFRIDGE aprobat; mesaje doar pe Processing, Preparing, Processed, On hold și rambursări (≈3 SMS pe comandă, ≈120 de credite); fără SMS către firmă, fără coșuri abandonate, fără share cart. Sold 4.885 de credite. Livrarea către numărul virtual NUMERO nu s-a confirmat — de testat pe un SIM real din UK.
+- **Git:** `main` cu PR #16–#27 unite; local, staging și git sunt identice; working tree curat.
+- **Plăți:** Lloyds Cardnet pe Live. Flux: card → Processing → Preparing → Processed → Shipped → Complete; transfer bancar → On hold → Preparing → … Licența e a Eco-Fridge și se mută pe domeniul live.
+- **Emailuri:** SMTP IONOS funcțional; „New order" către mads@ + orders@ la toate comenzile; emailurile spun același lucru ca SMS-urile; datele bancare apar în emailul de On hold; Shipped și Complete rămân doar pe email.
+- **SMS:** sender ID ECOFRIDGE aprobat, livrare confirmată pe un număr real din UK. Mesaje doar pe Processing, Preparing, Processed, On hold și rambursări (≈3 pe comandă, ≈120 de credite). Oprite: Pending, Shipped, Complete, coșuri abandonate, cereri de recenzie, SMS la recenzie, „back in stock", share cart și toate alertele către firmă. Sold 4.885 de credite, alertă pe email sub 200.
 - **Cookies:** registrul rescanat de Doru; equal prominence implicit.
 - **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
-- **Urmează, în această ordine:** copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor și a produsului de test (inclusiv #8038) → importul tuturor comenzilor noi (de la #7261, 10 iulie 2026, încolo, inclusiv cele neexpediate) și al celorlalte date la zi → reconciliere 1:1 → curățenie finală → lansare din staging pe eco-fridge.co.uk (același cont Hostinger, DNS din IONOS). Data lansării nu e fixată; calendarul din Drive are termene relative (T-7 … Ziua Z … Z+30).
+- **Urmează, în această ordine:** copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor și a produsului de test (inclusiv #8038 și comanda de test cu numărul lui Mads) → importul tuturor comenzilor noi (de la #7261, 10 iulie 2026, încolo, inclusiv cele neexpediate) și al celorlalte date la zi → reconciliere 1:1 → curățenie finală → lansare din staging pe eco-fridge.co.uk (același cont Hostinger, DNS din IONOS). Data lansării nu e fixată; calendarul din Drive are termene relative (T-7 … Ziua Z … Z+30).
 - **De la Mads:** numărul de companie și codul de TVA, revizuirea paginilor legale, backupul de la Ambrit.
 - **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge cu fazele 15–16 și tabul „Calendar lansare", checklistul general cu rândurile noi.
