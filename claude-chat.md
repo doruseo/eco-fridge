@@ -844,15 +844,58 @@ Am scos gateway-ul nefolosit din listă, printr-un filtru în `ecofridge-blocks/
 ---
 
 ## Stare la 2026-10-29 (final)
+## 45. Setările Rank Math schimbate de Doru și Local SEO completat (2026-10-29)
 
-- **Git:** `main` cu PR #16–#30 unite; local, staging și git sunt identice; working tree curat.
-- **Plăți:** Lloyds Cardnet pe Live, un singur gateway în listă. Flux: card → Processing → Preparing → Processed → Shipped → Complete; transfer bancar → On hold → Preparing → … Licența e a Eco-Fridge și se mută pe domeniul live.
-- **Admin:** WooCommerce → Home deschide tabloul de bord (migrarea 77); urmărirea WooCommerce e oprită (migrarea 78).
-- **Emailuri:** SMTP IONOS funcțional; „New order" către mads@ + orders@ la toate comenzile; emailurile spun același lucru ca SMS-urile; datele bancare apar în emailul de On hold; Shipped și Complete rămân doar pe email.
-- **SMS:** sender ID ECOFRIDGE aprobat, livrare confirmată pe un număr real din UK. Mesaje doar pe Processing, Preparing, Processed, On hold și rambursări. Oprite: Pending, Shipped, Complete, coșuri abandonate, cereri de recenzie, SMS la recenzie, „back in stock", share cart și toate alertele către firmă, pe toate statusurile. Sold 4.885 de credite, alertă pe email sub 200.
+**Doru:**
+> am modificat setarile in RankMath SEO. Te rog verifica si actualizeaza notitele tale cu aceste schimbari sa stii de ele. Apoi completeaza tu la RankMath Local SEO toate campurile care nu sunt completate sau sunt gresite
+
+**Cum le-am găsit:** am comparat opțiunile Rank Math de pe staging cu cele de pe local (local era snapshotul de dimineață, deci diferențele sunt exact schimbările tale).
+
+**Ce ai schimbat:**
+- **Module:** pornite **Local SEO**, **Image SEO**, **LLMs.txt** și AI Visibility; oprite SEO Analysis, Content AI și Role Manager. (Local le-am adus la aceeași listă.)
+- **Image SEO:** alt și title puse automat pe imagini, din numele fișierului (`%filename%`).
+- **Titles:** `capitalize_titles` pornit (titlurile generate automat devin Title Case; titlurile scrise explicit de migrarea 65 nu se schimbă).
+- **Breadcrumbs:** eticheta de Home simplificată, „Eco Fridge : Commercial refrigeration" → **„Eco Fridge"**.
+- **Knowledge Graph:** logo schimbat pe `eco-fridge-logo.png` (în loc de imaginea de catalog) și `website_name` completat.
+- **Robots:** `noindex` pe taxonomiile goale și pe paginile protejate cu parolă; robots global „index"; advanced robots cu `max-snippet:-1`, `max-image-preview:large`, `max-video-preview:-1` (corect pentru snippeturi bogate).
+- **Descrieri implicite:** `%excerpt%` pentru tipurile de conținut și `%term_description%` pentru taxonomii.
+- **LLMs.txt:** taxonomiile incluse sunt product_brand, product_cat și market, limită 50.
+- 404 Monitor ignoră parametrii din URL.
+
+**Două observații:**
+- **`/llms.txt` nu funcționa** nici pe staging, nici pe local: modulul era pornit, dar lipsea regula de rewrite. Am dat `wp rewrite flush --hard` pe ambele; acum fișierul răspunde 200 și listează sitemapul și conținutul principal. La lansare, flush-ul e deja în pașii obligatorii.
+- `support_rank_math` e pornit, dar afectează **doar** eticheta de scor SEO afișată pe frontend (parametrul `backlink` al acelui widget), iar noi nu o folosim nicăieri — deci nu apare niciun link către Rank Math pe site.
+
+**Local SEO completat (migrarea 79).** Toate datele vin din pagina Contact, adică din informația publicată de firmă:
+- **Nume:** ECO-Fridge Ltd (și `knowledgegraph_name`, care era „Eco-Fridge UK" — mutat pe `website_alternate_name`).
+- **Descriere organizație:** o frază despre ce vinde firma și că livrează cu inginerii proprii.
+- **Adresă:** 18 Top Angel, Buckingham Industrial Park, Buckingham, Buckinghamshire, MK18 1TH, GB (lipsea complet).
+- **Telefon:** +441280811411, plus două puncte de contact — customer support +441280811411 și sales +441280811410.
+- **Email:** sales@eco-fridge.co.uk (lipsea).
+- **Program:** era greșit, pe valorile implicite ale pluginului (09:00–17:00, **șapte zile pe săptămână**). Acum: **luni–vineri 08:30–17:00**, sâmbătă și duminică închis, exact ca pe pagina Contact.
+- **Coordonate:** 51.986, -0.9858 (centroidul codului poștal MK18 1TH; se pot înlocui cu poziția exactă din Google Maps).
+- **Price range:** ££.
+- **Paginile About și Contact** legate în setările Local SEO (7316 și 7319).
+- **Logo:** același ca pe staging, luat după ID-ul atașamentului, ca fiecare copie a site-ului să-l rezolve pe domeniul ei.
+
+**Două lucruri lăsate intenționat:**
+- **`legalName` rămâne gol.** Pagina Contact spune „ECO-Fridge Ltd", dar contul bancar e pe „ECO Fridge UK Ltd", iar numele legal din schema ar trebui să fie identic cu cel din Companies House. Se completează când Mads trimite numărul de companie și codul de TVA.
+- **`local_business_type` rămâne „Organization"**, nu un subtip de LocalBusiness. Verificat în schema generată: așa ies în pagină numele, adresa, emailul și cele două numere de telefon, dar **nu** programul, coordonatele și price range — acelea se publică doar pentru un subtip de magazin. Pentru un furnizor B2B cu sediu în parc industrial, mi se pare corect să nu pretindem un magazin cu program afișat în Google. Dacă vrei să apară și programul, schimbi tipul pe „Store" (o singură setare) și restul datelor sunt deja completate.
+
+Verificat în JSON-LD pe home, Contact și About: `Organization` cu nume ECO-Fridge Ltd, email, adresa completă și `contactPoint` pentru ambele numere.
+
+---
+
+## Stare la 2026-10-29 (final)
+
+- **Git:** `main` cu PR #16–#31 unite; local, staging și git sunt identice; working tree curat.
+- **SEO:** Rank Math cu modulele pornite de Doru (Local SEO, Image SEO, LLMs.txt, AI Visibility); Local SEO completat din datele firmei (migrarea 79); `/llms.txt` funcțional după flush. De completat la final: numele legal, numărul de companie și codul de TVA.
+- **Plăți:** Lloyds Cardnet pe Live, un singur gateway în listă. Flux: card → Processing → Preparing → Processed → Shipped → Complete; transfer bancar → On hold → Preparing → …
+- **Admin:** WooCommerce → Home deschide tabloul de bord; urmărirea WooCommerce e oprită.
+- **Emailuri:** SMTP IONOS funcțional; „New order" către mads@ + orders@ la toate comenzile; emailurile spun același lucru ca SMS-urile; datele bancare apar în emailul de On hold.
+- **SMS:** sender ID ECOFRIDGE aprobat, livrare confirmată pe numărul lui Mads. Mesaje doar pe Processing, Preparing, Processed, On hold și rambursări; toate celelalte funcții SMS oprite. Sold 4.885 de credite.
 - **Cookies:** registrul rescanat de Doru; equal prominence implicit.
 - **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
-- **Urmează, în această ordine:** copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor și a produsului de test → importul tuturor comenzilor noi (de la #7261, 10 iulie 2026, încolo, inclusiv cele neexpediate) și al celorlalte date la zi → reconciliere 1:1 → curățenie finală → lansare din staging pe eco-fridge.co.uk (același cont Hostinger, DNS din IONOS). La lansare se rulează din nou migrarea 76. Data lansării nu e fixată; calendarul din Drive are termene relative (T-7 … Ziua Z … Z+30).
-- **De la Mads:** numărul de companie și codul de TVA, revizuirea paginilor legale, backupul de la Ambrit.
-- **De decis:** dezactivarea pluginului WooCommerce Analytics (activ, dar neconectat, deci inert).
+- **Urmează, în această ordine:** copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor și a produsului de test → importul tuturor comenzilor noi (de la #7261, 10 iulie 2026, încolo, inclusiv cele neexpediate) și al celorlalte date la zi → reconciliere 1:1 → curățenie finală → lansare din staging pe eco-fridge.co.uk (același cont Hostinger, DNS din IONOS). La lansare: migrarea 76 din nou, `wp rewrite flush --hard` (și pentru /llms.txt) și verificarea că `url` din Knowledge Graph a devenit domeniul live.
+- **De la Mads:** numele legal, numărul de companie și codul de TVA, revizuirea paginilor legale, backupul de la Ambrit.
 - **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge cu fazele 15–16 și tabul „Calendar lansare", checklistul general cu rândurile noi.
