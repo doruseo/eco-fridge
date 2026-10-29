@@ -1744,7 +1744,7 @@ form.cart .ef-addon-group__body .ef-addon--radio input { margin-top: 0; }
 }
 /* A link wrapping an image becomes a block too, so the image sits on its own line. */
 :is(.entry-content, .ef-range-content, .ef-seo-content, .term-description, .woocommerce-Tabs-panel, .efbl-faq__a-inner, .efb-toggle__body)
-  :is(p, h2, h3, h4, h5, h6, td, th, li) > a:has(> img:not(.alignleft):not(.alignright)) { display: block; }
+  :is(p, h2, h3, h4, h5, h6, td, th, li) > a:is(:has(> img:not(.alignleft):not(.alignright)), :has(> picture > img:not(.alignleft):not(.alignright))) { display: block; }
 
 /* Links inside running text are underlined, not told apart by colour alone
    (accessibility: link-in-text-block). */

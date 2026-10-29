@@ -687,7 +687,7 @@
 						PanelBody,
 						{ title: 'Notifications' },
 						el( TextControl, { label: 'Form name (shown in Form Entries)', value: a.formName, onChange: ( v ) => setAttributes( { formName: v } ) } ),
-						el( TextControl, { label: 'Send entries to (email)', type: 'email', value: a.recipient, onChange: ( v ) => setAttributes( { recipient: v } ) } ),
+						el( TextControl, { label: 'Send entries to (email)', help: 'Several addresses: separate them with commas.', value: a.recipient, onChange: ( v ) => setAttributes( { recipient: v } ) } ),
 						el( TextControl, { label: 'Email subject', value: a.subject, onChange: ( v ) => setAttributes( { subject: v } ) } ),
 						el( TextareaControl, { label: 'Success message', value: a.successMessage, onChange: ( v ) => setAttributes( { successMessage: v } ) } ),
 						el( TextControl, { label: 'Button text', value: a.buttonText, onChange: ( v ) => setAttributes( { buttonText: v } ) } )

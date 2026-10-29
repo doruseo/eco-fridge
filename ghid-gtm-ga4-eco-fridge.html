@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ghid GTM și GA4</title>
+<style>
+	:root { --green: #1f821f; --text: #1d2327; --muted: #50575e; --line: #dcdcde; --soft: #f6f7f7; --warn: #fff8e5; --warn-line: #dba617; }
+	* { box-sizing: border-box; }
+	body { margin: 0; background: #fff; color: var(--text); font: 15px/1.6 Arial, Helvetica, sans-serif; }
+	main { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; }
+	h1 { color: var(--green); font-size: 28px; margin: 0 0 4px; }
+	h2 { color: var(--green); font-size: 22px; margin: 40px 0 8px; padding-top: 16px; border-top: 2px solid var(--line); }
+	h3 { font-size: 17px; margin: 24px 0 6px; }
+	.sub { color: var(--muted); margin: 0 0 20px; }
+	code { background: var(--soft); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; font-size: 13px; word-break: break-word; }
+	table { width: 100%; border-collapse: collapse; margin: 10px 0 18px; font-size: 14px; }
+	th, td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
+	th { background: var(--soft); }
+	.box { background: var(--warn); border: 1px solid var(--warn-line); border-radius: 8px; padding: 10px 14px; margin: 14px 0; }
+	.ok { background: #e6f4ea; border-color: #1a7f37; }
+	ol li, ul li { margin-bottom: 6px; }
+	nav ol { columns: 2; }
+	.wrap { overflow-x: auto; }
+	@media (max-width: 640px) { nav ol { columns: 1; } h1 { font-size: 23px; } }
+</style>
+</head>
+<body>
+<main>
+<h1>Google Tag Manager + GA4 pentru eco-fridge.co.uk</h1>
+<p class="sub">Pași de configurare pentru datele trimise de site (GTM4WP + ECO-Fridge Blocks + EF Cookie Consent). Container <code>GTM-NFMC9Z3</code>. Actualizat 28.10.2026.</p>
+
+<nav>
+<ol>
+	<li><a href="#ce-trimite">Ce trimite site-ul</a></li>
+	<li><a href="#gtm-setari">GTM: setări + Consent Mode v2</a></li>
+	<li><a href="#gtm-variabile">GTM: variabile</a></li>
+	<li><a href="#gtm-triggere">GTM: triggere</a></li>
+	<li><a href="#gtm-taguri">GTM: tag-uri</a></li>
+	<li><a href="#ga4">GA4: setări și dimensiuni</a></li>
+	<li><a href="#ads">Google Ads și Merchant Center</a></li>
+	<li><a href="#test">Testare</a></li>
+	<li><a href="#rapoarte">Rapoarte lunare</a></li>
+	<li><a href="#publicare">Publicare și lansare</a></li>
+</ol>
+</nav>
+
+<div class="box"><strong>Înainte de toate:</strong> fă o copie a containerului (GTM → Admin → <em>Export Container</em>) sau lucrează într-un <em>Workspace</em> nou. Containerul e folosit acum și de site-ul vechi; nimic nu se schimbă pentru vizitatori până nu apeși <em>Submit / Publish</em>.</div>
+
+<!-- 1 -->
+<h2 id="ce-trimite">1. Ce trimite site-ul în dataLayer</h2>
+<div class="wrap"><table>
+<tr><th>Eveniment</th><th>Când</th><th>Date</th></tr>
+<tr><td><code>efcc_consent_ready</code>, <code>efcc_consent_update</code></td><td>pe fiecare pagină / la alegerea din bannerul de cookies</td><td><code>efcc_consent.statistics</code>, <code>.marketing</code>, <code>.preferences</code>; Consent Mode v2 (default „denied”) e pus înainte de GTM</td></tr>
+<tr><td><code>view_item_list</code>, <code>select_item</code>, <code>view_item</code>, <code>add_to_cart</code>, <code>remove_from_cart</code>, <code>view_cart</code>, <code>begin_checkout</code>, <code>add_shipping_info</code>, <code>add_payment_info</code></td><td>magazin, produs, coș, checkout</td><td><code>ecommerce.currency</code>, <code>ecommerce.value</code>, <code>ecommerce.items</code> (vezi mai jos)</td></tr>
+<tr><td><code>purchase</code></td><td>pagina „Order received” (card și transfer bancar)</td><td><code>ecommerce</code> (transaction_id, value fără TVA și livrare, tax, shipping, currency, coupon, affiliation, items) + <code>order_details</code> + <code>user_data</code></td></tr>
+<tr><td><code>form_start</code>, <code>form_submit</code>, <code>generate_lead</code></td><td>formularul de contact (generate_lead doar la trimitere reușită)</td><td><code>form_id</code>, <code>form_name</code>, <code>form_destination</code>, <code>lead_source</code>; la generate_lead și <code>user_data.email</code>, <code>user_data.phone_number</code></td></tr>
+<tr><td>(date de pagină)</td><td>pe fiecare pagină</td><td><code>pagePostType</code>, <code>pageCategory</code>, <code>pageAttributes</code> (tag-uri), <code>pageTitle</code>, <code>pagePostAuthor</code>, <code>pagePostDate</code>, <code>pageLanguage</code>, <code>siteSearchTerm</code>, <code>siteSearchResults</code>, <code>visitorLoginState</code>, <code>visitorType</code></td></tr>
+</table></div>
+
+<h3>Câmpuri pe fiecare produs (<code>ecommerce.items[]</code>)</h3>
+<p><code>item_id</code> (= ID-ul din feed-ul Merchant, ex. <code>woocommerce_gpf_14490</code>), <code>item_name</code>, <code>price</code> (fără TVA), <code>quantity</code>, <code>item_brand</code>, <code>item_category</code>…<code>item_category5</code>, <code>item_variant</code> (opțiunile: „Removal &amp; Disposal + 12 months parts warranty” sau „Wholesale order”), <code>wp_product_id</code>, <code>sku</code>, <code>item_condition</code>, <code>item_dimensions</code>, <code>item_categories</code> (toate categoriile), <code>item_tags</code>, <code>price_inc_vat</code>, <code>regular_price</code>, <code>on_sale</code>, <code>addons_value</code>, <code>has_warranty</code>, <code>has_removal</code>, <code>has_castors</code>, <code>google_business_vertical</code>, <code>id</code>.</p>
+
+<h3>Câmpuri la comandă (<code>order_details</code>)</h3>
+<div class="wrap"><table>
+<tr><th>Grup</th><th>Câmpuri</th></tr>
+<tr><td>Comanda</td><td><code>order_id</code>, <code>order_number</code>, <code>order_status</code>, <code>order_date</code>, <code>payment_method</code>, <code>payment_method_title</code>, <code>shipping_method</code>, <code>currency</code>, <code>subtotal</code>, <code>addons_total</code>, <code>addons</code>, <code>discount</code>, <code>shipping</code>, <code>tax</code>, <code>total_inc_vat</code>, <code>value_ex_vat</code>, <code>items_count</code>, <code>units_count</code>, <code>coupon</code></td></tr>
+<tr><td>Client</td><td><code>customer_id</code>, <code>customer_account</code> (guest / registered), <code>customer_business</code> (true dacă a completat firma), <code>customer_type</code> (new / returning), <code>customer_orders_before</code></td></tr>
+<tr><td>Locație</td><td><code>billing_city</code>, <code>billing_county</code>, <code>billing_postcode_area</code> (ex. MK18), <code>billing_country</code>, <code>shipping_city</code>, <code>shipping_county</code>, <code>shipping_postcode_area</code>, <code>shipping_country</code></td></tr>
+<tr><td>Sursă de trafic</td><td><code>traffic_source_type</code>, <code>traffic_source</code>, <code>traffic_medium</code>, <code>traffic_campaign</code>, <code>traffic_content</code>, <code>traffic_term</code>, <code>traffic_referrer</code>, <code>traffic_entry_page</code>, <code>device_type</code>, <code>session_pages</code>, <code>session_count</code> (goale dacă vizitatorul n-a acceptat Statistics)</td></tr>
+</table></div>
+
+<!-- 2 -->
+<h2 id="gtm-setari">2. GTM: setările containerului și Consent Mode v2</h2>
+
+<h3>2.1 Cum funcționează împreună cu pluginul de cookies (EF Cookie Consent)</h3>
+<p>Site-ul face deja partea de Consent Mode v2 – <strong>în GTM nu se adaugă niciun șablon de consimțământ (CMP)</strong>. Ordinea pe fiecare pagină:</p>
+<ol>
+	<li>În <code>&lt;head&gt;</code>, înaintea oricărui alt script, pluginul trimite <code>gtag('consent', 'default', …)</code> cu tot pe <strong>denied</strong> (în afară de <code>security_storage</code>), plus <code>wait_for_update: 500</code> și <code>ads_data_redaction: true</code>.</li>
+	<li>Dacă vizitatorul a ales deja (cookie <code>efcc_consent</code>, ținut 180 de zile), trimite imediat <code>gtag('consent', 'update', …)</code> cu alegerea lui și evenimentul <code>efcc_consent_ready</code>.</li>
+	<li>Abia apoi GTM4WP încarcă containerul GTM-NFMC9Z3.</li>
+	<li>Când vizitatorul apasă <em>Accept all / Reject all / Save my choices</em> (sau își schimbă alegerea din butonul cu cookie), pluginul trimite <code>consent update</code> și evenimentul <code>efcc_consent_update</code>; pentru fiecare categorie acceptată și <code>efcc_statistics_granted</code>, <code>efcc_marketing_granted</code>, <code>efcc_preferences_granted</code>.</li>
+	<li>Vizitatorii cu <em>Global Privacy Control</em> activ în browser sunt tratați ca „Reject all”.</li>
+</ol>
+
+<div class="wrap"><table>
+<tr><th>Semnal Consent Mode</th><th>Implicit</th><th>Devine „granted” când vizitatorul acceptă</th></tr>
+<tr><td><code>ad_storage</code></td><td>denied</td><td>Marketing</td></tr>
+<tr><td><code>ad_user_data</code></td><td>denied</td><td>Marketing</td></tr>
+<tr><td><code>ad_personalization</code></td><td>denied</td><td>Marketing</td></tr>
+<tr><td><code>analytics_storage</code></td><td>denied</td><td>Statistics</td></tr>
+<tr><td><code>functionality_storage</code></td><td>denied</td><td>Preferences</td></tr>
+<tr><td><code>personalization_storage</code></td><td>denied</td><td>Preferences</td></tr>
+<tr><td><code>security_storage</code></td><td>granted</td><td>mereu</td></tr>
+</table></div>
+<p>Modul este <strong>Advanced</strong>: GTM se încarcă mereu, iar tag-urile Google trimit, până la acord, doar „pings” fără cookie-uri (GA4 și Google Ads pot modela conversiile). Setările se schimbă din <strong>WordPress → Cookie Consent → Google Consent Mode</strong> (acolo e și opțiunea <em>Basic</em>, în care GTM se încarcă doar după acord). În tab-ul <em>Google Consent Mode</em>, <em>Load GTM</em> trebuie să rămână pe <strong>„By another plugin”</strong> (GTM4WP încarcă containerul), iar în GTM4WP, setările proprii de Consent Mode rămân oprite – altfel ar exista două surse de „default”.</p>
+
+<h3>2.2 Setările containerului</h3>
+<ol>
+	<li><strong>Admin → Container Settings</strong> → bifează <em>Enable consent overview</em> → Save. Apare iconița de scut în lista de tag-uri.</li>
+	<li><strong>Tags</strong>: pune pe pauză / șterge orice șablon de cookie banner sau CMP vechi (Cookiebot, CookieYes, „Consent Mode (Google tags)” de la Simo Ahava etc.) și orice tag care trimite <code>consent default</code>. Rămâne o singură sursă: site-ul.</li>
+	<li>Verifică tag-urile site-ului vechi (Universal Analytics, conversii vechi): pune pe pauză ce nu mai funcționează.</li>
+	<li><strong>Variables → Configure</strong> (Built-In Variables): bifează <em>Page Hostname</em>, <em>Page Path</em>, <em>Event</em>, <em>Click URL</em>, <em>Form ID</em>.</li>
+</ol>
+
+<h3>2.3 Consent overview (scutul din lista de tag-uri)</h3>
+<p>Selectează tag-urile → iconița scut → setează pentru fiecare:</p>
+<div class="wrap"><table>
+<tr><th>Tag-uri</th><th>Setare în Consent overview</th><th>De ce</th></tr>
+<tr><td>Google tag (GA4), GA4 Event, Google Ads Conversion, Google Ads Remarketing, Conversion Linker, Floodlight</td><td><strong>No additional consent required</strong></td><td>Au „built-in consent checks”: citesc singure semnalele de mai sus și nu salvează cookie-uri fără acord.</td></tr>
+<tr><td>Tag-uri de marketing non-Google: Meta Pixel, LinkedIn Insight, TikTok, Microsoft Ads (UET), Pinterest</td><td><strong>Require additional consent</strong> → <code>ad_storage</code> (+ <code>ad_user_data</code>)</td><td>Nu cunosc Consent Mode; GTM le blochează până la acordul Marketing.</td></tr>
+<tr><td>Analiză non-Google: Microsoft Clarity, Hotjar</td><td><strong>Require additional consent</strong> → <code>analytics_storage</code></td><td>Pornesc doar după acordul Statistics.</td></tr>
+<tr><td>Chat / widget-uri care salvează preferințe</td><td><strong>Require additional consent</strong> → <code>functionality_storage</code></td><td>Categoria Preferences.</td></tr>
+</table></div>
+
+<h3>2.4 Ca tag-urile non-Google să pornească imediat după „Accept”</h3>
+<p>Un tag cu <em>additional consent</em> care rulează pe <em>All Pages</em> e blocat la încărcarea paginii, dacă vizitatorul nu a acceptat încă – și nu mai pornește pe pagina respectivă după ce acceptă. De aceea:</p>
+<ol>
+	<li><strong>Trigger nou</strong> → <em>Custom Event</em> → Event name <code>efcc_consent_update</code> → nume <em>CE - consent update</em>.</li>
+	<li>Adaugă-l la tag-urile non-Google <strong>pe lângă</strong> triggerul lor obișnuit (ex. Meta Pixel: <em>All Pages</em> + <em>CE - consent update</em>).</li>
+	<li>Ca să nu ruleze de două ori pe aceeași pagină, în <em>Advanced Settings → Tag firing options</em> alege <strong>Once per page</strong>.</li>
+	<li>Alternativ, pe categorii: triggere <em>Custom Event</em> <code>efcc_marketing_granted</code> (pentru marketing) și <code>efcc_statistics_granted</code> (pentru statistici) – pornesc doar dacă vizitatorul a acceptat acea categorie.</li>
+</ol>
+
+<h3>2.5 Variabile utile (opțional)</h3>
+<div class="wrap"><table>
+<tr><th>Nume în GTM</th><th>Data Layer Variable Name</th><th>Valori</th></tr>
+<tr><td>DLV - consent marketing</td><td><code>efcc_consent.marketing</code></td><td>true / false</td></tr>
+<tr><td>DLV - consent statistics</td><td><code>efcc_consent.statistics</code></td><td>true / false</td></tr>
+<tr><td>DLV - consent preferences</td><td><code>efcc_consent.preferences</code></td><td>true / false</td></tr>
+<tr><td>DLV - consent method</td><td><code>efcc_consent.method</code></td><td>accept / reject / custom / gpc</td></tr>
+</table></div>
+<p>Folosire: condiții suplimentare în triggere (ex. <em>DLV - consent marketing equals true</em>) sau ca parametru GA4 <code>consent_method</code>, pentru a vedea câți vizitatori acceptă. Pentru tag-urile Google nu e nevoie de ele.</p>
+
+<h3>2.6 Servicii noi</h3>
+<p>Orice serviciu nou adăugat în GTM (ex. Meta Pixel) trebuie adăugat și în <strong>WordPress → Cookie Consent → Services</strong> (există presetări): apare cu comutatorul lui în fereastra de preferințe și cu cookie-urile lui în Cookie Policy. După adăugare: <strong>Cookies &amp; scan → Scan the website</strong>, iar dacă e un serviciu nou de marketing, <strong>Tools → Ask everyone again</strong>, ca vizitatorii să fie întrebați din nou.</p>
+
+<h3>2.7 Verificare</h3>
+<ol>
+	<li>GTM → <strong>Preview</strong> → site-ul, într-o fereastră fără cookie-uri anterioare (incognito).</li>
+	<li>În Tag Assistant, tab-ul <strong>Consent</strong>, la primul eveniment (<em>Consent Initialization</em> / primul <em>Message</em>): <em>On-page Default</em> = <strong>Denied</strong> pentru ad_storage, analytics_storage, ad_user_data, ad_personalization.</li>
+	<li>Apasă <em>Reject all</em>: evenimentul <code>efcc_consent_update</code> apare, <em>On-page Update</em> rămâne Denied; tag-urile non-Google apar la <em>Tags Blocked by Consent</em>.</li>
+	<li>Apasă butonul cu cookie (stânga-jos) → <em>Accept all</em>: <em>On-page Update</em> = <strong>Granted</strong>; apar <code>efcc_marketing_granted</code> / <code>efcc_statistics_granted</code>, iar tag-urile non-Google pornesc.</li>
+	<li>Reîncarcă pagina: încă de la primul eveniment, <em>On-page Update</em> = Granted (alegerea e reținută).</li>
+	<li>În GA4 → Admin → <em>Data collection</em> / Google Ads → <em>Consent</em>, după 1–2 zile apare „Consent mode active”.</li>
+</ol>
+
+<!-- 3 -->
+<h2 id="gtm-variabile">3. GTM: variabile</h2>
+<p><strong>Variables → User-Defined Variables → New → Data Layer Variable</strong> (Data Layer Version 2). Numele variabilei e la alegere; cel din coloana „Data Layer Variable Name” trebuie scris exact.</p>
+<div class="wrap"><table>
+<tr><th>Nume în GTM</th><th>Data Layer Variable Name</th></tr>
+<tr><td>DLV - ecommerce.value</td><td><code>ecommerce.value</code></td></tr>
+<tr><td>DLV - ecommerce.transaction_id</td><td><code>ecommerce.transaction_id</code></td></tr>
+<tr><td>DLV - ecommerce.currency</td><td><code>ecommerce.currency</code></td></tr>
+<tr><td>DLV - ecommerce.items</td><td><code>ecommerce.items</code></td></tr>
+<tr><td>DLV - user_data</td><td><code>user_data</code></td></tr>
+<tr><td>DLV - form_id / form_name / form_destination / lead_source</td><td><code>form_id</code>, <code>form_name</code>, <code>form_destination</code>, <code>lead_source</code> (4 variabile)</td></tr>
+<tr><td>DLV - visitorType</td><td><code>visitorType</code></td></tr>
+<tr><td>DLV - pagePostType</td><td><code>pagePostType</code></td></tr>
+<tr><td>DLV - siteSearchTerm</td><td><code>siteSearchTerm</code></td></tr>
+<tr><td>DLV - od.&lt;câmp&gt;</td><td><code>order_details.&lt;câmp&gt;</code> – câte una pentru fiecare câmp din <code>order_details</code> pe care vrei să-l vezi în GA4 (vezi lista recomandată la pasul 6). Ex.: <em>DLV - od.customer_type</em> → <code>order_details.customer_type</code></td></tr>
+</table></div>
+<p><strong>User-Provided Data</strong> (pentru Enhanced Conversions): <em>New → User-Provided Data</em> → <em>Code</em> → alege variabila <em>DLV - user_data</em>. Numește-o <em>UPD - user_data</em>. Merge pentru ambele forme: email / phone_number în clar (formular) și sha256_… (comandă).</p>
+<p><strong>Constant</strong>: <em>CONST - GA4 ID</em> = ID-ul de măsurare GA4 (<code>G-…</code>; pe site-ul vechi era <code>G-CTLE1GYXKG</code> – verifică în GA4 → Admin → Data streams).</p>
+
+<!-- 4 -->
+<h2 id="gtm-triggere">4. GTM: triggere</h2>
+<div class="wrap"><table>
+<tr><th>Nume</th><th>Tip</th><th>Setare</th></tr>
+<tr><td>CE - ecommerce</td><td>Custom Event</td><td>Event name: <code>^(view_item_list|select_item|view_item|add_to_cart|remove_from_cart|view_cart|begin_checkout|add_shipping_info|add_payment_info)$</code> + bifează <em>Use regex matching</em></td></tr>
+<tr><td>CE - purchase</td><td>Custom Event</td><td>Event name: <code>purchase</code></td></tr>
+<tr><td>CE - generate_lead</td><td>Custom Event</td><td>Event name: <code>generate_lead</code></td></tr>
+<tr><td>CE - form events</td><td>Custom Event</td><td>Event name: <code>^(form_start|form_submit)$</code>, regex</td></tr>
+<tr><td>CE - consent update</td><td>Custom Event</td><td>Event name: <code>efcc_consent_update</code> (pentru tag-uri non-Google, pasul 5.6)</td></tr>
+</table></div>
+<div class="box"><strong>Recomandat la toate triggerele de mai sus</strong> (<em>This trigger fires on: Some Custom Events</em>):
+<ul>
+	<li><code>Page Hostname</code> <em>equals</em> <code>eco-fridge.co.uk</code> – așa testele de pe staging (eco-fridge.o2dev.de) nu ajung în rapoarte. În timpul testelor pe staging, schimbă temporar în <em>matches RegEx</em> <code>eco-fridge\.(co\.uk|o2dev\.de)</code>.</li>
+	<li><code>DLV - visitorType</code> <em>does not match RegEx</em> <code>administrator|shop_manager</code> – vizitele echipei logate nu intră în statistici.</li>
+</ul></div>
+
+<!-- 5 -->
+<h2 id="gtm-taguri">5. GTM: tag-uri</h2>
+
+<h3>5.1 Google tag (GA4)</h3>
+<ul>
+	<li><em>Tag type</em>: Google Tag · <em>Tag ID</em>: <code>{{CONST - GA4 ID}}</code></li>
+	<li><em>Configuration settings</em> (opțional): <code>content_group</code> = <code>{{DLV - pagePostType}}</code></li>
+	<li><em>Trigger</em>: <strong>Initialization - All Pages</strong></li>
+	<li><em>Consent</em>: <em>No additional consent required</em> (Consent Mode decide singur ce se salvează).</li>
+</ul>
+
+<h3>5.2 GA4 Event – ecommerce</h3>
+<ul>
+	<li><em>Tag type</em>: Google Analytics: GA4 Event · <em>Measurement ID</em>: <code>{{CONST - GA4 ID}}</code></li>
+	<li><em>Event name</em>: <code>{{Event}}</code></li>
+	<li><em>More settings → Ecommerce</em>: bifează <strong>Send Ecommerce data</strong> · Data source: <em>Data Layer</em></li>
+	<li><em>Trigger</em>: CE - ecommerce</li>
+</ul>
+
+<h3>5.3 GA4 Event – purchase</h3>
+<ul>
+	<li>Ca 5.2, dar <em>Event name</em> = <code>purchase</code>, trigger <em>CE - purchase</em>, <strong>Send Ecommerce data</strong> bifat.</li>
+	<li><em>Event Parameters</em> – adaugă rândurile de mai jos (numele parametrului în stânga trebuie să fie identic cu cel înregistrat în GA4 la pasul 6):</li>
+</ul>
+<div class="wrap"><table>
+<tr><th>Event Parameter</th><th>Value</th></tr>
+<tr><td><code>order_status</code></td><td><code>{{DLV - od.order_status}}</code></td></tr>
+<tr><td><code>payment_method</code></td><td><code>{{DLV - od.payment_method_title}}</code></td></tr>
+<tr><td><code>customer_type</code></td><td><code>{{DLV - od.customer_type}}</code></td></tr>
+<tr><td><code>customer_business</code></td><td><code>{{DLV - od.customer_business}}</code></td></tr>
+<tr><td><code>billing_county</code></td><td><code>{{DLV - od.billing_county}}</code></td></tr>
+<tr><td><code>billing_city</code></td><td><code>{{DLV - od.billing_city}}</code></td></tr>
+<tr><td><code>billing_postcode_area</code></td><td><code>{{DLV - od.billing_postcode_area}}</code></td></tr>
+<tr><td><code>shipping_postcode_area</code></td><td><code>{{DLV - od.shipping_postcode_area}}</code></td></tr>
+<tr><td><code>addons</code></td><td><code>{{DLV - od.addons}}</code></td></tr>
+<tr><td><code>addons_total</code></td><td><code>{{DLV - od.addons_total}}</code></td></tr>
+<tr><td><code>total_inc_vat</code></td><td><code>{{DLV - od.total_inc_vat}}</code></td></tr>
+<tr><td><code>units_count</code></td><td><code>{{DLV - od.units_count}}</code></td></tr>
+<tr><td><code>order_source</code></td><td><code>{{DLV - od.traffic_source}}</code></td></tr>
+<tr><td><code>order_medium</code></td><td><code>{{DLV - od.traffic_medium}}</code></td></tr>
+<tr><td><code>order_campaign</code></td><td><code>{{DLV - od.traffic_campaign}}</code></td></tr>
+<tr><td><code>order_source_type</code></td><td><code>{{DLV - od.traffic_source_type}}</code></td></tr>
+<tr><td><code>order_entry_page</code></td><td><code>{{DLV - od.traffic_entry_page}}</code></td></tr>
+<tr><td><code>order_device</code></td><td><code>{{DLV - od.device_type}}</code></td></tr>
+<tr><td><code>sessions_before_order</code></td><td><code>{{DLV - od.session_count}}</code></td></tr>
+</table></div>
+<p>Parametrii „order_source / medium / campaign” au alt nume decât <code>source</code>/<code>medium</code> ca să nu se amestece cu sursa calculată de GA4.</p>
+<p><em>Opțional</em>: <em>Advanced Settings → Include user-provided data from your website</em> → <em>UPD - user_data</em> (dacă folosești GA4 pentru Enhanced Conversions; altfel e suficient în tag-ul Ads).</p>
+
+<h3>5.4 GA4 Event – formular</h3>
+<ul>
+	<li><strong>generate_lead</strong>: Event name <code>generate_lead</code>; parametri <code>form_id</code>, <code>form_name</code>, <code>form_destination</code>, <code>lead_source</code> din variabilele DLV; trigger <em>CE - generate_lead</em>.</li>
+	<li><strong>form_start / form_submit</strong>: Event name <code>{{Event}}</code>; aceiași parametri; trigger <em>CE - form events</em>.</li>
+</ul>
+
+<h3>5.5 Google Ads</h3>
+<ul>
+	<li><strong>Conversion Linker</strong> – trigger <em>All Pages</em>.</li>
+	<li><strong>Google Ads Conversion Tracking – Purchase</strong>: Conversion ID + Label (din Google Ads → Goals → Conversions), <em>Conversion Value</em> <code>{{DLV - ecommerce.value}}</code>, <em>Transaction ID</em> <code>{{DLV - ecommerce.transaction_id}}</code>, <em>Currency Code</em> <code>{{DLV - ecommerce.currency}}</code>; bifează <em>Include user-provided data from your website</em> → <em>UPD - user_data</em>; trigger <em>CE - purchase</em>.</li>
+	<li><strong>Google Ads Conversion Tracking – Lead</strong>: conversia de tip „Submit lead form”, fără valoare (sau o valoare estimată), <em>user-provided data</em> → <em>UPD - user_data</em>; trigger <em>CE - generate_lead</em>.</li>
+	<li><strong>Google Ads Remarketing</strong> (dacă faceți remarketing dinamic): Conversion ID, bifează <em>Send dynamic remarketing event data</em> → Event name <code>{{Event}}</code>, Event value <code>{{DLV - ecommerce.value}}</code>, Event items <code>{{DLV - ecommerce.items}}</code>; trigger <em>CE - ecommerce</em> + <em>CE - purchase</em>. ID-urile produselor sunt deja aceleași ca în Merchant Center.</li>
+	<li>Tag-urile Google Ads respectă singure Consent Mode → <em>No additional consent required</em>.</li>
+</ul>
+
+<h3>5.6 Tag-uri care nu sunt Google (Meta, LinkedIn, Microsoft Clarity, Hotjar…)</h3>
+<p>Setările de consimțământ și triggerele lor sunt la <a href="#gtm-setari">pașii 2.3–2.6</a>.</p>
+
+<!-- 6 -->
+<h2 id="ga4">6. GA4: setări și dimensiuni personalizate</h2>
+<h3>6.1 Setări</h3>
+<ol>
+	<li><strong>Admin → Data streams → (site) → Enhanced measurement → ⚙</strong>: <strong>oprește „Form interactions”</strong> (site-ul trimite deja form_start / form_submit / generate_lead; altfel se dublează). Restul poate rămâne pornit.</li>
+	<li><strong>Admin → Data settings → Data retention</strong>: <em>14 months</em> (altfel explorările nu pot compara anul trecut).</li>
+	<li><strong>Admin → Key events</strong>: <code>purchase</code> e automat; marchează și <code>generate_lead</code>.</li>
+	<li><strong>Admin → Data streams → Configure tag settings → List unwanted referrals</strong>: adaugă domeniul plății Lloyds (<code>lloydsbankcardnet.co.uk</code> / domeniul paginii de plată) și <code>eco-fridge.o2dev.de</code>, ca revenirea de la plată să nu pară o vizită nouă.</li>
+	<li><strong>Admin → Product links</strong>: leagă <em>Google Ads</em> și <em>Merchant Center</em> (ID 133011514).</li>
+	<li><strong>Admin → Data filters</strong> (opțional): <em>Internal traffic</em> cu IP-ul biroului.</li>
+</ol>
+
+<h3>6.2 Dimensiuni personalizate</h3>
+<p><strong>Admin → Custom definitions → Create custom dimension.</strong> <em>Event parameter / Item parameter</em> trebuie scris exact ca în tag.</p>
+<p><strong>Event-scoped</strong> (limită 50):</p>
+<div class="wrap"><table>
+<tr><th>Dimension name</th><th>Event parameter</th></tr>
+<tr><td>Order status</td><td><code>order_status</code></td></tr>
+<tr><td>Payment method</td><td><code>payment_method</code></td></tr>
+<tr><td>Customer type</td><td><code>customer_type</code></td></tr>
+<tr><td>Business customer</td><td><code>customer_business</code></td></tr>
+<tr><td>Billing county</td><td><code>billing_county</code></td></tr>
+<tr><td>Billing city</td><td><code>billing_city</code></td></tr>
+<tr><td>Billing postcode area</td><td><code>billing_postcode_area</code></td></tr>
+<tr><td>Delivery postcode area</td><td><code>shipping_postcode_area</code></td></tr>
+<tr><td>Add-ons</td><td><code>addons</code></td></tr>
+<tr><td>Order source / medium / campaign</td><td><code>order_source</code>, <code>order_medium</code>, <code>order_campaign</code> (3 dimensiuni)</td></tr>
+<tr><td>Order source type</td><td><code>order_source_type</code></td></tr>
+<tr><td>Order entry page</td><td><code>order_entry_page</code></td></tr>
+<tr><td>Order device</td><td><code>order_device</code></td></tr>
+<tr><td>Form ID / Form name / Lead source</td><td><code>form_id</code>, <code>form_name</code>, <code>lead_source</code></td></tr>
+</table></div>
+<p><strong>Item-scoped</strong> (limită 10 – acestea sunt cele mai utile; <code>item_variant</code>, <code>item_brand</code>, <code>item_category</code>…<code>item_category5</code> sunt deja standard în GA4):</p>
+<div class="wrap"><table>
+<tr><th>Dimension name</th><th>Item parameter</th></tr>
+<tr><td>All categories</td><td><code>item_categories</code></td></tr>
+<tr><td>Product tags</td><td><code>item_tags</code></td></tr>
+<tr><td>Condition</td><td><code>item_condition</code></td></tr>
+<tr><td>Dimensions</td><td><code>item_dimensions</code></td></tr>
+<tr><td>SKU</td><td><code>sku</code></td></tr>
+<tr><td>WP product ID</td><td><code>wp_product_id</code></td></tr>
+<tr><td>Warranty added</td><td><code>has_warranty</code></td></tr>
+<tr><td>Removal added</td><td><code>has_removal</code></td></tr>
+<tr><td>Castors added</td><td><code>has_castors</code></td></tr>
+<tr><td>On sale</td><td><code>on_sale</code></td></tr>
+</table></div>
+<p><strong>Custom metrics</strong> (Event-scoped, <em>Unit: Currency</em> pentru sume): <code>addons_total</code> (Add-ons revenue, Currency), <code>total_inc_vat</code> (Revenue inc. VAT, Currency), <code>units_count</code> (Units, Standard), <code>sessions_before_order</code> (Sessions before order, Standard).</p>
+<div class="box">Dimensiunile noi apar în rapoarte doar <strong>de la data creării</strong> lor (nu retroactiv) și după 24–48 h. Creează-le înainte de lansare.</div>
+
+<!-- 7 -->
+<h2 id="ads">7. Google Ads și Merchant Center</h2>
+<ul>
+	<li><strong>Google Ads → Goals → Conversions → Settings → Enhanced conversions</strong>: pornește-le, metoda <em>Google Tag Manager</em>.</li>
+	<li><strong>Google Ads → Settings → Consent</strong>: confirmă că folosiți Consent Mode (EF Cookie Consent trimite ad_user_data și ad_personalization).</li>
+	<li><strong>Merchant Center 133011514</strong> (după lansare): feed <code>https://eco-fridge.co.uk/feed/google-merchant/</code>; ID-urile produselor din feed sunt identice cu <code>item_id</code> din dataLayer, deci remarketingul și raportările pe produs se potrivesc.</li>
+</ul>
+
+<!-- 8 -->
+<h2 id="test">8. Testare (înainte de Publish)</h2>
+<ol>
+	<li>Pune temporar condiția de hostname din triggere pe <code>eco-fridge\.(co\.uk|o2dev\.de)</code>.</li>
+	<li>GTM → <strong>Preview</strong> → URL <code>https://eco-fridge.o2dev.de/</code> (staging cere parola în fereastra deschisă de Tag Assistant).</li>
+	<li>În Tag Assistant, tab-ul <strong>Consent</strong>: la încărcare <em>Default</em> = denied; după „Accept all” în banner → <em>Update</em> = granted.</li>
+	<li>Parcurge: categorie → produs (view_item) → bifează Removal / Warranty → Add to basket (add_to_cart) → coș → checkout.</li>
+	<li>Comandă de test cu <strong>Direct bank transfer</strong> (fără plată reală) → pe „Order received” verifică evenimentul <code>purchase</code>: <em>Data Layer</em> trebuie să aibă <code>ecommerce</code>, <code>order_details</code>, <code>user_data</code>, iar tag-urile 5.3 și Ads Purchase să fie <em>Fired</em>.</li>
+	<li>Formularul de contact (cu mesaj „TEST – please ignore”): <code>generate_lead</code> + tag-urile lead <em>Fired</em>.</li>
+	<li>GA4 → <strong>Admin → DebugView</strong>: evenimentele apar cu parametrii lor.</li>
+	<li>Spune-i lui Claude numerele comenzilor de test, ca să le șteargă (lansarea se face din staging).</li>
+	<li>Pune la loc condiția de hostname <code>equals eco-fridge.co.uk</code>.</li>
+</ol>
+
+<!-- 9 -->
+<h2 id="rapoarte">9. Idei de rapoarte lunare (GA4 → Explore)</h2>
+<div class="wrap"><table>
+<tr><th>Raport</th><th>Rânduri</th><th>Valori</th></tr>
+<tr><td>Vânzări pe categorie</td><td>Item category, Item category 2</td><td>Item revenue, Items purchased</td></tr>
+<tr><td>Produse cu opțiuni extra</td><td>Item name, Item variant</td><td>Items purchased, Item revenue</td></tr>
+<tr><td>Atașare garanție</td><td>Item category, Warranty added</td><td>Items purchased</td></tr>
+<tr><td>Unde sunt clienții</td><td>Billing county, Billing postcode area</td><td>Purchases, Purchase revenue</td></tr>
+<tr><td>Firme vs persoane, noi vs reveniți</td><td>Business customer, Customer type</td><td>Purchases, Purchase revenue, Average purchase revenue</td></tr>
+<tr><td>Ce aduce comenzi</td><td>Order source / medium, Order campaign (și GA4 Session source / medium)</td><td>Purchases, Purchase revenue</td></tr>
+<tr><td>Metoda de plată</td><td>Payment method, Order status</td><td>Purchases</td></tr>
+<tr><td>Pâlnie de cumpărare</td><td><em>Funnel exploration</em>: view_item → add_to_cart → begin_checkout → add_payment_info → purchase</td><td>Rată de abandon pe pas</td></tr>
+<tr><td>Cereri de ofertă</td><td>Form name, Page path, Session source / medium</td><td>Event count (generate_lead)</td></tr>
+<tr><td>Căutări pe site</td><td>Search term</td><td>Event count (view_search_results)</td></tr>
+</table></div>
+<p>Pentru un raport lunar automat: <strong>Looker Studio</strong> cu sursa GA4 + Google Ads, cu aceleași dimensiuni.</p>
+
+<!-- 10 -->
+<h2 id="publicare">10. Publicare și ziua lansării</h2>
+<ol>
+	<li>Containerul e folosit și de site-ul vechi: tag-urile noi se bazează pe evenimente pe care doar site-ul nou le trimite, deci pot fi publicate înainte de lansare fără să strice site-ul vechi.</li>
+	<li><strong>Submit</strong> → Version name „New site – GA4 ecommerce + consent” → <strong>Publish</strong>.</li>
+	<li>În ziua lansării: verifică în GA4 → <em>Realtime</em> că apar vizite și <code>view_item</code> de pe <code>eco-fridge.co.uk</code>.</li>
+	<li>După prima comandă reală: în GA4 → Reports → Monetisation → Ecommerce purchases, apoi în Google Ads → Conversions (status „Recording conversions”).</li>
+	<li>După 7 zile: Google Ads → Enhanced conversions → <em>Diagnostics</em> (trebuie „Excellent” / „Good”).</li>
+</ol>
+<div class="box ok">Ce face deja site-ul (nu trebuie setat în GTM): Consent Mode v2 default + update, GTM încărcat de GTM4WP după consimțământ, datele de ecommerce cu ID-urile din feed, detaliile comenzii, locația, sursa de trafic, user_data criptat, evenimentele din formular.</div>
+</main>
+</body>
+</html>

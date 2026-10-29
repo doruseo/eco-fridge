@@ -1,0 +1,27 @@
+/* EF Cookie Consent — admin. */
+.efcc-tab { margin-top: 16px; }
+.efcc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; }
+.efcc-card { background: #fff; border: 1px solid #dcdcde; border-radius: 8px; padding: 4px 18px 16px; margin-bottom: 16px; }
+.efcc-card h2 { font-size: 1.1em; }
+.efcc-form h2 { margin-top: 24px; padding-top: 12px; border-top: 1px solid #dcdcde; }
+.efcc-checks { margin: 0; }
+.efcc-check { padding: 6px 0 6px 28px; position: relative; border-bottom: 1px solid #f0f0f1; }
+.efcc-check::before { position: absolute; left: 0; top: 5px; width: 20px; height: 20px; border-radius: 50%; color: #fff; font-size: 12px; line-height: 20px; text-align: center; font-weight: 700; }
+.efcc-check--ok::before { content: "✓"; background: #1a7f37; }
+.efcc-check--todo::before { content: "!"; background: #b32d2e; }
+.efcc-check--warn::before { content: "i"; background: #996800; }
+.efcc-check a { text-decoration: none; }
+.efcc-bar { display: grid; grid-template-columns: 170px 1fr 90px; align-items: center; gap: 10px; margin: 6px 0; }
+.efcc-bar div { height: 10px; background: #f0f0f1; border-radius: 999px; overflow: hidden; }
+.efcc-bar i { display: block; height: 100%; background: #1f821f; }
+.efcc-table td, .efcc-table th { vertical-align: top; }
+.efcc-services-table input[type="text"], .efcc-services-table input[type="url"], .efcc-services-table textarea { width: 100%; margin-bottom: 4px; }
+.efcc-services-table textarea.code { font-size: 11px; }
+.efcc-id { font-size: 11px; color: #646970; }
+.efcc-add { margin: 12px 0; }
+.efcc-new { display: inline-block; margin-left: 4px; padding: 0 6px; border-radius: 999px; background: #fcf0e1; color: #996800; font-size: 11px; font-weight: 600; }
+.efcc-scan-urls { columns: 2; font-size: 12px; }
+#efcc-scan-frames iframe { position: absolute; left: -10000px; width: 1280px; height: 800px; }
+.efcc-guide ol li { margin-bottom: 8px; }
+.efcc-warn { color: #996800; font-weight: 600; }
+.efcc-log-search { margin: 0 0 12px; }

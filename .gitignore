@@ -40,3 +40,9 @@ Thumbs.db
 
 # Staging sync media (aduse de pe Hostinger, nu in git)
 media-sync/
+
+# Licence / coupon codes kept next to the project
+*coupon*.txt
+# Generated redirect reports (large, rebuilt from the live site when needed)
+eco-fridge-migration-redirects.pdf
+eco-fridge-redirect-mapping-*.html

@@ -176,7 +176,9 @@ function efb_form_submit( WP_REST_Request $request ) {
 	}
 
 	// Email notification.
-	$to      = ! empty( $attrs['recipient'] ) && is_email( $attrs['recipient'] ) ? $attrs['recipient'] : get_option( 'admin_email' );
+	// One or more addresses, separated by commas.
+	$to      = array_values( array_filter( array_map( 'trim', explode( ',', (string) ( $attrs['recipient'] ?? '' ) ) ), 'is_email' ) );
+	$to      = $to ? $to : get_option( 'admin_email' );
 	$subject = ! empty( $attrs['subject'] ) ? $attrs['subject'] : __( 'Enquiry from ECO-Fridge website contact form', 'ecofridge-blocks' );
 	$body    = '';
 	foreach ( $values as $label => $value ) {
