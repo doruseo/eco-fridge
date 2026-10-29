@@ -617,14 +617,51 @@ Suportul a mai trimis și lista scurtă: template-uri de SMS, sender ID, conecta
 
 ---
 
+## 34. SMS Alert: mesajele pe statusuri scrise ca migrare, plus auditul setărilor (2026-10-29)
+
+**Doru:**
+> cei de la Eco-Fridge nu vor sa fie sunati non-stop, deci stergem numarul de telefon din SMS si nu il promovam nici prin website agresiv decat acolo unde are rost. La Manage-Templates, platforma SMS Alert nu mai are Sys Templates, are DLT Templates, care imi spune: „Template approval not required for Global account". […] Nu mai gasesc unde sa adaug aceste mesaje. Poti sa ma ajuti? De asemenea, poti sa verifici setarile facute de mine in SMS Alert plugin si sa-mi spui daca am gresit ceva?
+
+**Ce am verificat (Claude):**
+- **Aprobarea de template nu se mai aplică:** contul e Global, iar pagina DLT Templates spune explicit „Template approval not required for Global account". Deci mesajele se scriu direct în plugin, nu se mai trimit la aprobare. Se confirmă și din codul pluginului: avertismentul despre DLT apare numai când codul de țară implicit e 91.
+- **Unde se adaugă mesajele:** WooCommerce → SMS Alert (pluginul își pune submeniul sub WooCommerce, nu în Settings), în secțiunea WooCommerce; fiecare status are un bloc propriu, „When Order is Pending", „When Order is Processing" etc., cu o bifă și o casetă de text. În baza de date sunt `smsalert_general[order_status][<status>]` pentru bifă și `smsalert_message[sms_body_<status>]` pentru text, plus `admin_sms_body_<status>` pentru alerta internă.
+- **Termenele reale, din politicile site-ului** (pagina de produs și Terms & Conditions): transfer bancar „estimated 5 to 8 working days from cleared payment", card „estimated 8 to 10 working days from cleared payment", iar în Terms „usually around 8 working days from cleared payment" și „goods are not reserved and will not be dispatched until payment has cleared". Peste York, Leeds și Blackpool, 2–4 săptămâni. **Pentru timpul în care banii de pe card ajung în cont, site-ul nou nu publică niciun termen**; singura sursă e footerul emailurilor de pe site-ul vechi, „Card payment processing can take approximately 3 - 4 working days". Am folosit acel „3 to 4 working days" în SMS-ul de Pending, dar e de confirmat cu Kass (sau de scos).
+
+**Ce am găsit greșit în setări:**
+1. **Toate template-urile erau cele implicite ale pluginului, cu sume în „Rs." și cu „Powered by www.smsalert.co.in"** la final.
+2. **Textul de Pending era complet nepotrivit:** „you are just one step away from placing your order, please complete your payment" — la noi Pending înseamnă comandă plasată și plătită, în așteptarea verificării stocului și a banilor.
+3. **Textul de Completed spunea „has been dispatched"** — la noi Complete înseamnă livrat.
+4. **Processed, Shipped, Returned, Refunded foloseau `[first_name]`**, care e gol la comenzile ca vizitator — adică la aproape toate comenzile noastre. Corect e `[billing_first_name]`.
+5. **`[order_amount]` se randează ca număr simplu**, fără monedă, deci trebuie scris `£[order_amount]`.
+6. **Nu e setat niciun număr de mobil pentru alerte interne** (`sms_admin_phone` e gol), deși toate notificările de admin sunt pornite: deocamdată nu se trimite nimic intern.
+7. **Alerta de înregistrare utilizator e pornită**, dar site-ul nu are conturi de client (modulul no-accounts) — se poate opri.
+8. În grupul de coșuri abandonate, `customer_notify` e pornit, iar frecvența e la 10 minute; `cart_exit_intent_status` e gol. De verificat și oprit până după lansare, cât timp baza are 5.936 de comenzi cu numere reale.
+
+**Ce e setat bine:** cod de țară implicit **44**, sender ID **ECOFRIDGE**, contul și parola introduse, toate funcțiile de OTP oprite (nu ar fi mers pe checkout-ul bloc), `auto_sync` oprit (numerele clienților nu se urcă în grupurile lor de contacte), alerta de credit scăzut pornită la 200 de credite pe doru.hanganu@gmail.com, iar `checkout-draft` lăsat nebifat (e statusul intern al checkout-ului bloc).
+
+**Ce am făcut:** migrarea **`70-sms-alert-templates.php`** scrie toate mesajele, cu numărul de telefon **doar în cel de On hold** (acolo clientul trebuie să acționeze), fără telefon în restul, cu `£` pus explicit, cu `[billing_first_name]` peste tot și fără „Powered by"; curăță și template-urile pe care nu le rescriem (stoc, înregistrare) de footer și de „Rs.". Backupul vechi e în opțiunea `ef_smsalert_message_before_70`. Rulată **pe local și pe staging**, verificată: zero „Rs." și zero „smsalert.co.in" rămase.
+
+Mesajele pentru client, cum arată la randare:
+- **Pending:** „Eco-Fridge: payment for order #7262 (£2,220.00) is confirmed. We are now checking stock and clearing the payment, usually 3 to 4 working days." (142)
+- **Processing:** „Eco-Fridge: your order #7262 is approved and we are preparing it. Delivery is usually 5 to 10 working days from cleared payment." (128)
+- **Processed:** „Eco-Fridge: your order #7262 is ready to be shipped. We will text you when it is dispatched." (92)
+- **Shipped:** „Eco-Fridge: your order #7262 has been dispatched. Tracking DX1234567890: https://track.dx.co.uk/DX1234567890" (108)
+- **On hold:** „Eco-Fridge: thanks John, order #7262 for £2,220.00 is on hold until your bank transfer clears; the bank details are in your email. Help: 01280 811411" (149)
+- **Complete:** „Eco-Fridge: your order #7262 is complete. Thank you." (52)
+- Plus texte proprii pentru Refunded, Partially refunded, Cancelled, Failed, Returned și pentru nota de comandă, chiar dacă unele statusuri sunt deocamdată nebifate.
+
+**Rămâne de făcut:** numărul de mobil pentru alertele interne (de la Mads sau Kass) sau oprirea notificărilor de admin; oprirea alertei de înregistrare și a SMS-urilor de coș abandonat; confirmarea termenului de 3–4 zile lucrătoare pentru plățile cu cardul; apoi testul pe staging (comandă cu cardul, comandă prin transfer bancar, trecere pe Processed și Shipped, verificarea dacă SMS-ul de la plasarea comenzii pornește pe checkout-ul bloc — riscul cu Store API din secțiunea 32). Despre telefon: pe site rămâne unde are rost (pagina Contact, caseta de ajutor, bara verde), fără să fie promovat agresiv.
+
+---
+
 ## Stare la 2026-10-29 (final)
 
-- **Git:** `main` cu PR #16–#22 unite; local, staging și git sunt identice; working tree curat.
+- **Git:** `main` cu PR #16–#23 unite; local, staging și git sunt identice; working tree curat.
 - **Plăți:** Lloyds Cardnet pe Live, testat de Doru și de Kass (£1,00 fiecare, nerambursate — efectele sunt în secțiunea 31). Licența e a Eco-Fridge și se mută pe domeniul live. Avertismentele PHP ale pluginului AG sunt inofensive cu debug oprit (secțiunea 30).
-- **SMS:** credite cumpărate, **sender ID ECOFRIDGE aprobat**; urmează trimiterea template-urilor, conectarea contului în plugin (cod de țară 44) și testul pe staging — secțiunile 32 și 33.
+- **SMS:** credite cumpărate, sender ID **ECOFRIDGE** aprobat, aprobarea de template nu se aplică (cont Global); mesajele pe statusuri sunt scrise prin migrarea 70, pe local și pe staging; rămân numărul pentru alerte interne, câteva comutatoare și testul pe staging (secțiunile 32–34).
 - **Emailuri:** SMTP IONOS funcțional; cereri din formular → mads@ + kass@; emailuri de comandă pentru firmă → mads@ + orders@; expeditor noreply@, Reply-To mads@.
 - **Cookies:** registrul rescanat de Doru; equal prominence implicit.
 - **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
 - **Urmează, în această ordine:** copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor și a produsului de test → importul tuturor comenzilor noi (de la #7261, 10 iulie 2026, încolo, inclusiv cele neexpediate) și al celorlalte date la zi → reconciliere 1:1 → curățenie finală → lansare din staging pe eco-fridge.co.uk (același cont Hostinger, DNS din IONOS). Data lansării nu e fixată; calendarul din Drive are termene relative (T-7 … Ziua Z … Z+30).
-- **De la Mads:** numărul de companie și codul de TVA, revizuirea paginilor legale, backupul de la Ambrit, numărul de mobil pentru alertele SMS interne.
+- **De la Mads:** numărul de companie și codul de TVA, revizuirea paginilor legale, backupul de la Ambrit, numărul de mobil pentru alertele SMS interne, confirmarea termenului de procesare a plăților cu cardul.
 - **Documentație la zi:** acest fișier, memoria proiectului (inclusiv notele despre plățile de test și despre preluarea datelor), documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge cu fazele 15–16 și tabul „Calendar lansare", checklistul general cu rândurile noi.
