@@ -1,0 +1,72 @@
+/* O2 Image Optimizer — admin. */
+.o2io-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; margin-top: 16px; }
+.o2io-card { background: #fff; border: 1px solid #dcdcde; border-radius: 8px; padding: 4px 18px 16px; }
+.o2io-card--wide { grid-column: 1 / -1; }
+.o2io-card h2 { font-size: 1.1em; }
+.o2io-ok { color: #1a7f37; font-weight: 600; }
+.o2io-bad { color: #b32d2e; font-weight: 600; }
+.o2io-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.o2io-stat { background: #f6f7f7; border-radius: 6px; padding: 10px; text-align: center; font-size: .85em; color: #50575e; }
+.o2io-stat span { display: block; font-size: 1.7em; font-weight: 700; color: #1d2327; line-height: 1.3; }
+.o2io-stat--pending span { color: #996800; }
+.o2io-stat--error span { color: #b32d2e; }
+.o2io-progress { height: 14px; background: #f0f0f1; border-radius: 999px; overflow: hidden; }
+.o2io-progress__bar { height: 100%; background: #1f821f; transition: width .4s ease; }
+.o2io-buttons .button { margin: 0 6px 6px 0; }
+.o2io-log { max-height: 320px; overflow: auto; margin: 0; }
+.o2io-log li { margin: 0; padding: 4px 0; border-bottom: 1px solid #f0f0f1; }
+.o2io-log time { display: inline-block; min-width: 92px; color: #646970; }
+.o2io-pre { background: #f6f7f7; padding: 10px; overflow: auto; max-height: 360px; font-size: 12px; }
+.o2io-help li { margin-bottom: 8px; }
+.o2io-form h2 { margin-top: 28px; padding-top: 12px; border-top: 1px solid #dcdcde; }
+.column-o2io { width: 120px; }
+.o2io-badge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; background: #f0f0f1; }
+.o2io-badge--done { background: #e6f4ea; color: #1a7f37; }
+.o2io-badge--partial { background: #fcf0e1; color: #996800; }
+.o2io-badge--error { background: #fcf0f1; color: #b32d2e; }
+.o2io-badge--pending { background: #f0f0f1; color: #50575e; }
+.o2io-err { color: #b32d2e; cursor: help; }
+
+/* —— bulk run status panels —— */
+.o2io-running, .o2io-finished, .o2io-paused-note { display: none; }
+.o2io-bulk[data-status="running"] .o2io-running { display: flex; }
+.o2io-bulk[data-status="finished"] .o2io-finished, .o2io-bulk[data-status="paused"] .o2io-paused-note { display: block; }
+.o2io-grid > .o2io-running, .o2io-grid > .o2io-finished, .o2io-grid > .o2io-paused-note { grid-column: 1 / -1; margin: 0; }
+.o2io-running {
+	align-items: center; gap: 28px; margin: 16px 0; padding: 26px 30px;
+	border: 3px solid #d63638; border-radius: 12px; background: #fff8e5;
+	animation: o2io-glow 1.6s ease-in-out infinite;
+}
+.o2io-running__anim { position: relative; flex: 0 0 auto; width: 110px; height: 110px; }
+.o2io-running__ring {
+	position: absolute; inset: 0; border-radius: 50%;
+	border: 10px solid #e6f4ea; border-top-color: #1f821f; border-right-color: #1f821f;
+	animation: o2io-spin 1s linear infinite;
+}
+.o2io-running__icon { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 44px; animation: o2io-pulse 1.6s ease-in-out infinite; }
+.o2io-running__text p { margin: 0 0 8px; }
+.o2io-running__title { font-size: 24px; font-weight: 700; line-height: 1.25; color: #1d2327; }
+.o2io-running__title span { color: #1f821f; }
+.o2io-running__warn { font-size: 46px; font-weight: 900; line-height: 1.15; color: #b32d2e; text-transform: uppercase; letter-spacing: .01em; margin-bottom: 14px !important; font-family: "Arial Black", "Segoe UI Black", Arial, sans-serif; -webkit-text-stroke: 1px #b32d2e; }
+.o2io-running__note { font-size: 14px; color: #3c434a; max-width: 760px; }
+.o2io-finished, .o2io-paused-note { margin: 18px 0; padding: 16px 20px; border-radius: 10px; font-size: 18px; }
+.o2io-finished { background: #e6f4ea; border: 2px solid #1a7f37; color: #1a7f37; }
+.o2io-paused-note { background: #fcf0e1; border: 2px solid #996800; color: #6b4a00; }
+.o2io-bulk[data-status="running"] .o2io-progress { height: 22px; }
+.o2io-bulk[data-status="running"] .o2io-progress__bar {
+	background-image: linear-gradient(45deg, rgba(255,255,255,.25) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.25) 50%, rgba(255,255,255,.25) 75%, transparent 75%);
+	background-size: 28px 28px; animation: o2io-stripes .8s linear infinite;
+}
+@keyframes o2io-spin { to { transform: rotate(360deg); } }
+@keyframes o2io-pulse { 50% { transform: scale(.85); } }
+@keyframes o2io-glow { 50% { box-shadow: 0 0 0 6px rgba(214, 54, 56, .18); } }
+@keyframes o2io-stripes { to { background-position: 28px 0; } }
+@media (max-width: 782px) {
+	.o2io-running { flex-direction: column; text-align: center; }
+	.o2io-running__title { font-size: 21px; }
+	.o2io-running__warn { font-size: 30px; }
+}
+@media (prefers-reduced-motion: reduce) {
+	.o2io-running, .o2io-running__icon, .o2io-bulk .o2io-progress__bar { animation: none; }
+	.o2io-running__ring { animation-duration: 3s; }
+}
