@@ -832,15 +832,27 @@ Am scos gateway-ul nefolosit din listă, printr-un filtru în `ecofridge-blocks/
 
 ---
 
+## 44. Urmărirea WooCommerce oprită (2026-10-29)
+
+**Doru:**
+> pune woocommerce_allow_tracking pe no
+
+**Ce am făcut (Claude):** migrarea **78** pune `woocommerce_allow_tracking` pe `no` și șterge jobul zilnic `woocommerce_tracker_send_event`, care trimitea datele de utilizare către woocommerce.com. Rulată pe local și pe staging; verificat în ambele: setarea e `no`, jobul nu mai e programat. Starea veche e în `ef_tracking_before_78`.
+
+**Ce am mai găsit, legat:** pluginul **WooCommerce Analytics** (cel de la Automattic, 0.10.0) e activ, dar **nu e conectat** — `jetpack_options` are doar `last_heartbeat`, fără ID de blog, iar pe frontend nu apare niciun script de urmărire (am căutat `woocommerceanalytics`, `stats.wp.com`, `s.pubmine.com` în pagina /shop/: zero). Deci nu trimite nimic. Rămâne totuși un plugin activ care nu face nimic; dacă vrei, îl dezactivez, ca să nu înceapă să trimită date în ziua în care cineva conectează Jetpack.
+
+---
+
 ## Stare la 2026-10-29 (final)
 
-- **Git:** `main` cu PR #16–#29 unite; local, staging și git sunt identice; working tree curat.
+- **Git:** `main` cu PR #16–#30 unite; local, staging și git sunt identice; working tree curat.
 - **Plăți:** Lloyds Cardnet pe Live, un singur gateway în listă. Flux: card → Processing → Preparing → Processed → Shipped → Complete; transfer bancar → On hold → Preparing → … Licența e a Eco-Fridge și se mută pe domeniul live.
-- **Admin:** WooCommerce → Home deschide tabloul de bord, nu wizardul (migrarea 77).
+- **Admin:** WooCommerce → Home deschide tabloul de bord (migrarea 77); urmărirea WooCommerce e oprită (migrarea 78).
 - **Emailuri:** SMTP IONOS funcțional; „New order" către mads@ + orders@ la toate comenzile; emailurile spun același lucru ca SMS-urile; datele bancare apar în emailul de On hold; Shipped și Complete rămân doar pe email.
 - **SMS:** sender ID ECOFRIDGE aprobat, livrare confirmată pe un număr real din UK. Mesaje doar pe Processing, Preparing, Processed, On hold și rambursări. Oprite: Pending, Shipped, Complete, coșuri abandonate, cereri de recenzie, SMS la recenzie, „back in stock", share cart și toate alertele către firmă, pe toate statusurile. Sold 4.885 de credite, alertă pe email sub 200.
 - **Cookies:** registrul rescanat de Doru; equal prominence implicit.
 - **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
 - **Urmează, în această ordine:** copia la zi a site-ului vechi pe eco-fridge-backup.o2dev.de → ștergerea comenzilor și a produsului de test → importul tuturor comenzilor noi (de la #7261, 10 iulie 2026, încolo, inclusiv cele neexpediate) și al celorlalte date la zi → reconciliere 1:1 → curățenie finală → lansare din staging pe eco-fridge.co.uk (același cont Hostinger, DNS din IONOS). La lansare se rulează din nou migrarea 76. Data lansării nu e fixată; calendarul din Drive are termene relative (T-7 … Ziua Z … Z+30).
 - **De la Mads:** numărul de companie și codul de TVA, revizuirea paginilor legale, backupul de la Ambrit.
+- **De decis:** dezactivarea pluginului WooCommerce Analytics (activ, dar neconectat, deci inert).
 - **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge cu fazele 15–16 și tabul „Calendar lansare", checklistul general cu rândurile noi.
