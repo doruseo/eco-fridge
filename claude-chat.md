@@ -1180,11 +1180,37 @@ Pasul de 07:30 din calendar conține acum lista exactă a înregistrărilor: ce 
 
 ---
 
-## Stare la 2026-10-30
+## 60. Rapoartele O2X și trei probleme pe care le-au scos la iveală (2026-10-30)
 
-- **Git:** `main` la zi, cu PR #16–#44 unite. Migrări: 01–80.
-- **Lansare:** sâmbătă **7 noiembrie 2026, 05:00–09:00**, confirmată de Mads. DNS: o singură înregistrare de schimbat, din contul IONOS al clientului.
-- **Site de backup:** `eco-fridge-backup.o2dev.de` gata, cu Migrate Guru; aliasul SSH `ef-backup` adăugat, se așteaptă cheia publică pe server.
-- **Audit:** făcut pe 30 octombrie; feed-urile de categorie și acțiunea eșuată din Rank Math reparate; paginile draft șterse.
-- **De verificat la migrare:** produsul #50 (fără preț) și cele 6 produse draft — dacă mai există și dacă au primit preț; plus comparația de structură (categorii, pagini, produse noi sau șterse).
-- **Urmează până joi 5 noiembrie:** repetiția migrării pe site-ul de backup, Lighthouse și crawl-ul din O2X (Doru le trimite), cross-browser, Rich Results Test.
+Doru a trimis patru rapoarte din unealta O2X: Lighthouse pe trei faze, istoricul crawl-urilor, comparația site vechi vs staging și lista paginilor „pierdute". Le-am citit pe toate și am verificat fiecare semnal pe site, nu doar în raport.
+
+**Lighthouse — totul în regulă.** Pe mobil, mediana paginilor: performanță **34 → 86**, accesibilitate **89 → 100**, best practices 96 → 96, LCP **8,95 s → 2,95 s**, CLS **0,922 → 0,001**, TBT 183 → 134 ms, greutate 1,84 MB → 974 KB, cereri 87 → 66. Pe desktop 70 → 97. Important: bannerul de cookies, GTM și optimizatorul de imagini nu au costat nimic — 86 acum, 86 și pe 15 octombrie. Cele mai slabe pagini rămân produsul (69, LCP 7,3 s), o categorie (70, LCP 7,1 s) și contactul (76, LCP 5,4 s); staging-ul e pe găzduire partajată, fără CDN, așa că se re-măsoară pe live.
+
+**Scorul SEO 100 → 63 nu e o problemă de conținut.** Am rulat Lighthouse local, pe oglindă, și am cerut lista auditurilor picate: exact două. Primul e „pagina e blocată de la indexare" — noindex-ul de pe staging, care dispare la lansare. Al doilea era real și l-am reparat (mai jos).
+
+**Cele 111 „pagini pierdute" nu sunt pierdute.** Le-am testat pe toate: 106 redirecționează 301 într-un singur pas către ținta corectă (72 de tag-uri vechi de produs, 31 de pagini de atașament, arhiva de autor, pagina vechiului gateway) și 5 răspund direct 200, printre ele `/product/removal-disposal/`, singura cu greutate reală: 30 de linkuri interne. Zero 404, zero lanțuri lungi. Raportul le vede „nemapate" fiindcă nu există ca URL-uri publicate la noi — exact cum trebuie.
+
+**Comparația A vs B:** scor de sănătate 71 → 80; erori 4xx 10 → 0, linkuri interne rupte 44 → 0, H1 lipsă 11 → 0, titluri duplicate 114 → 0, descrieri lipsă 433 → 0, conținut duplicat 22 → 0, pagini orfane 642 → 2, răspuns lent 1.077 → 145, zero referințe către staging. Cele 638 „schimbări critice" sunt, aproape fără excepție, paginile de atașament ale site-ului vechi (fiecare imagine avea pagina ei, cu titluri de genul „Banner No1 Coffee new"); la noi redirecționează către pagina-părinte sau către fișier. Metricile „0 pagini indexabile", „fără canonical" și „URL-uri neindexabile în sitemap" sunt tot efectul noindex-ului.
+
+### Trei probleme reale, toate reparate
+
+**1. Site-ul live ar fi rămas fără robots.txt.** Pe staging, `/robots.txt` răspundea 404 în 0,08 s — prea repede ca să fi trecut prin WordPress. Serverul Hostinger răspunde el însuși la această adresă și dă 404 când nu există fișier fizic, așa că robots.txt-ul virtual al WordPress-ului nu ajunge niciodată la crawler. Am verificat ipoteza pe site-ul de backup, un WordPress gol pe același cont: tot 404. Fără fișier, Google ar fi citit „nicio restricție" și ar fi putut umbla liber prin URL-urile cu parametri de filtrare. Am scris un `robots.txt` real, cu aceleași reguli pe care le genera WordPress și cu sitemapul domeniului live, și l-am pus în rădăcina site-ului: acum răspunde 200 în 0,25 s. Fișierul e păstrat și în depozit, la `migration/files/robots.txt`. De știut pentru viitor: cât timp există fișierul fizic, editorul de robots.txt din Rank Math nu mai are efect.
+
+**2. Meniul de pe telefon arăta lista tuturor paginilor.** Locația „Off-Canvas" nu avea niciun meniu atribuit, iar Astra o înlocuia cu lista alfabetică generată de WordPress: 49 de linkuri, printre ele Coș, Finalizare comandă, paginile legale și pagini care n-au ce căuta într-un meniu. Apărea pe fiecare pagină a site-ului. Am atribuit acolo meniul principal, același pe care îl vede desktopul: Home, Shop, Markets cu cele patru piețe, Blog, About Us, Contact Us. De decis cu Doru: dacă vrem ca pe telefon să apară și arborele de categorii comerciale, se adaugă un al doilea element de meniu în sertar.
+
+**3. `/eco-fridge/` ducea la pagina greșită.** Pe site-ul vechi, adresa asta servește textul despre retururi. La noi exista pagina 7752 „ECO-Fridge" cu exact același text ca pagina 7325 „Return Policy" de la `/returns/`, iar o redirecționare din Rank Math trimitea `/eco-fridge/` către `/about-us/` — adică pe cineva care caută condițiile de retur îl trimitea la pagina „despre noi". Am mutat ținta redirecționării pe `/returns/` și am trimis pagina duplicat la coș, ca să nu mai concureze în sitemap cu pagina păstrată.
+
+Toate trei sunt aplicate și verificate pe staging și pe oglinda locală (migrarea **81** pentru meniu și pagină, fișier pentru robots.txt).
+
+**Lucruri bune confirmate în aceeași rundă:** feed Merchant cu 129 de produse, schema de produs completă (brand, SKU, preț, disponibilitate, livrare, retur), BlogPosting pe articole cu datele de Local SEO, zero imagini fără atribut alt pe toate tipurile de pagină (cifra din raport numără imaginile decorative cu `alt=""`, care e scrierea corectă), zero referințe către staging în conținut.
+
+---
+
+## Stare la 2026-10-30 (seara)
+
+- **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
+- **Lansare:** sâmbătă 7 noiembrie 2026, 05:00–09:00. DNS: o singură înregistrare, din contul IONOS.
+- **Site de backup:** `eco-fridge-backup.o2dev.de` funcțional, cheia SSH adăugată, aliasul `ef-backup` merge (WordPress 7.1.4, Migrate Guru 6.72).
+- **Audit:** cele patru rapoarte O2X citite și verificate; trei probleme reale găsite și reparate.
+- **De verificat pe live, imediat după mutare:** robots.txt răspunde 200, scorul SEO din Lighthouse revine la ~100, canonical-urile apar, paginile cu LCP mare se re-măsoară fără parola de staging.
+- **Urmează până joi 5 noiembrie:** repetiția migrării pe site-ul de backup, cross-browser, Rich Results Test, deciziile de produs ale lui Mads.
