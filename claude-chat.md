@@ -1154,12 +1154,37 @@ Lista pentru Kass are acum trei puncte: o privire în Virtual Terminal oricând 
 
 ---
 
+## 59. DNS-ul de la IONOS, site-ul de backup și curățenia paginilor draft (2026-10-30)
+
+**Doru** a răspuns punct cu punct la auditul de mai sus, a creat subdomeniul de backup și a trimis capturile din IONOS.
+
+**Deciziile lui:** produsul #50 și cele 6 produse draft se verifică **la migrare** — poate au fost șterse sau au primit preț între timp; dacă #50 tot nu are preț, îl întrebăm pe Mads. Produsele draft rămân decizia lui Mads, nu sunt publice. Paginile draft se șterg acum. Kass își face singur 2FA când începe să folosească site-ul. Astra se actualizează după lansare.
+
+**Paginile draft, șterse** pe staging și pe local: Sample Page, Privacy Policy și Refund and Returns Policy (cele implicite din WordPress și WooCommerce). Am verificat întâi că nimic nu le folosea — pagina de confidențialitate a site-ului e 7320, termenii sunt 7322, iar paginile de shop, coș, checkout și cont au alte ID-uri.
+
+**Site-ul de backup e gata:** `eco-fridge-backup.o2dev.de`, cu WordPress și Migrate Guru instalate și SSH activat. Am adăugat aliasul `ef-backup` în configul meu SSH (148.230.121.74, port 65002, user u510186744_biqFdbY8d), cu aceeași cheie ca pe staging; Doru adaugă cheia publică acolo.
+
+**Nameserverele de la IONOS — totul e în regulă, chiar mai bine decât speram.** Domeniul folosește nameserverele implicite IONOS (`ns1030.ui-dns.com/.biz/.org/.de`), ceea ce înseamnă că **zona DNS e găzduită la IONOS, nu la Ambrit**. Ambrit are doar serverul web, iar IONOS trimite traficul acolo printr-un simplu A record. Pentru noi e varianta ideală: schimbarea o facem din contul clientului, fără să depindem de hosting-ul vechi.
+
+Verificat și în direct, nu doar în capturi:
+- `A @ → 185.230.220.98` (Ambrit) — **singurul rând care se schimbă**, în IP-ul Hostinger;
+- `CNAME www → eco-fridge.co.uk` — urmează automat, nu se atinge;
+- `A ftp → 185.230.220.98` — rămâne spre serverul vechi cât e ținut în viață; se actualizează sau se șterge după cele 30 de zile;
+- `MX mx00/mx01.ionos.co.uk`, DKIM (`s1-ionos`, `s2-ionos`, `s42582890._domainkey`), `_dmarc`, SPF și TXT-ul de verificare Google — **neatinse**, deci emailul nu e afectat deloc.
+
+Un detaliu de știut: SPF-ul conține `+a`, deci după mutare autorizează IP-ul Hostinger în locul celui vechi. E inofensiv, fiindcă trimitem autentificat prin smtp.ionos.co.uk, iar testul de email trecea deja SPF, DKIM și DMARC.
+
+Pasul de 07:30 din calendar conține acum lista exactă a înregistrărilor: ce se schimbă, ce urmează automat și ce nu se atinge. Capturile din IONOS stau în folderul proiectului, dar sunt excluse din git (sunt capturi din panoul clientului).
+
+**PR #44 unit** în `main`, cu permisiunea lui Doru: feed-urile de categorie reparate, migrarea 80 și jurnalul auditului.
+
+---
+
 ## Stare la 2026-10-30
 
-- **Git:** `main` cu PR #16–#43 unite; **PR #44 deschis** (feed-urile de categorie + migrarea 80 + acest jurnal) — merge-ul mi-a fost blocat de auto mode, îl faci tu sau îmi dai permisiune. Migrări: 01–80.
-- **Lansare: confirmată pentru sâmbătă 7 noiembrie 2026, 05:00–09:00.** Calendarul are datele reale (30 oct → 7 dec).
-- **Audit:** făcut azi, două probleme găsite și reparate; restul curat.
-- **Plăți:** Lloyds Cardnet pe Live; trei încasări de test de £1, nerambursate la decizia lui Mads.
-- **SEO:** Rank Math cu Local SEO completat; `/llms.txt` funcțional; feed-urile de categorie reparate.
-- **Emailuri și SMS:** funcționale, aliniate între ele, fără alerte către firmă.
-- **Urmează:** pașii din F11-24 până joi 5 noiembrie, apoi repetiția, curățenia de vineri și lansarea de sâmbătă.
+- **Git:** `main` la zi, cu PR #16–#44 unite. Migrări: 01–80.
+- **Lansare:** sâmbătă **7 noiembrie 2026, 05:00–09:00**, confirmată de Mads. DNS: o singură înregistrare de schimbat, din contul IONOS al clientului.
+- **Site de backup:** `eco-fridge-backup.o2dev.de` gata, cu Migrate Guru; aliasul SSH `ef-backup` adăugat, se așteaptă cheia publică pe server.
+- **Audit:** făcut pe 30 octombrie; feed-urile de categorie și acțiunea eșuată din Rank Math reparate; paginile draft șterse.
+- **De verificat la migrare:** produsul #50 (fără preț) și cele 6 produse draft — dacă mai există și dacă au primit preț; plus comparația de structură (categorii, pagini, produse noi sau șterse).
+- **Urmează până joi 5 noiembrie:** repetiția migrării pe site-ul de backup, Lighthouse și crawl-ul din O2X (Doru le trimite), cross-browser, Rich Results Test.

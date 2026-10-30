@@ -46,3 +46,5 @@ media-sync/
 # Generated redirect reports (large, rebuilt from the live site when needed)
 eco-fridge-migration-redirects.pdf
 eco-fridge-redirect-mapping-*.html
+# Screenshots of the client's own control panels (DNS, hosting)
+eco-fridge domain screenshots IONOS/
