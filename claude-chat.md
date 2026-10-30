@@ -1250,6 +1250,18 @@ Ramane o fereastra de cateva minute in care cineva care nimereste direct pe `htt
 
 **Despre copy website:** da, daca unealta exista in cont, e cel mai scurt drum pentru pasul de sambata de la 06:45 — copiaza fisiere si baza de date intre doua site-uri din acelasi cont. De aceea recomand sa cream site-ul live **joi, nu vineri**: joi incercam copierea pe gol, vedem daca unealta exista, cat dureaza si daca inlocuieste singura URL-urile, apoi golim folderul. Daca nu exista sau cade, raman Migrate Guru de pe staging si, ca ultima varianta, dump plus arhiva prin SSH — dar aflam asta joi, nu sambata la 06:45. Pasul de 06:45 scrie acum toate cele trei variante si verificarile de dupa copiere: robots.txt fizic ajuns in radacina, blocul de staging scos din .htaccess, copiile .avif/.webp prezente, acelasi numar de tabele si de produse.
 
+## 65. Cum golim destinatia dupa copia de proba (2026-10-30)
+
+**Doru:** „cum golesc folderul, sterg toate fisierele?"
+
+Raspunsul scurt e ca poate nici nu e nevoie, si de asta ghidul incepe acum cu un test: inainte de copia de proba se pune un fisier-martor in destinatie (`touch .../public_html/MARKER-TEST.txt`). Daca dupa copiere martorul a disparut, unealta goleste singura destinatia si sambata nu mai avem nimic de curatat; daca a ramas, unealta doar suprascrie peste ce gaseste, deci golim dupa test.
+
+Daca golim, **ordinea conteaza**: intai `wp db reset --yes` din docroot, cat timp `wp-config.php` inca exista, si abia apoi `find . -mindepth 1 -delete` din interiorul lui `public_html`. Invers nu se poate: dupa stergerea fisierelor nu mai exista `wp-config.php`, WP-CLI nu mai stie ce baza sa curete, iar tabelele de test ar ramane si s-ar amesteca cu copia de sambata. Un `rm -rf *` nu e suficient nici el, fiindca sare peste fisierele care incep cu punct, intre ele `.htaccess`.
+
+Am adaugat si varianta fara urme — stergi tot website-ul din hPanel si il creezi din nou gol — cu avertismentul ca dupa recreare trebuie verificat din nou IP-ul, fiindca ala e numarul care intra in IONOS.
+
+Totul a intrat in `ghid-hostinger-site-live-www.md`, sectiunea noua „Repetitia copierii, si cum golesti dupa ea", si in randul de joi din calendar.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.

@@ -49,6 +49,44 @@ La **Domains** (sau Websites → site → Domains / „Manage domains") trebuie 
 
 Dacă nu apare, adaugă-l manual ca **alias** (uneori se numește „Domain alias", „Parked domain" sau „Addon domain") **spre același folder**, nu ca site nou.
 
+### 6. Repetitia copierii, si cum golesti dupa ea
+
+Tot joi, dupa ce site-ul gol exista, incearca **hPanel -> Websites -> eco-fridge.o2dev.de -> Copy website** (in unele conturi „Duplicate" sau „Copy to") catre `eco-fridge.co.uk`. Daca unealta exista si merge, asta e drumul de sambata de la 06:45, iar joi afli deja cat dureaza si daca inlocuieste singura URL-urile.
+
+**Inainte de copia de test, pune un fisier-martor in destinatie:**
+
+```bash
+touch ~/domains/eco-fridge.co.uk/public_html/MARKER-TEST.txt
+```
+
+Dupa copiere, uita-te daca mai e acolo:
+
+- **a disparut** -> unealta goleste singura destinatia, deci sambata nu trebuie sa cureti nimic;
+- **a ramas** -> unealta doar suprascrie peste ce gaseste, deci golim folderul dupa test.
+
+**Daca trebuie golit, ordinea conteaza: intai baza de date, apoi fisierele.**
+
+```bash
+# 1. din docrootul site-ului live, cat timp wp-config.php inca exista
+cd ~/domains/eco-fridge.co.uk/public_html     # sau calea notata la pasul 4
+wp db reset --yes                              # sterge toate tabelele bazei conectate
+
+# 2. abia acum golesti folderul, cu tot cu fisierele ascunse (.htaccess)
+pwd && ls -la | head                           # verifica o data unde esti
+find . -mindepth 1 -delete
+
+# 3. confirma
+ls -la                                         # doar . si ..
+```
+
+`find . -mindepth 1 -delete` sterge **continutul**, nu folderul `public_html` insusi, si prinde si fisierele care incep cu punct, pe care un `rm -rf *` le-ar sari. Pasul 1 trebuie facut primul: dupa stergerea fisierelor nu mai exista `wp-config.php`, deci WP-CLI nu mai stie ce baza sa curete, iar tabelele de test ar ramane si s-ar amesteca cu copia de sambata.
+
+Din File Manager merge la fel: intri in `public_html`, bifezi „Show hidden files", selectezi tot, stergi; baza o golesti separat, din hPanel -> Databases.
+
+**Varianta fara urme:** stergi tot website-ul din hPanel si il creezi din nou, gol - curat si la fisiere, si la baza. Singura atentie: **verifica din nou IP-ul** dupa recreare, fiindca teoretic poate pica pe alt server din cont, iar ala e numarul care intra in IONOS.
+
+Daca unealta de copiere nu exista in cont sau cade, variantele ramase sunt Migrate Guru (instalat pe staging, cu site-ul live ca destinatie) si, ca ultima solutie, dump cu `mariadb-dump` plus arhiva de uploads, tema si pluginuri, printr-o singura conexiune SSH.
+
 ---
 
 ## Partea 2 — de unde vine „www în față"
