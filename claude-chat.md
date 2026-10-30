@@ -1226,6 +1226,20 @@ Toate trei sunt aplicate și verificate pe staging și pe oglinda locală (migra
 
 **Scaderea TTL-ului nu e obligatorie cu doua zile inainte** — schimbarea de TTL se propaga ea insasi intr-o ora, deci chiar si vineri ar fi destul. O facem totusi joi, cum era planificat, din doua motive: in ziua lansarii nu mai atingem decat o singura inregistrare, iar castigul adevarat nu e viteza cu care apare site-ul nou, ci **viteza de revenire** — cu TTL 300 ne intoarcem pe serverul vechi in cinci minute, nu intr-o ora. Daca panoul IONOS nu lasa sub o ora, mergem mai departe cu o ora. Dupa o saptamana linistita, TTL-ul se pune inapoi la 3600.
 
+## 63. Ghid: site-ul live pe Hostinger, cu www in fata, si SSL dupa DNS (2026-10-30)
+
+**Doru:** „sa ma inveti la migrare cum sa creez site-ul sa aiba www in fata domeniului pe Hostinger «Agency Startup Web Hosting». Si sa-mi amintesti atunci sa activez SSL dupa propagarea DNS nu inainte."
+
+Am scris ghidul in `ghid-hostinger-site-live-www.md` si am bagat cei doi pasi in calendar, ca sa apara singuri la momentul lor: **joi 5 noiembrie — site-ul live creat gol in hPanel** si **sambata 07:45 — SSL instalat, dupa propagarea DNS**.
+
+**Partea cu www e contraintuitiva:** domeniul se adauga in hPanel **fara** `www.`. Hostinger ia domeniul inregistrabil ca domeniu al site-ului si serveste automat si varianta cu www, ca alias pe acelasi folder; daca pui `www.eco-fridge.co.uk` ca domeniu principal, il trateaza ca subdomeniu separat si ajungi cu doua intrari care se bat cap in cap. Canonicul cu www nu vine, de fapt, din hPanel: il da WordPress, prin `siteurl` si `home` setate pe `https://www.eco-fridge.co.uk` la search-replace-ul de la 07:15, dupa care WordPress redirectioneaza singur domeniul gol catre www. In ghid e si regula de `.htaccess`, pentru cine vrea redirectul inaintea WordPress-ului, cu mentiunea ca e optionala.
+
+Alte doua lucruri din ghid: site-ul se creeaza **gol**, nu cu WordPress instalat, fiindca peste folderul ala vine copia de pe staging; si cand Hostinger propune mutarea nameserverelor, **se refuza** — raman la IONOS, altfel pleaca si emailul odata cu ele.
+
+**SSL: dupa DNS, niciodata inainte.** Let's Encrypt valideaza printr-un fisier cerut pe `http://www.eco-fridge.co.uk/...`, deci cat timp inregistrarea A arata spre Ambrit, cererea ajunge pe serverul vechi si emiterea esueaza — cu riscul unui blocaj temporar de la Let's Encrypt daca se insista. Ordinea intrata in calendar: 07:30 se schimba `A @`, se asteapta 5-15 minute, se verifica cu `nslookup` ca domeniul ajunge la Hostinger, si abia apoi Install SSL, asteptat pana scrie Active, apoi Force HTTPS. La final se verifica si ca certificatul acopera ambele nume, nu doar unul.
+
+Ramane o fereastra de cateva minute in care cineva care nimereste direct pe `https://` ar vedea o eroare de certificat; sambata la 07:40, pe un site B2B din UK, e aproape nimeni. Alternativa fara fereastra — certificat emis joi prin validare DNS si urcat ca Custom SSL — e descrisa in ghid si o pregatim daca o cere Doru.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
