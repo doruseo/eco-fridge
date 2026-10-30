@@ -71,6 +71,11 @@ add_action(
 	'init',
 	static function () {
 		$bases = implode( '|', efb_legacy_bases() );
+		// The RSS feed of a category, which the original site served at these
+		// addresses and which every category page still links to in its head.
+		// Both forms are needed: /feed/ on its own, and /feed/<format>/.
+		add_rewrite_rule( '^(' . $bases . ')/(.+?)/feed/(feed|rdf|rss|rss2|atom)/?$', 'index.php?product_cat=$matches[2]&feed=$matches[3]', 'top' );
+		add_rewrite_rule( '^(' . $bases . ')/(.+?)/(feed|rdf|rss|rss2|atom)/?$', 'index.php?product_cat=$matches[2]&feed=$matches[3]', 'top' );
 		add_rewrite_rule( '^(' . $bases . ')/(.+?)/page/?([0-9]{1,})/?$', 'index.php?product_cat=$matches[2]&paged=$matches[3]', 'top' );
 		add_rewrite_rule( '^(' . $bases . ')/(.+?)/?$', 'index.php?product_cat=$matches[2]', 'top' );
 		// The original product post type archive.

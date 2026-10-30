@@ -1125,17 +1125,41 @@ Lista pentru Kass are acum trei puncte: o privire în Virtual Terminal oricând 
 
 ---
 
-## Stare la 2026-10-29 (final)
+## 58. Audit complet al site-ului de staging (2026-10-30)
 
-- **Git:** `main` cu PR #16–#43 unite; local, staging și git sunt identice; working tree curat. Migrări: 01–79, plus uneltele din `migration/tools`.
-- **Lansare: CONFIRMATĂ pentru sâmbătă 7 noiembrie 2026, 05:00–09:00.** Calendarul are datele reale (30 oct → 7 dec).
-- **Plăți de test:** trei încasări reale de £1 (#8036, #8037, #8038), nerambursate la decizia lui Mads; de explicat o dată contabilității. Comenzile de test se șterg în pasul de 05:40 din ziua lansării.
-- **De cerut de la Ambrit (prin Mads):** un backup luni 9 noiembrie, hostingul ținut 30 de zile, fără intervenții pe DNS.
-- **SEO:** Rank Math cu modulele pornite de Doru; Local SEO completat; `/llms.txt` funcțional.
-- **Plăți:** Lloyds Cardnet pe Live. Flux: card → Processing → Preparing → Processed → Shipped → Complete; transfer bancar → On hold → Preparing → …
-- **Emailuri:** SMTP IONOS funcțional; „New order" către mads@ + orders@ la toate comenzile; emailurile spun același lucru ca SMS-urile.
-- **SMS:** sender ID ECOFRIDGE aprobat; mesaje doar pe statusurile cu zile de așteptare.
-- **Cookies:** registrul rescanat de Doru; equal prominence implicit.
-- **Imagini:** 838 convertite pe staging; pozele noi se convertesc singure.
-- **Urmează:** pregătirile de până vineri 30 octombrie → joi 5 noiembrie repetiția copiei → vineri 6 noiembrie înghețarea și curățenia → sâmbătă 7 noiembrie lansarea.
-- **Documentație la zi:** acest fișier, memoria proiectului, documentul de proces eco-fridge, procedura generală (v2), checklistul eco-fridge și tabul „Calendar lansare".
+**Doru:**
+> verifica absolut tot site-ul din staging […] vezi daca are vreo problema si daca totul functioneaza bine, si daca mai trebuie facut ceva pana la momentul 5 Noiembrie. De asemenea, noteaza in agenda sa verificam la migrarea noastra de sambata dimineata din vechiul site via Migrate Guru si daca au aparut categorii noi, pagini noi, produse noi, produse sterse […]
+
+**Cum am verificat:** server și setări prin SSH pe staging; tot conținutul prin crawl pe oglinda locală, care e identică cu staging (staging e în spatele parolei, deci nu poate fi parcurs prin HTTP). Crawl-ul a luat toate URL-urile din sitemap, a verificat pe fiecare pagină statusul, erorile PHP, titlul, H1-ul și canonical-ul, apoi a testat **856 de imagini din uploads** și **1.271 de linkuri interne unice**.
+
+**Ce era în regulă:** zero imagini lipsă, zero notificări sau avertismente PHP în pagini, zero linkuri rupte (în afara feed-urilor, mai jos), WordPress și toate pluginurile la zi, niciun `debug.log`, cronul rulează, schema Product completă (brand Frost-Tech, SKU, preț, disponibilitate, livrare, retur), BlogPosting pe articole împreună cu datele noi de Local SEO, feed Merchant cu 129 de produse, `robots.txt` blochează parametrii de filtrare și add-to-cart, coșul și checkout-ul funcționează cu ambele metode de plată, endpointul de căutare răspunde, 4 zone de livrare și TVA 20%.
+
+**Două probleme reale, amândouă reparate azi (PR #44):**
+1. **Feed-urile de categorie dădeau 404.** Fiecare pagină de categorie își anunță feedul RSS în head, iar toate cele 30 de adrese de forma `/range/<categorie>/feed/`, `/ranges/…`, `/condition/…` răspundeau cu 404, în timp ce site-ul vechi le servește cu 200. Rutarea pentru bazele vechi avea reguli pentru arhivă și paginare, dar nu pentru feed. Am adăugat două reguli (`/feed/` și `/feed/<format>/`); toate cele 30 răspund acum 200, iar arhivele, paginarea și celelalte feed-uri (piețe, categorii de blog, tag-uri, site, comentarii) nu au fost afectate.
+2. **O acțiune eșuată pe zi în Action Scheduler:** raportul de email al modulului Analytics din Rank Math pornea fără niciun callback, pentru că nu există cont Rank Math conectat. Migrarea **80** oprește raportul și curăță rulările programate, ca lista de eșecuri să rămână goală și o problemă reală să sară în ochi.
+
+**O alarmă falsă:** crawl-ul raporta canonical lipsă pe mai multe pagini. Cauza e noindex-ul de pe staging: cu indexarea pornită o clipă pe local, Rank Math scrie canonical pe toate tipurile de pagină. Se reverifică oricum după lansare.
+
+**Lucruri de decis, nu defecte:**
+- **#50 White Upright High Capacity Double Door Storage Chiller** nu are preț. Nici pe site-ul vechi nu are: acolo apare „Sale Price: £0.00". Din cauza asta lipsește și din feed-ul Merchant (129 din 132 de produse). De cerut prețul de la Mads sau de lăsat ca preț la cerere.
+- **Șase produse draft** „Stainless Steel Heavy Duty…" fără preț și fără categorie — rămase așa din migrare; de completat sau de șters.
+- **#82 Removal & Disposal Extra** rămâne publicat dar ascuns din catalog și noindex, cum s-a decis pe 13 octombrie.
+- **Trei pagini draft** (Sample Page, Privacy Policy implicit, Refund and Returns implicit) — de șters la curățenia de vineri.
+- **Contul kass nu are 2FA**; doru și mads au.
+- **Astra 4.14.2** e disponibil. Recomandarea mea: se actualizează **după** lansare, nu în săptămâna migrării.
+
+**În agendă pentru sâmbătă dimineață** (cerut de Doru) a intrat comparația de structură, nu doar de date: categorii noi de produse și mutări între categorii, pagini noi sau șterse, articole noi, produse noi, produse scoase din vânzare sau trecute pe draft, tag-uri noi și schimbări de meniu. Metoda e scrisă în checklist (F15-05): se exportă din copia Migrate Guru listele de termeni și de postări publicate cu slug și dată, se compară cu site-ul nou și se tratează fiecare diferență. O categorie nouă are nevoie și de intrare în meniu și, dacă e comercială, de landing (migrarea 39). Produsele noi vin cu preț, imagine și descriere, iar conținutul SEO, tag-urile de tip și tabelele comparative se completează și după lansare — site-ul rămâne în întreținere.
+
+**Ce mai trebuie făcut până joi 5 noiembrie** (rândul F11-24 din checklist): subdomeniul eco-fridge-backup.o2dev.de creat în hPanel, repetiția migrării și a extragerii datelor, Lighthouse re-măsurat pe staging după bannerul de cookies și GTM, test cross-browser pe Safari iOS, Firefox și Edge, Rich Results Test la Google, 2FA pentru kass, deciziile de produs de mai sus. De la Mads mai așteptăm tot ce era în email, în afara datei: backupul de luni de la Ambrit, hostingul ținut 30 de zile, înghețarea conținutului, numărul de companie și codul de TVA, citirea paginilor legale, confirmarea că orders@ e urmărită și instalarea pluginului de închidere sâmbătă dimineață.
+
+---
+
+## Stare la 2026-10-30
+
+- **Git:** `main` cu PR #16–#43 unite; **PR #44 deschis** (feed-urile de categorie + migrarea 80 + acest jurnal) — merge-ul mi-a fost blocat de auto mode, îl faci tu sau îmi dai permisiune. Migrări: 01–80.
+- **Lansare: confirmată pentru sâmbătă 7 noiembrie 2026, 05:00–09:00.** Calendarul are datele reale (30 oct → 7 dec).
+- **Audit:** făcut azi, două probleme găsite și reparate; restul curat.
+- **Plăți:** Lloyds Cardnet pe Live; trei încasări de test de £1, nerambursate la decizia lui Mads.
+- **SEO:** Rank Math cu Local SEO completat; `/llms.txt` funcțional; feed-urile de categorie reparate.
+- **Emailuri și SMS:** funcționale, aliniate între ele, fără alerte către firmă.
+- **Urmează:** pașii din F11-24 până joi 5 noiembrie, apoi repetiția, curățenia de vineri și lansarea de sâmbătă.
