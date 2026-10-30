@@ -1206,6 +1206,14 @@ Toate trei sunt aplicate și verificate pe staging și pe oglinda locală (migra
 
 ---
 
+## 61. Feedback pentru unealta O2X și meniul de pe telefon (2026-10-30)
+
+**Doru:** „salveaza toata analiza acestor rapoarte din O2X si concluziile tale intr-un fisier md ca sa-l pot trimite la O2X […] Pe telefon apare banda cu meniul comercial, deci nu este nevoie sa adaugam paginile comerciale in caseta off-canvas".
+
+**Meniul de mobil rămâne cum l-am pus:** sertarul off-canvas are meniul principal (Home, Shop, Markets, Blog, About Us, Contact Us), iar categoriile comerciale nu se adaugă acolo, fiindcă pe telefon apar oricum în banda de sub antet. Întrebarea deschisă din rundă se închide aici.
+
+**Am scris analiza pentru O2X** în `o2x-tool-feedback-2026-10-30.md`, în engleză, ca să poată fi trimisă mai departe. Structura: mai întâi problema principală — cele 111 „pagini pierdute", din care niciuna nu era pierdută, cu metoda de verificare (o singură cerere pe site-ul B, fără urmărirea redirecturilor) și un tabel de clasificare după codul de răspuns; apoi ordonarea recomandărilor după dovezi (linkuri, clicuri) și gruparea pe tipare, în loc de 72 de rânduri pentru tag-uri; detectarea paginilor de atașament, care umflau cele 638 de „schimbări critice"; cele cinci metrici pe care le strică automat un staging cu noindex și propunerea de a le suspenda cu un singur banner; numărul „427 linkuri interne către redirect", care a fost cel mai valoros semnal din tot raportul și care ar trebui să arate *care* linkuri, nu doar câte; afișarea auditurilor Lighthouse picate, nu doar a scorului; și promovarea stării lui `robots.txt` la rând de sine stătător în rezumatul fiecărui crawl — exact problema care nu apărea în niciunul dintre cele patru rapoarte. La final, ce face unealta bine, ca să nu se piardă între critici.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
