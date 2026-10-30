@@ -1240,6 +1240,16 @@ Alte doua lucruri din ghid: site-ul se creeaza **gol**, nu cu WordPress instalat
 
 Ramane o fereastra de cateva minute in care cineva care nimereste direct pe `https://` ar vedea o eroare de certificat; sambata la 07:40, pe un site B2B din UK, e aproape nimeni. Alternativa fara fereastra — certificat emis joi prin validare DNS si urcat ca Custom SSL — e descrisa in ghid si o pregatim daca o cere Doru.
 
+## 64. Curatenie in calendar: backupul de la Ambrit si pregatirea domeniului (2026-10-30)
+
+**Doru** a intrebat daca randurile 5 si 6 din calendar mai sunt necesare si daca nu ar fi mai simplu sa pregateasca contul eco-fridge.co.uk pe 6 noiembrie, urmand sa faca apoi copy website din eco-fridge.o2dev.de.
+
+**Randul 5, backupul cerut de la Ambrit:** nu mai e o conditie de lansare. Emailul catre Mads a stabilit altceva, mai bun: Ambrit face backupul complet **luni 9 noiembrie**, dupa ce site-ul nou e dovedit, iar gazduirea veche ramane platita 30 de zile, fara nicio schimbare de DNS acolo. Noi nu depindem de el nici cat o secunda: joi facem propria copie completa a site-ului vechi pe eco-fridge-backup.o2dev.de, iar sambata la 05:10 luam copia finala, dupa inchiderea magazinului. Randul e marcat „Aranjat", cu explicatia in el.
+
+**Randul 6, domeniul pregatit pe Hostinger:** era duplicat peste randul nou de joi 5 noiembrie. L-am marcat „Mutat" si am pastrat in el cele doua lucruri care NU intra acolo: SSL-ul se instaleaza sambata, dupa schimbarea DNS, iar cronul real se pune sambata, dupa copiere, fiindca are nevoie de fisierele WordPress la locul lor. Cronul a intrat explicit in pasul de 07:15: `DISABLE_WP_CRON` in wp-config si o sarcina in hPanel care ruleaza `wp cron event run --due-now` la fiecare 5 minute.
+
+**Despre copy website:** da, daca unealta exista in cont, e cel mai scurt drum pentru pasul de sambata de la 06:45 — copiaza fisiere si baza de date intre doua site-uri din acelasi cont. De aceea recomand sa cream site-ul live **joi, nu vineri**: joi incercam copierea pe gol, vedem daca unealta exista, cat dureaza si daca inlocuieste singura URL-urile, apoi golim folderul. Daca nu exista sau cade, raman Migrate Guru de pe staging si, ca ultima varianta, dump plus arhiva prin SSH — dar aflam asta joi, nu sambata la 06:45. Pasul de 06:45 scrie acum toate cele trei variante si verificarile de dupa copiere: robots.txt fizic ajuns in radacina, blocul de staging scos din .htaccess, copiile .avif/.webp prezente, acelasi numar de tabele si de produse.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
