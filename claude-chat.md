@@ -1214,6 +1214,18 @@ Toate trei sunt aplicate și verificate pe staging și pe oglinda locală (migra
 
 **Am scris analiza pentru O2X** în `o2x-tool-feedback-2026-10-30.md`, în engleză, ca să poată fi trimisă mai departe. Structura: mai întâi problema principală — cele 111 „pagini pierdute", din care niciuna nu era pierdută, cu metoda de verificare (o singură cerere pe site-ul B, fără urmărirea redirecturilor) și un tabel de clasificare după codul de răspuns; apoi ordonarea recomandărilor după dovezi (linkuri, clicuri) și gruparea pe tipare, în loc de 72 de rânduri pentru tag-uri; detectarea paginilor de atașament, care umflau cele 638 de „schimbări critice"; cele cinci metrici pe care le strică automat un staging cu noindex și propunerea de a le suspenda cu un singur banner; numărul „427 linkuri interne către redirect", care a fost cel mai valoros semnal din tot raportul și care ar trebui să arate *care* linkuri, nu doar câte; afișarea auditurilor Lighthouse picate, nu doar a scorului; și promovarea stării lui `robots.txt` la rând de sine stătător în rezumatul fiecărui crawl — exact problema care nu apărea în niciunul dintre cele patru rapoarte. La final, ce face unealta bine, ca să nu se piardă între critici.
 
+## 62. DNS: cat dureaza mutarea, TTL-ul si emailurile (2026-10-30)
+
+**Doru:** „deci dupa migrare vom verifica si emailurile sa functioneze. Sa inteleg ca este de ajuns sa schimb doar A @ […] cat estimezi ca va dura sa apara site-ul nou in locul celui vechi? Mai trebuie scazute TTL-urile cu 2 zile inainte de migrare?"
+
+**Emailul nu e atins de mutare.** Se schimba doar inregistrarea A, iar posta merge pe MX (mx00 si mx01.ionos.co.uk), cu DKIM, DMARC si SPF neschimbate. Dupa mutare confirmam oricum pe viu: un mesaj primit din afara pe mads@, sales@ si orders@; un mesaj trimis din casuta catre Gmail, cu SPF, DKIM si DMARC pass in headere; emailurile WooCommerce plecate prin smtp.ionos.co.uk cu expeditor pe domeniul live; webmailul deschis normal. Pasul a intrat in calendar, la 08:30.
+
+**Da, o singura inregistrare:** `A @`, de la IP-ul Ambrit la cel de Hostinger. `www` e CNAME catre domeniul gol, deci urmeaza automat. Ce trebuie sa existe insa de partea cealalta: site-ul live creat ca website in hPanel, cu domeniul eco-fridge.co.uk si www, altfel serverul nu raspunde pentru numele acela; iar certificatul SSL se poate emite abia dupa ce DNS-ul arata spre Hostinger, deci se instaleaza imediat dupa schimbare.
+
+**TTL-ul, masurat de la nameserverele IONOS:** 3600 de secunde, adica o ora, pe A, pe CNAME-ul www si pe MX. Asta inseamna ca fara nicio pregatire, dupa schimbarea de la 07:30, cei mai multi vizitatori ajung pe site-ul nou in cateva minute pana intr-o ora, practic toti intr-o ora-doua, cu o coada rara de rezolvere corporate care pot tine pana a doua zi.
+
+**Scaderea TTL-ului nu e obligatorie cu doua zile inainte** — schimbarea de TTL se propaga ea insasi intr-o ora, deci chiar si vineri ar fi destul. O facem totusi joi, cum era planificat, din doua motive: in ziua lansarii nu mai atingem decat o singura inregistrare, iar castigul adevarat nu e viteza cu care apare site-ul nou, ci **viteza de revenire** — cu TTL 300 ne intoarcem pe serverul vechi in cinci minute, nu intr-o ora. Daca panoul IONOS nu lasa sub o ora, mergem mai departe cu o ora. Dupa o saptamana linistita, TTL-ul se pune inapoi la 3600.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
