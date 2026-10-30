@@ -48,3 +48,8 @@ eco-fridge-migration-redirects.pdf
 eco-fridge-redirect-mapping-*.html
 # Screenshots of the client's own control panels (DNS, hosting)
 eco-fridge domain screenshots IONOS/
+# Reports exported from the SEO tool (large, re-exported when needed)
+crawls-*.html
+compare-old-live-site-vs-staging-*.html
+lighthouse-performance-*.html
+changes-by-field-*.csv
