@@ -1230,7 +1230,7 @@ Toate trei sunt aplicate și verificate pe staging și pe oglinda locală (migra
 
 **Doru:** „sa ma inveti la migrare cum sa creez site-ul sa aiba www in fata domeniului pe Hostinger «Agency Startup Web Hosting». Si sa-mi amintesti atunci sa activez SSL dupa propagarea DNS nu inainte."
 
-Am scris ghidul in `ghid-hostinger-site-live-www.md` si am bagat cei doi pasi in calendar, ca sa apara singuri la momentul lor: **joi 5 noiembrie — site-ul live creat gol in hPanel** si **sambata 07:45 — SSL instalat, dupa propagarea DNS**.
+Am scris ghidul in `ghid-hostinger-site-live-www.html` si am bagat cei doi pasi in calendar, ca sa apara singuri la momentul lor: **joi 5 noiembrie — site-ul live creat gol in hPanel** si **sambata 07:45 — SSL instalat, dupa propagarea DNS**.
 
 **Partea cu www e contraintuitiva:** domeniul se adauga in hPanel **fara** `www.`. Hostinger ia domeniul inregistrabil ca domeniu al site-ului si serveste automat si varianta cu www, ca alias pe acelasi folder; daca pui `www.eco-fridge.co.uk` ca domeniu principal, il trateaza ca subdomeniu separat si ajungi cu doua intrari care se bat cap in cap. Canonicul cu www nu vine, de fapt, din hPanel: il da WordPress, prin `siteurl` si `home` setate pe `https://www.eco-fridge.co.uk` la search-replace-ul de la 07:15, dupa care WordPress redirectioneaza singur domeniul gol catre www. In ghid e si regula de `.htaccess`, pentru cine vrea redirectul inaintea WordPress-ului, cu mentiunea ca e optionala.
 
@@ -1260,7 +1260,11 @@ Daca golim, **ordinea conteaza**: intai `wp db reset --yes` din docroot, cat tim
 
 Am adaugat si varianta fara urme — stergi tot website-ul din hPanel si il creezi din nou gol — cu avertismentul ca dupa recreare trebuie verificat din nou IP-ul, fiindca ala e numarul care intra in IONOS.
 
-Totul a intrat in `ghid-hostinger-site-live-www.md`, sectiunea noua „Repetitia copierii, si cum golesti dupa ea", si in randul de joi din calendar.
+Totul a intrat in `ghid-hostinger-site-live-www.html`, sectiunea noua „Repetitia copierii, si cum golesti dupa ea", si in randul de joi din calendar.
+
+## 66. Ghidul de Hostinger, in format HTML (2026-10-31)
+
+Doru l-a vrut usor de citit, asa ca ghidul a trecut din Markdown in HTML, in acelasi stil ca ghidul de GTM: `ghid-hostinger-site-live-www.html`, cu cuprins cu ancore, casete colorate pentru cele trei reguli care nu trebuie ratate (domeniul fara www, refuzul mutarii nameserverelor, SSL dupa DNS), tabel pentru orarul diminetii de sambata si blocuri de comenzi gata de copiat. Versiunea `.md` a fost stearsa, ca sa nu avem doua copii care o iau in directii diferite; ramane in istoricul git. Trimiterile din calendar si din memorie arata acum spre fisierul HTML.
 
 ## Stare la 2026-10-30 (seara)
 

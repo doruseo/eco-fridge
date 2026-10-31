@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ghid: site-ul live pe Hostinger</title>
+<style>
+	:root { --green: #1f821f; --text: #1d2327; --muted: #50575e; --line: #dcdcde; --soft: #f6f7f7; --warn: #fff8e5; --warn-line: #dba617; --stop: #fcf0f1; --stop-line: #d63638; }
+	* { box-sizing: border-box; }
+	body { margin: 0; background: #fff; color: var(--text); font: 15px/1.6 Arial, Helvetica, sans-serif; }
+	main { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; }
+	h1 { color: var(--green); font-size: 28px; margin: 0 0 4px; }
+	h2 { color: var(--green); font-size: 22px; margin: 40px 0 8px; padding-top: 16px; border-top: 2px solid var(--line); }
+	h3 { font-size: 17px; margin: 24px 0 6px; }
+	.sub { color: var(--muted); margin: 0 0 20px; }
+	code { background: var(--soft); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; font-size: 13px; word-break: break-word; }
+	pre { background: var(--soft); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; overflow-x: auto; font-size: 13px; line-height: 1.5; margin: 12px 0; }
+	pre code { background: none; border: 0; padding: 0; font-size: 13px; }
+	pre .c { color: var(--muted); }
+	table { width: 100%; border-collapse: collapse; margin: 10px 0 18px; font-size: 14px; }
+	th, td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
+	th { background: var(--soft); }
+	.box { background: var(--warn); border: 1px solid var(--warn-line); border-radius: 8px; padding: 10px 14px; margin: 14px 0; }
+	.ok { background: #e6f4ea; border-color: #1a7f37; }
+	.stop { background: var(--stop); border-color: var(--stop-line); }
+	ol li, ul li { margin-bottom: 6px; }
+	nav ol { columns: 2; }
+	.wrap { overflow-x: auto; }
+	.step { color: var(--muted); font-weight: normal; }
+	@media (max-width: 640px) { nav ol { columns: 1; } h1 { font-size: 23px; } }
+</style>
+</head>
+<body>
+<main>
+
+<h1>Site-ul live pe Hostinger, cu www în față</h1>
+<p class="sub">Pentru contul <strong>Agency Startup Web Hosting</strong> și domeniul <strong>eco-fridge.co.uk</strong>, înregistrat la IONOS. Pașii sunt împărțiți în ce facem <strong>joi 5 noiembrie</strong> (fără efect asupra traficului) și ce facem <strong>sâmbătă 7 noiembrie</strong>, în ziua lansării. Actualizat 30.10.2026.</p>
+
+<nav>
+	<ol>
+		<li><a href="#adauga">Adaugă site-ul (gol)</a></li>
+		<li><a href="#domeniu">Domeniul, fără www</a></li>
+		<li><a href="#nameservere">Refuză mutarea nameserverelor</a></li>
+		<li><a href="#noteaza">Notează trei lucruri</a></li>
+		<li><a href="#www-alias">Verifică aliasul www</a></li>
+		<li><a href="#repetitie">Repetiția copierii și golirea</a></li>
+		<li><a href="#canonic">De unde vine „www în față"</a></li>
+		<li><a href="#ssl">SSL: după DNS, niciodată înainte</a></li>
+		<li><a href="#verificari">Verificări după certificat</a></li>
+		<li><a href="#rezumat">Rezumat în cinci rânduri</a></li>
+	</ol>
+</nav>
+
+<div class="box"><strong>Numele butoanelor din hPanel se mai schimbă.</strong> Mai jos sunt cum se numesc acum și ce anume cauți, ca să le recunoști chiar dacă eticheta diferă puțin.</div>
+
+<h2>Partea 1 — joi 5 noiembrie: site-ul live, creat gol</h2>
+<p>Îl creăm cu două zile înainte ca sâmbătă să avem unde copia, ca să știm dinainte IP-ul de pus în IONOS și ca să repetăm copierea fără presiune. Nimeni nu ajunge pe el: DNS-ul încă arată spre Ambrit.</p>
+
+<h3 id="adauga">1. Adaugă site-ul <span class="step">— Websites → Add Website</span></h3>
+<p>Butonul mare din dreapta sus; în unele conturi se numește „Create or migrate a website". La întrebarea ce fel de site vrei:</p>
+<ul>
+	<li>alege <strong>Empty website</strong> / <strong>Blank</strong> / „Skip, I'll set it up myself";</li>
+	<li><strong>nu</strong> alege „WordPress" și nu lăsa instalarea automată.</li>
+</ul>
+<p>Peste folderul ăsta vine copia de pe staging, iar o instalare proaspătă ar însemna fișiere de șters și o bază de date în plus.</p>
+
+<h3 id="domeniu">2. Pune domeniul, fără www</h3>
+<p>La pasul cu domeniul alege <strong>„Use an existing domain"</strong> (nu „Buy a domain", nu „Use a temporary domain") și scrie:</p>
+<pre><code>eco-fridge.co.uk</code></pre>
+<div class="box"><strong>Fără <code>www.</code></strong> — e contraintuitiv, dar important. Hostinger ia domeniul înregistrabil ca domeniu al site-ului și servește automat și varianta cu www, ca alias pe același folder. Dacă adaugi <code>www.eco-fridge.co.uk</code> ca domeniu principal, îl tratează ca pe un subdomeniu separat și ajungi cu două intrări care se bat cap în cap.</div>
+
+<h3 id="nameservere">3. Ignoră avertismentul despre DNS</h3>
+<p>Hostinger va spune că domeniul nu arată spre serverele lor și îți va propune să schimbi nameserverele.</p>
+<div class="box stop"><strong>Refuză.</strong> Alege „I'll do it later", „Skip" sau închide fereastra. Nameserverele rămân la IONOS, cum sunt acum. Noi schimbăm sâmbătă o singură înregistrare A, din contul IONOS. Dacă accepți propunerea Hostinger, pleacă și emailul odată cu nameserverele — exact ce nu vrem.</div>
+
+<h3 id="noteaza">4. Notează trei lucruri</h3>
+<ol>
+	<li><strong>IP-ul serverului</strong> — Websites → site → <em>Dashboard</em>, secțiunea „Point your domain" / „DNS records", sau Hosting → Details → „Website IP". Ăsta e numărul care intră sâmbătă în IONOS, în locul lui <code>185.230.220.98</code>.</li>
+	<li><strong>Calea docroot-ului</strong> — ceva de forma <code>/home/u510186744/websites/&lt;cod&gt;/public_html</code>. Acolo copiem site-ul.</li>
+	<li><strong>Versiunea de PHP</strong> — pune-o pe <strong>8.3</strong>, ca pe staging: Websites → site → Advanced → PHP Configuration.</li>
+</ol>
+
+<h3 id="www-alias">5. Verifică www</h3>
+<p>La <em>Domains</em> (sau Websites → site → Domains / „Manage domains") trebuie să vezi <code>eco-fridge.co.uk</code>, iar lângă el, ca alias, <code>www.eco-fridge.co.uk</code>. În mod normal Hostinger îl adaugă singur. Dacă nu apare, adaugă-l manual ca <strong>alias</strong> (uneori „Domain alias", „Parked domain" sau „Addon domain") <strong>spre același folder</strong>, nu ca site nou.</p>
+
+<h3 id="repetitie">6. Repetiția copierii, și cum golești după ea</h3>
+<p>Tot joi, după ce site-ul gol există, încearcă <strong>hPanel → Websites → eco-fridge.o2dev.de → Copy website</strong> (în unele conturi „Duplicate" sau „Copy to") către <code>eco-fridge.co.uk</code>. Dacă unealta există și merge, ăsta e drumul de sâmbătă de la 06:45, iar joi afli deja cât durează și dacă înlocuiește singură URL-urile.</p>
+
+<p><strong>Înainte de copia de test, pune un fișier-martor în destinație:</strong></p>
+<pre><code>touch ~/domains/eco-fridge.co.uk/public_html/MARKER-TEST.txt</code></pre>
+<p>După copiere, uită-te dacă mai e acolo:</p>
+<ul>
+	<li><strong>a dispărut</strong> → unealta golește singură destinația, deci sâmbătă nu trebuie să cureți nimic;</li>
+	<li><strong>a rămas</strong> → unealta doar suprascrie peste ce găsește, deci golim folderul după test.</li>
+</ul>
+
+<div class="box"><strong>Dacă golim, ordinea contează: întâi baza de date, apoi fișierele.</strong> După ștergerea fișierelor nu mai există <code>wp-config.php</code>, deci WP-CLI nu mai știe ce bază să cureţe, iar tabelele de test ar rămâne și s-ar amesteca cu copia de sâmbătă.</div>
+
+<pre><code><span class="c"># 1. din docrootul site-ului live, cat timp wp-config.php inca exista</span>
+cd ~/domains/eco-fridge.co.uk/public_html     <span class="c"># sau calea notata la pasul 4</span>
+wp db reset --yes                             <span class="c"># sterge toate tabelele bazei conectate</span>
+
+<span class="c"># 2. abia acum golesti folderul, cu tot cu fisierele ascunse (.htaccess)</span>
+pwd &amp;&amp; ls -la | head                          <span class="c"># verifica o data unde esti</span>
+find . -mindepth 1 -delete
+
+<span class="c"># 3. confirma</span>
+ls -la                                        <span class="c"># doar . si ..</span></code></pre>
+
+<p><code>find . -mindepth 1 -delete</code> șterge <strong>conținutul</strong>, nu folderul <code>public_html</code> însuși, și prinde și fișierele care încep cu punct, pe care un <code>rm -rf *</code> le-ar sări.</p>
+<p>Din File Manager merge la fel: intri în <code>public_html</code>, bifezi „Show hidden files", selectezi tot, ștergi; baza o golești separat, din hPanel → Databases.</p>
+<p><strong>Varianta fără urme:</strong> ștergi tot website-ul din hPanel și îl creezi din nou, gol — curat și la fișiere, și la bază. Singura atenție: <strong>verifică din nou IP-ul</strong> după recreare, fiindcă teoretic poate pica pe alt server din cont, iar ăla e numărul care intră în IONOS.</p>
+<p>Dacă unealta de copiere nu există în cont sau cade, rămân <strong>Migrate Guru</strong> (instalat pe staging, cu site-ul live ca destinație) și, ca ultimă soluție, dump cu <code>mariadb-dump</code> plus arhivă de uploads, temă și pluginuri, printr-o singură conexiune SSH.</p>
+
+<h2 id="canonic">Partea 2 — de unde vine „www în față"</h2>
+<p>Merită înțeles o dată, pentru că nu e o setare din hPanel:</p>
+<ul>
+	<li><strong>Hostinger</strong> servește ambele variante, cu și fără www. Nu are o setare „canonic".</li>
+	<li><strong>WordPress</strong> decide care e varianta oficială, prin <code>siteurl</code> și <code>home</code>. Le punem pe <code>https://www.eco-fridge.co.uk</code> la pasul de search-replace, sâmbătă la 07:15.</li>
+	<li>Din momentul acela, <strong>WordPress redirectează singur</strong> <code>eco-fridge.co.uk</code> → <code>www.eco-fridge.co.uk</code>, cu 301. La fel fac și sitemapul, canonical-urile și linkurile din conținut.</li>
+</ul>
+<p>Nu e nevoie de reguli de redirect în hPanel. Dacă vrei totuși redirectul la nivel de server, înaintea WordPress-ului, se adaugă în <code>.htaccess</code>, <strong>înainte</strong> de blocul <code># BEGIN WordPress</code>:</p>
+<pre><code>RewriteEngine On
+RewriteCond %{HTTP_HOST} ^eco-fridge\.co\.uk$ [NC]
+RewriteRule ^(.*)$ https://www.eco-fridge.co.uk/$1 [R=301,L]</code></pre>
+<p>E opțional. WordPress face oricum treaba, iar o regulă în plus e încă un loc de verificat dacă ceva merge prost.</p>
+
+<h2 id="ssl">Partea 3 — sâmbătă: SSL <em>după</em> DNS, niciodată înainte</h2>
+
+<h3>De ce în ordinea asta</h3>
+<p>Certificatul gratuit e Let's Encrypt, iar Let's Encrypt validează prin <strong>HTTP pe domeniu</strong>: cere un fișier de la <code>http://www.eco-fridge.co.uk/.well-known/...</code>. Cât timp DNS-ul arată spre Ambrit, cererea aia ajunge pe <strong>serverul vechi</strong>, care nu are fișierul. Rezultat: emiterea eșuează, uneori cu blocaj temporar de la Let's Encrypt, fiindcă sunt limite la câte încercări ratate acceptă pe oră.</p>
+<div class="box stop"><strong>Întâi DNS, apoi certificat.</strong> Invers nu merge, oricât de repede ai apăsa.</div>
+
+<h3>Ordinea exactă în dimineața lansării</h3>
+<div class="wrap">
+<table>
+	<tr><th>Oră</th><th>Pas</th></tr>
+	<tr><td>07:30</td><td>Schimbi <code>A @</code> în IONOS, din IP-ul Ambrit în IP-ul Hostinger notat joi</td></tr>
+	<tr><td>07:35</td><td>Aștepți 5–15 minute (cu TTL 300) și verifici că domeniul ajunge la Hostinger</td></tr>
+	<tr><td>~07:45</td><td>hPanel → Websites → site → <strong>Security → SSL</strong> → <strong>Install SSL</strong> (gratuit, Let's Encrypt)</td></tr>
+	<tr><td></td><td>Aștepți până scrie <strong>Active</strong> — de obicei 1–5 minute</td></tr>
+	<tr><td></td><td>Activezi <strong>Force HTTPS</strong> din aceeași pagină, apoi verifici</td></tr>
+</table>
+</div>
+
+<p>Verificarea că DNS-ul s-a mutat, înainte de a cere certificatul:</p>
+<pre><code>nslookup www.eco-fridge.co.uk 8.8.8.8
+curl -sI http://www.eco-fridge.co.uk/ | head -3</code></pre>
+<p>Dacă IP-ul returnat e cel de Hostinger, poți cere certificatul. Dacă e încă <code>185.230.220.98</code>, mai aștepți.</p>
+
+<h3>Fereastra de câteva minute</h3>
+<p>Între schimbarea DNS-ului și certificatul emis există câteva minute în care cineva care nimerește direct pe <code>https://</code> vede o eroare de certificat. Sâmbătă la 07:40 dimineața, pe un site B2B din UK, înseamnă aproape nimeni.</p>
+<p>Dacă vrei zero risc, varianta fără fereastră e: emitem certificatul <strong>joi</strong>, prin validare <strong>DNS</strong> (un TXT temporar la IONOS, care nu depinde de unde arată site-ul), și îl urcăm în hPanel ca <strong>Custom SSL</strong>. Apoi, după o săptămână, îl lăsăm pe Hostinger să preia automat cu Let's Encrypt. E mai multă muncă pentru un risc mic — spune dacă o vrei și o pregătim joi.</p>
+
+<h3 id="verificari">Verificări după ce certificatul e activ</h3>
+<pre><code><span class="c"># www pe https trebuie sa raspunda 200</span>
+curl -sI https://www.eco-fridge.co.uk/ | head -3
+
+<span class="c"># domeniul fara www trebuie sa redirecteze 301 catre www</span>
+curl -sI https://eco-fridge.co.uk/ | head -5
+
+<span class="c"># http trebuie sa redirecteze catre https</span>
+curl -sI http://www.eco-fridge.co.uk/ | head -5
+
+<span class="c"># certificatul trebuie sa acopere ambele nume</span>
+openssl s_client -connect www.eco-fridge.co.uk:443 -servername www.eco-fridge.co.uk &lt;/dev/null 2&gt;/dev/null \
+  | openssl x509 -noout -subject -ext subjectAltName</code></pre>
+<p>La ultima comandă trebuie să vezi <strong>ambele</strong> nume: <code>eco-fridge.co.uk</code> și <code>www.eco-fridge.co.uk</code>. Dacă apare doar unul, certificatul s-a emis înainte ca aliasul www să fie în vhost — se cere din nou, din aceeași pagină, după ce aliasul e la locul lui.</p>
+
+<h2 id="rezumat">Rezumat în cinci rânduri</h2>
+<div class="box ok">
+<ol>
+	<li><strong>Joi:</strong> site gol în hPanel, domeniul <strong>fără www</strong>, nameserverele rămân la IONOS, notezi IP-ul și pui PHP 8.3.</li>
+	<li><strong>Joi:</strong> verifici că <code>www.eco-fridge.co.uk</code> apare ca alias al aceluiași site, apoi repeți copierea cu fișierul-martor.</li>
+	<li><strong>Sâmbătă 07:15:</strong> search-replace pune <code>https://www.eco-fridge.co.uk</code> în WordPress — de aici vine www-ul canonic.</li>
+	<li><strong>Sâmbătă 07:30:</strong> schimbi <strong>o singură înregistrare</strong> în IONOS, <code>A @</code>.</li>
+	<li><strong>Sâmbătă ~07:45, după</strong> ce DNS-ul s-a mutat: instalezi SSL, aștepți „Active", pornești Force HTTPS, verifici cu comenzile de mai sus.</li>
+</ol>
+</div>
+
+</main>
+</body>
+</html>
