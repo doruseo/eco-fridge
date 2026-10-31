@@ -1266,6 +1266,20 @@ Totul a intrat in `ghid-hostinger-site-live-www.html`, sectiunea noua „Repetit
 
 Doru l-a vrut usor de citit, asa ca ghidul a trecut din Markdown in HTML, in acelasi stil ca ghidul de GTM: `ghid-hostinger-site-live-www.html`, cu cuprins cu ancore, casete colorate pentru cele trei reguli care nu trebuie ratate (domeniul fara www, refuzul mutarii nameserverelor, SSL dupa DNS), tabel pentru orarul diminetii de sambata si blocuri de comenzi gata de copiat. Versiunea `.md` a fost stearsa, ca sa nu avem doua copii care o iau in directii diferite; ramane in istoricul git. Trimiterile din calendar si din memorie arata acum spre fisierul HTML.
 
+## 67. Ghidul rescris in ordinea reala a pasilor (2026-10-31)
+
+Doru a stabilit cum vrea sa decurga joi: creeaza site-ul, testeaza copierea, **nu noteaza nimic**, sterge site-ul din hPanel (Manage site > Delete site), il creeaza din nou exact prin metoda care a mers la test, si abia atunci noteaza IP-ul si docrootul. PHP-ul il pune el de fiecare data, nu se noteaza nicaieri. A cerut si ghidul rescris cronologic, cu verificarile facute de mine.
+
+Am rescris `ghid-hostinger-site-live-www.html` exact in ordinea asta, cu etichete pe fiecare pas: DORU pentru clicurile din hPanel si IONOS, CLAUDE pentru comenzi. Verificarile cu `nslookup`, `curl` si `openssl` le rulez eu din chat si dau unda verde; Doru nu trebuie sa deschida niciun terminal.
+
+**Despre Migrate Guru, presupunerea lui era corecta:** pentru metoda recomandata de ei, cea cu cheia de migrare, e nevoie de WordPress si de plugin **pe destinatie**, plus pluginul pe staging, unde acum nu exista. Pe staging il instalez eu, am SSH; pe site-ul nou, ori instaleaza el WordPress dintr-un clic si apoi pluginul, ori imi da cheia SSH si le pun eu pe amandoua — da, pot, exact cum am lucrat pe staging. In plus, pluginul cere parola lacatului de staging, fiindca sursa e protejata. Exista si calea cu date SFTP, fara plugin pe destinatie, dar e mai capricioasa.
+
+**Un detaliu care tine de planul lui:** dupa stergere si recreare, utilizatorul SSH al site-ului e altul, deci cheia trebuie adaugata din nou — la fel si WordPress plus Migrate Guru, daca aia e metoda castigatoare. A intrat in ghid, la pasul J7.
+
+**Regula de canonic recomandata, in doua straturi:** WordPress cu `siteurl` si `home` pe `https://www.eco-fridge.co.uk`, de unde vin linkurile, canonical-urile, sitemapul si emailurile; plus o singura regula in `.htaccess`-ul de productie, care prinde ce nu trece prin WordPress. Conditia e pe numele gazdei, nu pe `%{HTTPS}` — in spatele LiteSpeed-ului si al proxy-urilor `%{HTTPS}` raporteaza uneori gresit si se ajunge la bucle de redirect. Tinta e direct `https://www.`, deci orice caz se rezolva intr-un singur hop, iar `/.well-known/` e scutit, ca validarile de certificat si reinnoirile sa nu fie trimise aiurea. Se pune inaintea blocurilor administrate automat si niciodata pe staging.
+
+Calendarul are acum aceeasi ordine la randul de joi si regula de canonic la pasul de 07:15.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
