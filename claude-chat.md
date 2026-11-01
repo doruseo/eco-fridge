@@ -1280,6 +1280,28 @@ Am rescris `ghid-hostinger-site-live-www.html` exact in ordinea asta, cu etichet
 
 Calendarul are acum aceeasi ordine la randul de joi si regula de canonic la pasul de 07:15.
 
+## 68. Datele oficiale ale companiei, confirmate la Companies House (2026-11-01)
+
+Doru a trimis datele firmei si le-am verificat direct in registrul britanic, pe pagina companiei. **Se inchide astfel intrebarea deschisa din 29 octombrie despre numele legal** — pe site si in schema Rank Math apare „ECO-Fridge Ltd", iar contul bancar scrie „ECO Fridge UK Ltd"; niciuna nu e forma inregistrata.
+
+**Datele oficiale, asa cum apar la Companies House:**
+
+| Camp | Valoare |
+|---|---|
+| Nume inregistrat | **ECO-FRIDGE UK LIMITED** (nu „Ltd", nu „ECO-Fridge Ltd") |
+| Numar de inregistrare | **06958422** |
+| Forma juridica | Private limited company |
+| Data infiintarii | 10 iulie 2009 |
+| Stare | Active |
+| Sediu social (registered office) | 2 Hinksey Court, Church Way, Oxford, Oxfordshire, England, OX2 9SX |
+| Obiect de activitate (SIC) | 82990 — Other business support service activities not elsewhere classified |
+
+**Punctul de lucru** ramane cel pe care il stim si care e deja in Local SEO: 18 Top Angel, Buckingham Industrial Park, Buckingham, Buckinghamshire, MK18 1TH.
+
+**Nu s-a schimbat nimic pe site**, asa cum a cerut Doru; ramane pentru mai tarziu. Cand ajungem acolo, de atins: `legalName` din schema Rank Math (lasat gol intentionat pe 29 octombrie, tocmai pentru ca nu aveam confirmarea), subsolul si paginile legale, unde cerinta britanica e ca numele inregistrat, numarul de companie si sediul social sa apara pe site, iar facturile sa poarte aceleasi date. Codul de TVA inca lipseste si ramane de cerut de la Mads.
+
+**Adeverinta pentru ONRC.** Tot azi am scris, la cererea lui Doru, o adeverinta de angajare in engleza, pe antet de companie, pentru dosarul de infiintare a unui PFA in Romania: `employment-reference-doru-hanganu-2026-11-02.html`, gata de tiparit sau salvat ca PDF din browser. Antetul poarta datele oficiale de mai sus, iar numele companiei e scris in forma inregistrata, „ECO-FRIDGE UK LIMITED", fiindca intr-un act depus la un registru de comert forma prescurtata poate fi contestata la traducere. Documentul atesta perioada 5 februarie 2020 — 31 martie 2024, cele doua pozitii (Digital Marketing Specialist, apoi Full-Stack Developer), atributiile tehnice, si spune explicit ca e emis pentru depunerea la Oficiul National al Registrului Comertului. Se semneaza de Kaseem Traboulsi, Managing Director. Fisierul e exclus din git, fiindca include numarul de pasaport.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
