@@ -1693,6 +1693,24 @@ Doru: „tine minte si noteaza in claude-chat.md: ai aprobarea mea sa actualizar
 
 **Ce inseamna practic:** la finalul fiecarei lucrari sau decizii, trei locuri se actualizeaza singure — jurnalul, istoricul git si Sheet-ul. Doru nu mai trebuie sa ceara niciunul din ele si nu mai trebuie sa uneasca PR-uri manual.
 
+## 83. Numerotarea comenzilor, decis definitiv: comenzile de test se sterg sambata (2026-11-03)
+
+Doru: „de acord, le stergem sambata — deci site-ul nou va continua numarul comenzilor noi dupa ultima comanda reala preluata la zi din site-ul vechi live."
+
+**Decizia finala, in patru pasi, exact cum se executa sambata:**
+
+1. **Stergerea.** #8007 (transfer bancar, £1.542), #8029 si #8030 (card, anulate la 3DS), #8036, #8037 si #8038 (card, £1,00 fiecare, plati reale), #8039 (transfer bancar, £1,00, testul SMS), produsul ascuns #8035 si cosurile abandonate de test. **Se sterg definitiv, nu doar la coș** — altfel posturile rămân si ocupa numerele. Nu se ramburseaza nimic, decizia lui Mads din 29 octombrie; stergerea din WooCommerce nu atinge Lloyds, iar contabilitatea lucreaza din extrasul de cont si din decontarea Lloyds. Dupa stergere se verifica si ca randurile din `wp_wc_order_stats` au disparut, fiindca rapoartele se construiesc de acolo.
+2. **Importul.** Comenzile noi se selecteaza **dupa data** (`post_date >= 2026-07-10`), cu numerele lor originale, liniile de produs, notele, rambursarile si statusurile. La 31 octombrie erau 85, cu ID-uri intre #14514 si #14632; sambata vor fi cateva mai multe.
+3. **Secventa.** `ALTER TABLE wp_posts AUTO_INCREMENT` pus peste cel mai mare numar importat. Dacă ultima comanda reala e, sa zicem, #14888, se pune 14901. De acolo magazinul continua singur, exact efectul cerut.
+4. **Verificarea.** Reconciliere 1:1 a listei de numere si a totalului incasat, iar **prima comanda reala de la 08:30 inchide bucla**: numarul ei trebuie sa vina dupa ultimul importat. E si motivul in plus pentru care pasul acela, al carui text fusese pierdut in Sheet, merita reparat.
+
+**Doua lucruri de stiut, ca sa nu dea nimeni alarma falsa sambata:**
+
+- Pe site-ul vechi exista si comenzi reale cu numere in zona 8000 — adica fix numerele ocupate acum de testele noastre. Nu se suprapun cu nimic: acele comenzi vechi sunt deja pe site-ul nou, sub numerele 1–7261, din renumerotarea facuta la migrarea din iulie. Importam doar comenzile de dupa 10 iulie, care sunt in zona 14500+.
+- Numerele viitoare vor avea **goluri**, fiindca secventa de ID-uri e comuna cu paginile, produsele si reviziile. Site-ul vechi se purta identic, deci nu e o schimbare pentru client.
+
+**Actualizat in acelasi tur**, conform aprobarii permanente de la intrarea 82: randul de 05:40 din calendar (acum cu toti cei patru pasi si cu motivul in cifre), plus F15-02 si F15-10 din checklist, amandoua datate 3 noiembrie. Jurnalul, git-ul si Sheet-ul spun acum acelasi lucru.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
@@ -1710,7 +1728,8 @@ Doru: „tine minte si noteaza in claude-chat.md: ai aprobarea mea sa actualizar
 - **Clona:** `eco-fridge-backup.o2dev.de`, WordPress 7.1.4, SSH `ef-backup` merge. **De facut in hPanel, de Doru:** PHP pe 7.4, CDN off, auto-update pe „Don't update".
 - **Aprobare permanenta de la Doru, 3 nov (intrarea 82):** jurnal, git pana la merge, si Sheet-ul - toate trei se actualizeaza fara sa mai cer.
 - **Sheet adus la zi (intrarea 80):** calendarul si checklistul au randurile de azi, regula corectata de selectie a comenzilor, valorile DNS verificate, plus trei defecte reparate (textul despre SSL copiat peste pasul de comanda reala, randul de GTM dispărut, regula de canonic mutata inaintea DNS-ului).
-- **Numerotare comenzi (intrarea 81):** Doru a decis ca numerele reale se pastreaza si magazinul continua dupa ele. HPOS e OPRIT pe ambele site-uri, deci numarul comenzii e ID-ul postului; staging e la max ID 8042. Recomandarea mea: comenzile de test SE STERG, iar secventa se pune peste cel mai mare numar importat - renumerotarea lor ar fi chirurgie pe 6-8 tabele in dimineata lansarii, iar pastrate ar adauga ~£1.545 de vanzari inexistente in rapoartele primei luni.
+- **Numerotare comenzi: DECIS (intrarile 81 si 83).** Comenzile de test se sterg definitiv sambata, comenzile reale vin cu numerele originale, iar secventa site-ului nou se pune peste cel mai mare numar importat. Fara renumerotare.
+- **Context si argumentele deciziei (intrarea 81):** Doru a decis ca numerele reale se pastreaza si magazinul continua dupa ele. HPOS e OPRIT pe ambele site-uri, deci numarul comenzii e ID-ul postului; staging e la max ID 8042. Recomandarea mea: comenzile de test SE STERG, iar secventa se pune peste cel mai mare numar importat - renumerotarea lor ar fi chirurgie pe 6-8 tabele in dimineata lansarii, iar pastrate ar adauga ~£1.545 de vanzari inexistente in rapoartele primei luni.
 - **Clona site-ului vechi: GATA si INCHISA** (intrarea 79). Migrarea a reusit, copia e identica cu site-ul vechi, iar acum orice cerere HTTP da 403 in afara de cea cu token; blog_public 0, robots.txt Disallow, update-uri si cron oprite. **Descoperiri care schimba planul:** comenzile noi se selecteaza DUPA DATA (85 de la 10 iulie incoace, #14514-#14632), nu dupa ID; numarul comenzii pe site-ul vechi e ID-ul postului, deci numerotarea viitoare trebuie decisa (peste 14632 sau renumerotare); clientii sunt aproape toti oaspeti, deci nu avem conturi de migrat.
 - **DNS lamurit (intrarea 78):** sambata se schimba O SINGURA inregistrare, A de la apex, 185.230.220.98 -> 148.230.121.74; www e CNAME spre apex si urmeaza singur; nu exista AAAA si nici CAA; MX si TXT nu se ating. **De facut azi:** TTL-ul inregistrarii A coborat la 300 la IONOS, cu valoarea neschimbata.
 - **Site-ul de test se sterge** la finalul repetitiei, cu acordul cerut si dat; procedura se reia de la zero sambata, din staging-ul actualizat. Ce a dovedit repetitia: intrarea 77, punctele 1-6.
