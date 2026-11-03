@@ -1711,6 +1711,33 @@ Doru: „de acord, le stergem sambata — deci site-ul nou va continua numarul c
 
 **Actualizat in acelasi tur**, conform aprobarii permanente de la intrarea 82: randul de 05:40 din calendar (acum cu toti cei patru pasi si cu motivul in cifre), plus F15-02 si F15-10 din checklist, amandoua datate 3 noiembrie. Jurnalul, git-ul si Sheet-ul spun acum acelasi lucru.
 
+## 84. Dump-ul din clona: luat azi, si de ce mai e nevoie de unul sambata (2026-11-03)
+
+Doru: „cand trebuie sa dau dump din clona sa-l aduci pe local? sambata dimineata dupa clonarea site-ului vechi la zi? sau acum? acum e marti dimineata."
+
+**Raspunsul: ambele, fiindca au rosturi diferite — iar nu trebuie sa-l dea el, il iau eu prin SSH.**
+
+- **Cel de azi** e materialul de proba: pe el construiesc si rulez scripturile de extragere, fara presiune de timp. Clona e ingheţata (cron oprit, update-uri blocate, poarta inchisa), deci datele din el nu se mai mișca — exact de aia am facut copia cu patru zile inainte.
+- **Cel de sambata** e marfa reala: intre azi si sambata magazinul vechi mai primeste comenzi, poate mai schimba stocuri, preturi sau conținut. Atunci scripturile sunt deja dovedite, iar singurul lucru nou e setul de date.
+
+### Dump-ul de azi
+
+Luat la 05:37 UTC, **9,1 MB arhivat, 71,5 MB desfacut, 127 de tabele**, cu „Dump completed" la final si `gzip -t` curat. Local: `source-dump/db/backup-clone-2026-11-03.sql.gz`, langa cel din iulie; folderul e deja in `.gitignore`, deci nu intra in repo.
+
+**Ce am lasat deliberat afara** din cele 281 de tabele, dupa ce am masurat marimile: tabelele **Lloyds Cardnet** (`_ecc` 52 MB si `_transaction` 11 MB) — sunt date de plata si nu avem ce face cu ele, deci nu au ce caută pe laptop; tabelele **Matomo** (aproximativ 130 MB de jurnale de vizite si arhive binare, care nici nu se comprima); plus jurnalele de securitate, de email si Action Scheduler. De aici si diferenta fata de dump-ul din iulie, care avea 162 MB tocmai pentru ca le conținea pe toate.
+
+**Verificat ca e intreg, nu doar ca exista:** sunt prezente `posts`, `postmeta`, `users`, `usermeta`, `terms`, `term_taxonomy`, `term_relationships`, `termmeta`, `comments`, `commentmeta`, `options`, `woocommerce_order_items` si `woocommerce_order_itemmeta`; `shop_order` apare de 12.072 de ori, adica cele 6.014 comenzi; comanda #14632 e in dump.
+
+### O descoperire care schimba felul in care luam media
+
+**Datele fisierelor nu mai pot fi folosite ca filtru.** In `uploads` sunt 908 MB, iar `find -newermt 2026-07-10` returneaza 22.366 de fisiere — adica practic tot, fiindca restaurarea Migrate Guru a rescris data fiecarui fisier. Deci delta de media se afla **din baza de date**, nu de pe disc: atasamente cu `post_date >= 2026-07-10`. Si sunt **doua fisiere**. Punctul F15-07 din checklist e, practic, gata inainte sa inceapa.
+
+### O gaura de securitate pe care am facut-o si am inchis-o
+
+Scripturile de ieri lasaseră in docroot copii de siguranta `wp-config.php.bak-pre-*`. Extensia `.bak` **nu** e executata de server, deci fisierul s-ar fi servit ca text simplu, cu datele de conectare la baza de date, iar poarta mea din `wp-config.php` nu acopera fisierele statice. Le-am mutat in `/tmp/efbk-config-backups/`, afara din docroot, si am lărgit regula din `.htaccess` ca sa refuze si `.bak`, `.sql`, `.gz`, `.zip`, `.tar`, `.log`, `.old`, `.orig`, `.save`, `.swp`. Verificat din exterior: fosta adresa a copiei da **403**, `.htaccess` si `.htaccess.keep` dau 403, pagina principala da 403 fara token si 200 cu token, `robots.txt` rămâne 200 cu `Disallow: /`. Copia dump-ului de pe server a fost stearsa dupa descarcare.
+
+**De tinut minte pentru sambata:** orice copie de siguranta pe care o fac in docroot trebuie sa plece imediat din docroot. Pe site-ul live, unde nu exista poarta, ar fi fost o scurgere adevarata, nu una pe o copie de unica folosinta.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
@@ -1728,6 +1755,7 @@ Doru: „de acord, le stergem sambata — deci site-ul nou va continua numarul c
 - **Clona:** `eco-fridge-backup.o2dev.de`, WordPress 7.1.4, SSH `ef-backup` merge. **De facut in hPanel, de Doru:** PHP pe 7.4, CDN off, auto-update pe „Don't update".
 - **Aprobare permanenta de la Doru, 3 nov (intrarea 82):** jurnal, git pana la merge, si Sheet-ul - toate trei se actualizeaza fara sa mai cer.
 - **Sheet adus la zi (intrarea 80):** calendarul si checklistul au randurile de azi, regula corectata de selectie a comenzilor, valorile DNS verificate, plus trei defecte reparate (textul despre SSL copiat peste pasul de comanda reala, randul de GTM dispărut, regula de canonic mutata inaintea DNS-ului).
+- **Dump de proba luat (intrarea 84):** source-dump/db/backup-clone-2026-11-03.sql.gz, 9,1 MB, 127 de tabele, verificat; fara tabelele Lloyds, Matomo si jurnale. Delta de media: DOUA fisiere, aflate din baza de date, fiindca datele fisierelor au fost rescrise de migrare. Copiile .bak din docroot au fost mutate afara si extensiile riscante refuzate.
 - **Numerotare comenzi: DECIS (intrarile 81 si 83).** Comenzile de test se sterg definitiv sambata, comenzile reale vin cu numerele originale, iar secventa site-ului nou se pune peste cel mai mare numar importat. Fara renumerotare.
 - **Context si argumentele deciziei (intrarea 81):** Doru a decis ca numerele reale se pastreaza si magazinul continua dupa ele. HPOS e OPRIT pe ambele site-uri, deci numarul comenzii e ID-ul postului; staging e la max ID 8042. Recomandarea mea: comenzile de test SE STERG, iar secventa se pune peste cel mai mare numar importat - renumerotarea lor ar fi chirurgie pe 6-8 tabele in dimineata lansarii, iar pastrate ar adauga ~£1.545 de vanzari inexistente in rapoartele primei luni.
 - **Clona site-ului vechi: GATA si INCHISA** (intrarea 79). Migrarea a reusit, copia e identica cu site-ul vechi, iar acum orice cerere HTTP da 403 in afara de cea cu token; blog_public 0, robots.txt Disallow, update-uri si cron oprite. **Descoperiri care schimba planul:** comenzile noi se selecteaza DUPA DATA (85 de la 10 iulie incoace, #14514-#14632), nu dupa ID; numarul comenzii pe site-ul vechi e ID-ul postului, deci numerotarea viitoare trebuie decisa (peste 14632 sau renumerotare); clientii sunt aproape toti oaspeti, deci nu avem conturi de migrat.
