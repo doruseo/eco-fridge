@@ -1330,6 +1330,28 @@ Nimic schimbat inca pe backup; setarea de PHP o face Doru din hPanel, restul int
 **Semnalare care nu era in plan: backupul e acum public si indexabil.** Nu are parola (raspunde 200 fara autentificare), `blog_public` e `1`, nu exista meta robots si `robots.txt` da 404. Dupa clonare devine copie 1:1 a magazinului live, cu cateva zile inainte de lansare — exact tipul de duplicat care nu trebuie sa ajunga in index. Imediat dupa clonare: `.htpasswd` ca pe staging si `blog_public` pe `0`.
 
 
+## 70. „Your installed plugin is outdated" pe live — de fapt nu ne trebuie alt plugin (2026-11-03)
+
+Doru: „pe site-ul live eco-fridge.co.uk imi cere «Your installed plugin is outdated. Please re-download the latest plugin and try again.» deci nu mai pot folosi Migrate Guru. Cum sa fac clona site-ului vechi?" si, imediat dupa, „ce plugin de clonare mai este compatibil cu php 7.2.34?"
+
+**Diagnosticul, citit direct de pe live:** `wp-content/plugins/migrate-guru/readme.txt` de pe site-ul vechi are `Stable tag: 5.65` si „Tested up to 6.6", adica pluginul instalat acolo e vechi de cateva versiuni. In repo-ul WordPress versiunea curenta e **6.72**, cu `Requires PHP: 7.0` si `Requires at least: 4.0`. Live e pe PHP **7.2.34** si WP **6.0**, deci versiunea noua ruleaza fara probleme acolo — mesajul e doar verificarea de versiune a serverelor Migrate Guru, nu o incompatibilitate cu gazduirea veche. **Concluzia: nu schimbam unealta, doar actualizam pluginul.**
+
+**Pasii:** Plugins → Migrate Guru → Update now; daca serverul vechi nu ajunge la wordpress.org, se descarca `https://downloads.wordpress.org/plugin/migrate-guru.zip` (~1 MB, verificat 200) si se urca din Plugins → Add New → Upload Plugin, cu „Replace current with uploaded". Apoi se verifica sa scrie 6.72 si se reia migrarea cu cheia de pe backup. Inainte de rulare: PHP 7.4 pe backup si CDN pe off sau Development mode.
+
+Migrate Guru rămâne si varianta cea mai blanda pentru un magazin viu: nu construieste arhiva pe serverul vechi, trimite in bucati catre serverele lor. Un plugin care face arhiva local, pe o baza de 756 MB plus uploads, poate incarca serios serverul lui Ambrit.
+
+**Compatibilitatea celorlalte unelte cu PHP 7.2.34**, verificata in paginile lor din repo:
+
+| Plugin | Requires PHP | Verdict |
+|---|---|---|
+| Migrate Guru 6.72 | 7.0+ | merge — prima opțiune |
+| WPvivid Backup & Migration 0.9.139 | 5.6+ | plan B; migrare site-la-site cu cheie, arhiva sparta in bucati |
+| All-in-One WP Migration 7.113 | 5.3+ | plan C; exportul e de orice dimensiune, importul gratuit e limitat de upload-ul destinatiei |
+| UpdraftPlus 1.26.14 | nedeclarat, avertizeaza sub 5.6.1 | pe 29 octombrie notasem ca nu s-a putut instala acolo; parti din UI cer 7.4+ |
+| Duplicator 5.1.0 | 7.4+, WP 6.2+ | incompatibil cu live |
+
+**Varianta fara nimic instalat pe live** rămâne FTP/SFTP plus dump de baza de date de la Ambrit — zero scrieri pe magazin, exact metoda din iulie. E deja pe lista de cerut de la Mads; daca vine accesul, dump-ul si arhiva le fac eu si le import pe backup.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
