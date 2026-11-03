@@ -1321,6 +1321,15 @@ Intrebarea lui Doru: „pentru ca site-ul de backup eco-fridge-backup.o2dev.de s
 
 Nimic schimbat inca pe backup; setarea de PHP o face Doru din hPanel, restul intra in repetitia migrarii.
 
+**Completare, aceeasi zi — de unde se opresc update-urile automate si ce facem cu CDN-ul.** Doru a intrebat ambele; am verificat starea reala pe backup.
+
+**Update-uri automate, doua straturi.** In hPanel: Websites → eco-fridge-backup.o2dev.de → Dashboard → WordPress → Security, secțiunea de update-uri, unde nucleul se pune pe „Don't update", iar din „Customize" se trec si pluginurile si temele pe manual. Astea sunt „smart auto-updates"-urile Hostinger, care ruleaza din afara WordPress-ului, deci setarea din hPanel e cea care conteaza — Hostinger le porneste implicit la site-urile eligibile. In WordPress: `wp-config.php` are deja `WP_AUTO_UPDATE_CORE` pe `false` (linia 4, pus de Hostinger), dar in baza de date `auto_update_core_dev/minor/major` sunt toate `enabled`; constanta are prioritate, iar `auto_update_plugins` si `auto_update_themes` nici nu exista acum. Dupa clonare insa vin opțiunile din baza live, deci se reverifica. Centura si bretele, de adaugat in `wp-config.php` **dupa** ce clonarea s-a terminat: `AUTOMATIC_UPDATER_DISABLED` si `DISALLOW_FILE_MODS` pe `true` — a doua blocheaza si instalarea de pluginuri, deci nu inainte, ca sa nu incurce Migrate Guru.
+
+**CDN: da, se dezactiveaza.** Chiar e activ acum — antetul de raspuns al backupului da `Server: hcdn`, in timp ce staging-ul da `hws`; Hostinger a pornit CDN-ul automat la site-urile eligibile din august 2026. De unde: Websites → Dashboard → Performance → CDN, cu doua variante — „Development mode", care sare peste cache si e reversibil dintr-un clic, sau „Disable" complet. Pentru o copie de unica folosinta merge „Disable". Motivul: clonarea schimba tot site-ul sub cache-ul de la margine, deci am vedea pagini si assets vechi, iar diff-urile de conținut si de URL-uri intre clona si site-ul nou ar ieși false. De reținut pentru ziua lansarii: la fel se poate intampla si pe `eco-fridge.co.uk` cand ajunge in cont, deci se verifica Performance → CDN si se face purge dupa go-live; cat e CDN-ul activ, Hostinger ține blocate si inregistrarile A/www. Pluginul `litespeed-cache` e instalat dar inactiv (`active_plugins` are doar `migrate-guru`), deci nu incurca; opțiunile `litespeed.conf.*` dispar oricum la clonare.
+
+**Semnalare care nu era in plan: backupul e acum public si indexabil.** Nu are parola (raspunde 200 fara autentificare), `blog_public` e `1`, nu exista meta robots si `robots.txt` da 404. Dupa clonare devine copie 1:1 a magazinului live, cu cateva zile inainte de lansare — exact tipul de duplicat care nu trebuie sa ajunga in index. Imediat dupa clonare: `.htpasswd` ca pe staging si `blog_public` pe `0`.
+
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
