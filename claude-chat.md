@@ -1527,6 +1527,10 @@ Doru: „la noul site (ce va deveni live site) la parked domains vad doar eco-fr
 6. Verificarile mele de dupa: `https://eco-fridge.co.uk` si `https://www.eco-fridge.co.uk` raspund amandoua, certificat valid pe amandoua, iar varianta fara `www` face 301 spre `www` — regula de canonic din `.htaccess` e pe numele gazdei, nu pe `%{HTTPS}`, ca sa nu intram in bucle in spatele LiteSpeed.
 7. Abia apoi se scoate noindex-ul si, la final, parola.
 
+**Completare, aceeasi zi.** Panoul refuza varianta `www`: `failed [without_subdomain:www] rule validation`. **Nu e o problema de moment, ci o regula de validare** — campul interzice din principiu un domeniu scris cu `www.` in fata, deci nu se va putea nici dupa mutarea DNS-ului la IONOS. Si asta confirma exact ce voiam sa aflam: Hostinger trateaza `www` ca parte a aceluiasi domeniu, nu ca o intrare separata, de-aia nici nu te lasa sa-l scrii. Doru: „sper sa pot dupa conectarea domeniului din ionos" — nu, si nu e nevoie.
+
+Prin urmare lista de reincercat dupa DNS e goala, iar verificarile rămân: certificatul din pagina de SSL a site-ului sa conțină **amandoua numele** (documentatia Hostinger promite SSL gratuit pentru fiecare domeniu si subdomeniu gazduit la ei, reinnoit automat cat timp domeniul indica spre ei, dar acoperirea `www` plus non-`www` apare doar in surse terte, deci se verifica cu ochii); amandoua adresele sa raspunda cu certificat valid; apex sa faca 301 spre `www`. Dacă `www` lipseste din certificat, se reemite SSL-ul din hPanel dupa propagarea completa, si abia apoi e caz de suport Hostinger — nu se rezolva prin parked domains.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
