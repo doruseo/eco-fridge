@@ -1680,6 +1680,19 @@ Doru: „sambata, comenzile noastre de test vor fi renumerotate astfel incat sa 
 
 **Concluzie, pe scurt:** ștergem cele sapte comenzi de test si produsul ascuns, importam comenzile reale cu numerele lor, apoi pornim secventa peste cel mai mare numar importat. Decizia de numerotare a lui Doru rămâne respectata integral — doar drumul pana la ea devine mai scurt si fara risc.
 
+## 82. Aprobare permanenta: jurnal, git cu merge, si Sheet-ul, fara sa mai cer (2026-11-03)
+
+Doru: „tine minte si noteaza in claude-chat.md: ai aprobarea mea sa actualizare a claude-chat.md, plus push, commit si merge automata pe git, plus actualizare calendar si checklist pe Google Drive."
+
+**Ce se schimba, de acum:** regula din 29 octombrie, care cerea actualizarea jurnalului dupa fiecare lucrare, se extinde cu doua lucruri pe care pana acum le lasam lui Doru:
+
+1. **Git, pana la capat.** Branch, commit, push, PR **si merge**, apoi inapoi pe `main` cu `pull`. Pana azi deschideam PR-ul si aparea pasul blocat „Merge Without Review", iar PR-urile se adunau. De acum le unesc eu. Dacă harnessul blocheaza totusi merge-ul, spun direct ca s-a blocat si las PR-ul deschis — nu caut ocolisuri.
+2. **Sheet-ul „Eco-fridge: checklist cu bife"**, ambele foi — calendarul de lansare si checklistul — actualizate in acelasi tur cu jurnalul, direct in fisier, cu linkul neschimbat.
+
+**Ce NU se schimba:** datele de plata, referintele de tranzactie si orice credentiale rămân in afara jurnalului, a Sheet-ului si a git-ului; stau in notele de proiect. Si rămâne regula de o singura conexiune SSH pe Hostinger la un moment dat.
+
+**Ce inseamna practic:** la finalul fiecarei lucrari sau decizii, trei locuri se actualizeaza singure — jurnalul, istoricul git si Sheet-ul. Doru nu mai trebuie sa ceara niciunul din ele si nu mai trebuie sa uneasca PR-uri manual.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
@@ -1695,6 +1708,7 @@ Doru: „sambata, comenzile noastre de test vor fi renumerotate astfel incat sa 
 - **Lansare:** sambata 7 noiembrie 2026, 05:00–09:00. Repetitia migrarii: joi 5 noiembrie. DNS: o singura inregistrare, din contul IONOS.
 - **Site vechi:** PHP 7.2.34, WordPress 6.0.x, WooCommerce 3.5.10, Migrate Guru actualizat la 6.72 (era 5.65).
 - **Clona:** `eco-fridge-backup.o2dev.de`, WordPress 7.1.4, SSH `ef-backup` merge. **De facut in hPanel, de Doru:** PHP pe 7.4, CDN off, auto-update pe „Don't update".
+- **Aprobare permanenta de la Doru, 3 nov (intrarea 82):** jurnal, git pana la merge, si Sheet-ul - toate trei se actualizeaza fara sa mai cer.
 - **Sheet adus la zi (intrarea 80):** calendarul si checklistul au randurile de azi, regula corectata de selectie a comenzilor, valorile DNS verificate, plus trei defecte reparate (textul despre SSL copiat peste pasul de comanda reala, randul de GTM dispărut, regula de canonic mutata inaintea DNS-ului).
 - **Numerotare comenzi (intrarea 81):** Doru a decis ca numerele reale se pastreaza si magazinul continua dupa ele. HPOS e OPRIT pe ambele site-uri, deci numarul comenzii e ID-ul postului; staging e la max ID 8042. Recomandarea mea: comenzile de test SE STERG, iar secventa se pune peste cel mai mare numar importat - renumerotarea lor ar fi chirurgie pe 6-8 tabele in dimineata lansarii, iar pastrate ar adauga ~£1.545 de vanzari inexistente in rapoartele primei luni.
 - **Clona site-ului vechi: GATA si INCHISA** (intrarea 79). Migrarea a reusit, copia e identica cu site-ul vechi, iar acum orice cerere HTTP da 403 in afara de cea cu token; blog_public 0, robots.txt Disallow, update-uri si cron oprite. **Descoperiri care schimba planul:** comenzile noi se selecteaza DUPA DATA (85 de la 10 iulie incoace, #14514-#14632), nu dupa ID; numarul comenzii pe site-ul vechi e ID-ul postului, deci numerotarea viitoare trebuie decisa (peste 14632 sau renumerotare); clientii sunt aproape toti oaspeti, deci nu avem conturi de migrat.
