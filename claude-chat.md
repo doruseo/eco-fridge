@@ -1557,6 +1557,37 @@ Doru: „acum sterg acest site eco-fridge.co.uk si vom relua procedura de la zer
 5. **Varianta `www` nu se adauga separat** — formularul o refuza prin regula `without_subdomain:www`, fiindca `www` aparține aceleiasi intrari ca domeniul fara `www`. Se verifica doar ca certificatul le conține pe amandoua.
 6. Un website nou inseamna **utilizator SSH nou**, deci cheia mea publica se adauga din nou (pasul J7 din ghid) inainte sa pot verifica ceva pe server.
 
+## 78. DNS-ul de sambata, lamurit complet: o singura inregistrare, plus TTL-ul de coborat ASTAZI (2026-11-03)
+
+Doru a trimis din hPanel: „nu apare nicio inregistrare in DNS records", dar la Hosting details scrie `Access your website at https://eco-fridge.co.uk`, `Access your website with www https://www.eco-fridge.co.uk`, **Website IP address 148.230.121.74**, iar serverul e `uk-fast-h5g-node15.hstgr.io`, locatie United Kingdom.
+
+**De ce nu apar inregistrari DNS la Hostinger:** zona domeniului e la IONOS. Nameserverele publice sunt `ns1030.ui-dns.de / .com / .biz / .org` (TTL 172800), adica IONOS, iar editorul de DNS din hPanel administreaza doar domeniile care folosesc nameserverele Hostinger. Nu lipseste nimic si nu e nimic de reparat.
+
+**IP-ul de pus la IONOS: `148.230.121.74`.** E acelasi IP pe care stau si staging-ul si backup site-ul — e IP-ul planului, partajat, iar serverul alege site-ul dupa numele din cerere, nu dupa IP. Deci e normal si corect asa.
+
+**Starea reala a zonei, interogata azi din exterior:**
+
+| Inregistrare | Valoare acum | TTL | Ce facem sambata |
+|---|---|---|---|
+| `eco-fridge.co.uk` A | **185.230.220.98** (Ambrit) | **3600** | **se schimba in `148.230.121.74`** |
+| `www.eco-fridge.co.uk` | **CNAME → `eco-fridge.co.uk`** | 3600 | **nu se atinge** — urmeaza automat |
+| AAAA (apex si www) | **nu exista** | — | nimic |
+| CAA | **nu exista** | — | nimic |
+| MX | `mx00.ionos.co.uk`, `mx01.ionos.co.uk` | 3600 | **nu se ating** |
+| TXT | SPF `v=spf1 +a +mx +ip4:83.223.113.98 include:_spf-eu.ionos.com ~all` si `google-site-verification=…` | 3600 | **nu se ating** |
+
+**Trei lucruri bune care ies din tabel:**
+
+1. **Chiar e o singura inregistrare de schimbat.** `www` e un CNAME spre apex, deci se mută singur odata cu A-ul — ceea ce confirma si randul „Access your website with www" din hPanel: gazduirea raspunde pentru amandoua numele, fara sa adaugam nimic (si de-aia formularul de parked domains refuza varianta `www`).
+2. **Nu exista AAAA.** Asta scoate din joc capcana clasica de lansare, in care se schimba doar A-ul iar clientii cu IPv6 ajung in continuare pe serverul vechi.
+3. **Nu exista CAA**, deci nimic nu blocheaza emiterea certificatului Let's Encrypt pentru cele doua nume.
+
+**De facut ASTAZI, nu sambata: coborat TTL-ul.** Inregistrarea A are TTL 3600, deci dupa schimbare resolverele pot servi inca pana la o ora IP-ul vechi — adica unii clienti ar vedea magazinul vechi, in modul mentenanta, dupa ce noi credem ca am lansat. Reparatia: la IONOS, **se schimba doar TTL-ul inregistrarii A la 300 de secunde, valoarea rămâne 185.230.220.98**. Efect vizibil pe magazinul de acum: zero. Dar coborarea devine efectiva abia dupa ce expira TTL-ul vechi la resolverele care au deja raspunsul in cache, deci se face **cu cateva zile inainte**, iar azi e marti si lansarea e sambata: momentul potrivit e acum. Dupa ce lansarea e verificata, TTL-ul se poate urca din nou la 3600.
+
+**O observatie despre emailuri, de tinut minte la verificarile de dupa lansare:** SPF-ul conține `+a`, adica autorizeaza sa trimita email exact IP-ul din inregistrarea A. Dupa mutare, acela devine serverul Hostinger, deci emailurile de comanda trimise de server rămân autorizate automat; nu e nevoie sa schimbam SPF-ul. Rămâne totusi de verificat livrarea efectiva a emailurilor de comanda dupa go-live.
+
+**Si un detaliu care ne ajuta, desi Doru credea ca nu:** serverul e in Marea Britanie (`uk-fast-h5g-node15.hstgr.io`). Pentru un magazin britanic e exact unde trebuie, iar la masurarea Core Web Vitals de dupa lansare conteaza: comparatia cu scorurile de pe staging e corecta, fiindca staging-ul e pe acelasi nod.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
@@ -1572,6 +1603,7 @@ Doru: „acum sterg acest site eco-fridge.co.uk si vom relua procedura de la zer
 - **Lansare:** sambata 7 noiembrie 2026, 05:00–09:00. Repetitia migrarii: joi 5 noiembrie. DNS: o singura inregistrare, din contul IONOS.
 - **Site vechi:** PHP 7.2.34, WordPress 6.0.x, WooCommerce 3.5.10, Migrate Guru actualizat la 6.72 (era 5.65).
 - **Clona:** `eco-fridge-backup.o2dev.de`, WordPress 7.1.4, SSH `ef-backup` merge. **De facut in hPanel, de Doru:** PHP pe 7.4, CDN off, auto-update pe „Don't update".
+- **DNS lamurit (intrarea 78):** sambata se schimba O SINGURA inregistrare, A de la apex, 185.230.220.98 -> 148.230.121.74; www e CNAME spre apex si urmeaza singur; nu exista AAAA si nici CAA; MX si TXT nu se ating. **De facut azi:** TTL-ul inregistrarii A coborat la 300 la IONOS, cu valoarea neschimbata.
 - **Site-ul de test se sterge** la finalul repetitiei, cu acordul cerut si dat; procedura se reia de la zero sambata, din staging-ul actualizat. Ce a dovedit repetitia: intrarea 77, punctele 1-6.
 - **Domeniu:** pe site-ul nou, eco-fridge.co.uk apare la Parked domains si nu merge inca, fiindca DNS-ul e la Ambrit. De urmarit: domeniu PRINCIPAL, nu parcat, plus varianta www acoperita de certificat (intrarea 76).
 - **Repetitia de azi, clonarea staging:** reusita, pe `https://eco-fridge-o2dev-de-857081.hostingersite.com/`; unealta Hostinger inlocuieste singura URL-urile, noindex vine cu copia, dar parola NU vine, deci copia e deschisa oricui — de inchis sau de sters. Detalii si ordinea corecta de sambata: intrarea 75.
