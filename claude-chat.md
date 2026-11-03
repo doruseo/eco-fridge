@@ -1870,6 +1870,33 @@ Ce inseamna cele doua raspunsuri, pe scurt: **„Doorways measured"** spune dac�
 
 **De verificat la comanda reala de sambata, 08:30:** campurile apar la checkout, refuza trimiterea fara raspuns, iar raspunsurile ajung in emailul magazinului. A intrat in checklist ca F10-17.
 
+## 88. Greseala de tipar reparata, iar intrebarea despre trepte devine o alegere (2026-11-03)
+
+Doru: „repara greseala de tipar «recomend» si fa stairs select 0/1/2/3/4+".
+
+**Amandoua facute**, in `ecofridge-blocks/includes/checkout-delivery-questions.php`.
+
+1. **Eticheta** spune acum „We **recommend** you to check the height of your doors…". Verificat in pagina de checkout: forma veche apare de zero ori, cea corecta o data.
+2. **Intrebarea despre trepte nu mai e text liber**, ci o alegere: **0, 1, 2, 3, 4+**. Validarea refuza orice altceva.
+
+### Un bug prins la testare, si cum l-am rezolvat
+
+Prima versiune a listei folosea chiar cifrele ca valori, si **„0" a fost refuzat la validare**: WooCommerce trateaza un „0" curat ca raspuns lipsa la un camp obligatoriu, deci clientul cu zero trepte — probabil cazul cel mai frecvent — nu ar fi putut plasa comanda. Nu am presupus asta, am masurat-o: „0" refuzat, „1" acceptat.
+
+Soluția pastreaza exact etichetele cerute si rezolva si altceva pe drum: **clientul vede 0, 1, 2, 3, 4+**, dar ce se salveaza e „0 steps", „1 step", „2 steps", „3 steps", „4+ steps". Asa nimic nu mai e „gol" pentru WooCommerce, iar echipa de livrare citeste in email si in comanda „0 steps" in loc de o cifra singura. Cinci valori distincte, deci de acum raspunsurile se pot si numara — ceea ce nu se putea cu cele 396 de variante de pe site-ul vechi.
+
+Lista se poate schimba fara cod, prin filtrul `efb_checkout_steps_options`, care primește o mapare valoare → eticheta.
+
+### Reverificat, pe drumul real
+
+- Campul e `select`, obligatoriu, cu alegerile 0 / 1 / 2 / 3 / 4+.
+- Validare: „0 steps", „1 step", „4+ steps" acceptate; „0", „7", „none" si gol refuzate; la intrebarea despre uși, YES si NO acceptate, MAYBE si gol refuzate.
+- Drumul complet al unei comenzi noi: raspunsurile NO si „0 steps" au ajuns in cheile vechi `check_doors` si `stairs`, emailul le-a purtat („Doorways measured: NO", „Steps at the delivery address: 0 steps"), iar pagina clientului le-a afisat. Comanda de proba a fost stearsa.
+- **Comenzile importate nu sunt atinse:** raspunsurile lor de text liber rămân cum au fost si se afiseaza ca atare — #14517 arata in continuare „1". Nu convertim istoricul; intrebarea noua se aplica de la lansare incolo.
+- In pagina de checkout: alegerea „4+ steps" e prezenta in datele blocului.
+
+Checklistul, randul F10-17, e actualizat cu amandoua schimbarile si cu motivul pentru care valoarea salvata difera de eticheta.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
@@ -1887,7 +1914,8 @@ Ce inseamna cele doua raspunsuri, pe scurt: **„Doorways measured"** spune dac�
 - **Clona:** `eco-fridge-backup.o2dev.de`, WordPress 7.1.4, SSH `ef-backup` merge. **De facut in hPanel, de Doru:** PHP pe 7.4, CDN off, auto-update pe „Don't update".
 - **Aprobare permanenta de la Doru, 3 nov (intrarea 82):** jurnal, git pana la merge, si Sheet-ul - toate trei se actualizeaza fara sa mai cer.
 - **Sheet adus la zi (intrarea 80):** calendarul si checklistul au randurile de azi, regula corectata de selectie a comenzilor, valorile DNS verificate, plus trei defecte reparate (textul despre SSL copiat peste pasul de comanda reala, randul de GTM dispărut, regula de canonic mutata inaintea DNS-ului).
-- **Cele doua intrebari de livrare sunt in checkout (intrarea 87, F10-17).** Preluate 1:1 de pe site-ul vechi (check_doors YES/NO si stairs, amandoua obligatorii), implementate in pluginul nostru prin Additional Checkout Fields API, fiindca checkout-ul e pe BLOCURI; raspunsurile sunt oglindite in cheile vechi, deci si comenzile importate se afiseaza. De decis de client: greseala de tipar „recomend" din eticheta si dacă `stairs` rămâne text liber (396 de raspunsuri distincte pe site-ul vechi).
+- **Intrebarile de livrare, finalizate (intrarile 87 si 88, F10-17).** Greseala de tipar reparata, iar treptele sunt acum o alegere 0/1/2/3/4+. Clientul vede cifrele, dar se salveaza „0 steps" … „4+ steps", fiindca WooCommerce trateaza un „0" curat ca raspuns lipsa la un camp obligatoriu. Comenzile importate nu se convertesc.
+- **Cum au fost preluate (intrarea 87).** Preluate 1:1 de pe site-ul vechi (check_doors YES/NO si stairs, amandoua obligatorii), implementate in pluginul nostru prin Additional Checkout Fields API, fiindca checkout-ul e pe BLOCURI; raspunsurile sunt oglindite in cheile vechi, deci si comenzile importate se afiseaza. De decis de client: greseala de tipar „recomend" din eticheta si dacă `stairs` rămâne text liber (396 de raspunsuri distincte pe site-ul vechi).
 - **Importul scris, rulat si dovedit (intrarea 86).** Unelte in repo: migration/f15-run.sh, f15-compare.sql, f15-import-orders.sql. Pe o copie locala: stergerea cu WP-CLI curata si wp_wc_order_stats, importul a trecut toate verificările, reconcilierea e 6.014 = 6.014, WooCommerce citeste corect comanda importata, rapoartele se reconstruiesc, secventa a ajuns la 14652. **De reverificat sambata pe clona proaspata** (cerere Doru): produse noi, sterse, modificate, categorii si pagini - cu f15-compare.sql. Si: `stairs` e un camp real de livrare pe care site-ul nou nu-l mai intreaba, de discutat cu Mads.
 - **Extragerea rulata pe date reale (intrarea 85, raport: migration/f15-delta-2026-11-03.md).** Comenzi de importat: **83**, nu 85 - selectia se face dupa `_order_key`, fiindca regula cu data includea doua comenzi pe care le avem deja. Reconcilierea e deja zero (5.931 = 5.931). Zero produse noi, zero categorii noi, zero cupoane, zero conturi, zero recenzii. Rămân: o schimbare de stoc, doua fisiere media, 25 de redirecturi lipsa, meta SEO pentru continutul nou. Si 18 din 19 diferente de pret sunt false pozitive - comparatia se face pe pretul efectiv.
 - **Dump de proba luat (intrarea 84):** source-dump/db/backup-clone-2026-11-03.sql.gz, 9,1 MB, 127 de tabele, verificat; fara tabelele Lloyds, Matomo si jurnale. Delta de media: DOUA fisiere, aflate din baza de date, fiindca datele fisierelor au fost rescrise de migrare. Copiile .bak din docroot au fost mutate afara si extensiile riscante refuzate.
