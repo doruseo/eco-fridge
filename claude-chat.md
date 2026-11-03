@@ -1302,6 +1302,25 @@ Doru a trimis datele firmei si le-am verificat direct in registrul britanic, pe 
 
 **Adeverinta pentru ONRC.** Tot azi am scris, la cererea lui Doru, o adeverinta de angajare in engleza, pe antet de companie, pentru dosarul de infiintare a unui PFA in Romania: `employment-reference-doru-hanganu-2026-11-02.html`, gata de tiparit sau salvat ca PDF din browser. Antetul poarta datele oficiale de mai sus, iar numele companiei e scris in forma inregistrata, „ECO-FRIDGE UK LIMITED", fiindca intr-un act depus la un registru de comert forma prescurtata poate fi contestata la traducere. Documentul atesta perioada 5 februarie 2020 — 31 martie 2024, cele doua pozitii (Digital Marketing Specialist, apoi Full-Stack Developer), atributiile tehnice, si spune explicit ca e emis pentru depunerea la Oficiul National al Registrului Comertului. Se semneaza de Kaseem Traboulsi, Managing Director. Fisierul e exclus din git, fiindca include numarul de pasaport.
 
+## 69. Ce PHP si ce WordPress trebuie pe site-ul de backup (2026-11-03)
+
+Intrebarea lui Doru: „pentru ca site-ul de backup eco-fridge-backup.o2dev.de sa primeasca clona site-ului live https://www.eco-fridge.co.uk/ ar trebui setat sa aiba php 7.4 sau cat, conteaza si versiunea de wp? Ce versiune de WP si ce php trebuie sa aiba?"
+
+**Ce am verificat azi, direct pe live** (doar cereri HTTP, nimic scris): antetul de raspuns da `Server: Apache` si `X-Powered-By: PHP/7.2.34`, deci site-ul vechi ruleaza inca pe **PHP 7.2.34**. Versiunea de WordPress nu e expusa (fara meta generator, fara `?ver=` pe assets), asa ca am dedus-o din fisierele de nucleu servite: `wp-includes/blocks/read-more`, `avatar`, `post-navigation-link` si `comments-query-loop` exista, dar `comments`, `footnotes` si `details` dau 404, iar jQuery e 3.6.0 cu Migrate 3.3.2 — combinatia asta e **WordPress 6.0.x** (`comments-query-loop` a fost inlocuit de `comments` in 6.1, `footnotes`/`details` au venit in 6.3). Reamintire din audit: WooCommerce de pe live e **3.5.10**, iar tema `eco-fridge` nu ruleaza pe PHP 8 (`like_escape()`, ghilimele „smart" in cod, acces cu acolade la string-uri).
+
+**Ce ruleaza acum pe backup** (o singura conexiune SSH, `ef-backup`): WordPress **7.1.4**, cu `$required_php_version = '7.4'`, PHP CLI 7.4.33, docroot `~/websites/biqFdbY8d/public_html`. Pe masina exista binarele 7.4, 8.0, 8.1, 8.2, 8.3, 8.4 si 8.5, deci **7.4 e selectabil** din hPanel. Folderul site-ului are si simlinkurile Hostinger `__wp__ -> /opt/h5g/flavors/wp-7.1.4` si `.mp`, adica „flavour"-ul h5g e legat de versiunea 7.1.4.
+
+**Raspunsul, pe scurt:**
+
+1. **PHP: 7.4, nu mai mult.** Live e pe 7.2.34, dar nu avem nevoie sa potrivim exact — 7.4 ruleaza acelasi cod fara probleme (copia din iulie a mers pe 7.4.33) si e cea mai mare versiune care mai duce WooCommerce 3.5.10 plus tema veche. Pe 8.0+ sunt erori fatale, nu doar avertismente. Se schimba din hPanel → Websites → eco-fridge-backup → Advanced → PHP Configuration → 7.4; se poate face si acum, fiindca WP 7.1.4 cere minim 7.4, deci Migrate Guru nu se strica intre timp.
+2. **Versiunea de WP conteaza, dar nu o alegem noi** — nu e o setare de gazduire, vine din clona. Atentie insa la capcana din iulie: copia migrata atunci a ajuns pe **WP 7.0** desi live era pe 6.0, semn ca in fluxul asta nucleul destinatiei ramane, nu e suprascris. Deci dupa clonare se verifica `wp-includes/version.php` pe backup: daca scrie tot 7.1.4 peste o baza de date de WP 6.0 + Woo 3.5.10, fie inlocuim nucleul cu **6.0.x** exact (de pe wordpress.org) ca sa se potriveasca cu baza, fie nu deschidem deloc wp-admin si extragem la nivel de SQL + `uploads`, care oricum e planul.
+3. **Must-use-urile Hostinger** (`hostinger-h5g-plugin`, `hostinger-preview-domain`) si drop-in-ul `object-cache.php` de la LiteSpeed se scot de pe clona — sunt legate de WP 7.1.4 si de contul gazduirii, nu de site-ul vechi.
+4. **Update-urile automate se opresc pe backup** inainte de clonare (`WP_AUTO_UPDATE_CORE` pe `false`, auto-update pluginuri off). Daca WooCommerce s-ar actualiza singur pe copie, updaterul lui ar putea rescrie schema comenzilor (HPOS) — exact datele pe care vrem sa le copiem 1:1.
+5. **Limite PHP pentru import**, pentru o baza de 756 MB (162 MB gzip): `memory_limit` 512M, `max_execution_time` 300, `upload_max_filesize` si `post_max_size` 256M.
+6. Backupul ramane **blocat cu parola si noindex**, ca o clona identica a live-ului sa nu intre in index cu o zi inainte de lansare.
+
+Nimic schimbat inca pe backup; setarea de PHP o face Doru din hPanel, restul intra in repetitia migrarii.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
