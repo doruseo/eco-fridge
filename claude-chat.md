@@ -1446,6 +1446,30 @@ Doru, dupa ce a urcat pluginul de TLS pe site-ul vechi: **initierea migrarii a f
 
 **Despre folderul pluginului de TLS:** prima versiune a arhivei a ieșit in folderul temporar al sesiunii, ceea ce a fost o alegere proasta — un fisier de care avem nevoie sambata nu are ce caută acolo. Sursa si arhiva sunt acum in proiect, la `tools/ecofridge-tls-fix/` si `tools/ecofridge-tls-fix.zip`, cu README care explica de ce exista si cum se reconstruieste arhiva.
 
+## 74. Migrarea de test a pornit, plus clonarea staging → site nou cu unealta Hostinger (2026-11-03)
+
+Doru: „migrarea a inceput pe Migrate Guru. (…) Intre timp, in timp ce se face migrarea de test din vechiul site catre backup site, testez migrarea site-ului de staging catre noul site eco-fridge — am ales optiunea din Hostinger de clone site (din lista de websites, langa butonul de create a new website), am ales sa cloneze site-ul de staging eco-fridge.o2dev.de si acum il cloneaza. (…) Astept sau apas butonul Continue?"
+
+**Migrate Guru ruleaza.** Deci lanțul de azi e inchis: plugin actualizat 5.65 → 6.72, pluginul de TLS urcat pe site-ul vechi, cheie de migrare regenerata pe clona si folosita imediat, `siteurl`/`home` ale clonei trecute pe `https`. Migrarea de test din site-ul vechi catre `eco-fridge-backup.o2dev.de` a pornit.
+
+**Raspunsul la intrebare: se apasa Continue.** Clonarea ruleaza pe serverul Hostinger, nu in pagina din browser — chiar asa scrie si mesajul lor, „You can leave this page". Butonul doar inchide ecranul de progres; site-ul clonat apare in lista Websites cand e gata, in pana la ~15 minute pe site. Statul pe pagina nu grabeste nimic.
+
+**Observatia de moment:** ruleaza **doua operatii grele in acelasi cont** — Migrate Guru scrie in backup site, iar unealta Hostinger copiaza staging → site nou. Nu e o problema in sine, dar nu pornim o a treia si e normal ca staging-ul sa raspunda mai lent in intervalul asta.
+
+**Ce verificam pe site-ul nou imediat ce clonarea se termina** (clonarea Hostinger copiaza fisiere plus baza de date intre doua site-uri din acelasi cont, dar nu stim inca daca inlocuieste singura URL-urile — azi aflam, si de-aia facem repetitia acum, nu sambata la 06:45):
+
+1. **URL-urile:** `siteurl` si `home`, plus cat conținut a rămas cu `eco-fridge.o2dev.de` in baza de date. Daca unealta nu a facut inlocuirea, o fac eu prin SSH, pe tabelele de opțiuni, posturi, postmeta, termmeta si pe conținutul blocurilor.
+2. **Lacatul de staging:** blocul `AuthType Basic` din `.htaccess` vine cu copia, iar `AuthUserFile` pointeaza spre calea veche a staging-ului, deci pe site-ul nou poate da eroare de server. Se corecteaza calea sau se scoate blocul — dar site-ul nou **rămâne inchis** pana la go-live, nu se lasa deschis.
+3. **Indexarea:** `blog_public` si `robots.txt` fizic din radacina. Staging-ul e pe noindex; site-ul nou trebuie sa iasa din noindex **la lansare**, nu inainte, si asta e un pas separat in ghid.
+4. **PHP:** site-ul nou merge pe stiva moderna, ca staging-ul — deci **nu** 7.4; acela e doar pentru clona site-ului vechi. De verificat ca versiunea aleasa de unealta e aceeasi cu a staging-ului.
+5. **CDN:** Hostinger il porneste automat la site-urile eligibile, deci se verifica Performance → CDN si se face purge dupa go-live.
+6. **Cache si must-use:** `object-cache.php` de la LiteSpeed si pluginurile must-use ale gazduirii sunt legate de site-ul lor, nu de conținut — se verifica sa nu tina pagini vechi.
+7. **Paritate:** acelasi numar de tabele, de produse, de comenzi si de pagini ca pe staging; copiile `.avif`/`.webp` prezente in `uploads`.
+8. **Licenta AG Lloyds Cardnet** poate fi legata de domeniu — se verifica dupa ce domeniul final e pe site-ul nou.
+9. **SSH:** un site nou inseamna un utilizator SSH nou, deci **cheia mea publica trebuie adaugata din nou** pe el (pasul J7 din ghid). Fara asta nu pot face verificarile de mai sus.
+
+**Ce rămâne nelamurit pana se termina:** daca unealta de clonare inlocuieste singura URL-urile si cu ce domeniu a creat site-ul nou (temporar sau cel final). Amandoua se vad in lista Websites dupa clonare.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
@@ -1461,7 +1485,8 @@ Doru, dupa ce a urcat pluginul de TLS pe site-ul vechi: **initierea migrarii a f
 - **Lansare:** sambata 7 noiembrie 2026, 05:00–09:00. Repetitia migrarii: joi 5 noiembrie. DNS: o singura inregistrare, din contul IONOS.
 - **Site vechi:** PHP 7.2.34, WordPress 6.0.x, WooCommerce 3.5.10, Migrate Guru actualizat la 6.72 (era 5.65).
 - **Clona:** `eco-fridge-backup.o2dev.de`, WordPress 7.1.4, SSH `ef-backup` merge. **De facut in hPanel, de Doru:** PHP pe 7.4, CDN off, auto-update pe „Don't update".
-- **Blocajul de azi:** „Initiate migration" cadea cu cURL error 60. Cauza gasita si dovedita: lista de radacini a WordPress-ului 6.0 de pe live nu cunoaste radacina GlobalSign Root R46 folosita de `mg.blogvault.net`. Reparatia e `tools/ecofridge-tls-fix.zip`, de urcat pe site-ul vechi; **inca netestata pe viu** — asta e primul lucru de incercat.
+- **Azi, in lucru:** migrarea de test site vechi →  ruleaza prin Migrate Guru; in paralel, clonarea staging → site nou cu unealta Hostinger (lista de verificari de dupa: intrarea 74).
+- **Blocajul de azi, rezolvat:** „Initiate migration" cadea cu cURL error 60. Cauza gasita si dovedita: lista de radacini a WordPress-ului 6.0 de pe live nu cunoaste radacina GlobalSign Root R46 folosita de `mg.blogvault.net`. Reparatia e `tools/ecofridge-tls-fix.zip`, de urcat pe site-ul vechi; **inca netestata pe viu** — asta e primul lucru de incercat.
 - **Daca reparatia nu merge:** variantele din intrarea 72, secțiunea 5, in ordinea de acolo.
 - **Procedura completa pentru sambata:** intrarea 72, de citit de la cap la coada inainte de orice clic.
 - **Rămâne de cerut de la Ambrit/Mads:** acces FTP/SFTP plus dump de baza de date (varianta curata, fara nimic instalat pe magazinul viu) si, daca e nevoie, reinnoirea pachetului `ca-certificates` pe serverul vechi.
