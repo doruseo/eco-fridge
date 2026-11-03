@@ -1897,6 +1897,24 @@ Lista se poate schimba fara cod, prin filtrul `efb_checkout_steps_options`, care
 
 Checklistul, randul F10-17, e actualizat cu amandoua schimbarile si cu motivul pentru care valoarea salvata difera de eticheta.
 
+## 89. Memoria proiectului intra in rutina, ca al patrulea loc (2026-11-03)
+
+Doru: „salveaza tot si in memoria proiectului acestui folder si retine sa o fac mereu pe viitor."
+
+**De acum rutina are patru locuri**, toate fara sa mai cer: jurnalul `claude-chat.md`, git-ul pana la merge, ambele foi din Sheet, si **memoria proiectului din folderul acesta**.
+
+**Ce am scris acum in memorie:**
+
+- **`ecofridge-f15-delta-rules`**, nou — cele patru reguli care au costat o dimineata: comenzile se selecteaza dupa `_order_key` (83, nu 85, fiindca granita e comanda veche #14515 = #7261 la noi), preturile se compara pe **pretul efectiv** (18 din 19 diferente sunt prezentarea noastra cu RRP), `post_modified` e semnal slab pe site-ul vechi, iar delta de media se afla din baza de date. Plus ce a dovedit repetitia si ce **nu** mai e de migrat deloc.
+- **`ecofridge-checkout-delivery-questions`**, nou — de ce exista cele doua intrebari, ca sunt o cerinta a lui Mads si nu un reziduu, cele doua decizii de azi, si capcana cu „0": WooCommerce refuza un „0" curat la un camp obligatoriu, deci valoarea salvata e „0 steps". Dacă cineva „ordoneaza" valorile inapoi la cifre, comenzile cu zero trepte nu mai trec.
+- **`ecofridge-launch-checklist`**, completat — faptele masurate azi pentru ziua lansarii: o singura inregistrare DNS de schimbat (apex A → 148.230.121.74), www e CNAME si urmeaza singur, nu exista AAAA si nici CAA, MX si TXT neatinse, TTL coborat la 300; unealta de clonare Hostinger merge si inlocuieste singura URL-urile, dar parola nu vine cu copia, deci site-ul nou se inchide **inainte** de a fi umplut, iar CDN-ul se opreste pana dupa verificari; varianta `www` nu se poate adauga ca domeniu parcat; serverul e nodul britanic, acelasi cu staging-ul.
+- **`ecofridge-backup-site-plan`**, corectat — trimite acum la regulile noi, ca versiunea veche a regulii de selectie sa nu mai poata fi citita ca actuala.
+- **`always-update-claude-chat`**, extins cu al patrulea loc si cu ce aparține memoriei: regulile si deciziile pe care o sesiune viitoare nu trebuie sa le redescopere sau sa le strice, motivele din spate, si trimiteri la locul unde sta detaliul — nu o a doua copie a jurnalului si nu ce spune deja codul.
+
+**O regula de igiena pe care mi-am scris-o explicit:** cand o sesiune corecteaza o memorie mai veche — exact ce s-a intamplat azi cu regula de selectie a comenzilor — corectura se scrie **in aceeasi nota**, ca varianta greșita sa nu poata fi citita ca fiind curenta.
+
+Indexul `MEMORY.md` are cele doua intrari noi.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
@@ -1912,7 +1930,7 @@ Checklistul, randul F10-17, e actualizat cu amandoua schimbarile si cu motivul p
 - **Lansare:** sambata 7 noiembrie 2026, 05:00–09:00. Repetitia migrarii: joi 5 noiembrie. DNS: o singura inregistrare, din contul IONOS.
 - **Site vechi:** PHP 7.2.34, WordPress 6.0.x, WooCommerce 3.5.10, Migrate Guru actualizat la 6.72 (era 5.65).
 - **Clona:** `eco-fridge-backup.o2dev.de`, WordPress 7.1.4, SSH `ef-backup` merge. **De facut in hPanel, de Doru:** PHP pe 7.4, CDN off, auto-update pe „Don't update".
-- **Aprobare permanenta de la Doru, 3 nov (intrarea 82):** jurnal, git pana la merge, si Sheet-ul - toate trei se actualizeaza fara sa mai cer.
+- **Aprobare permanenta de la Doru, 3 nov (intrarile 82 si 89):** jurnal, git pana la merge, Sheet-ul SI memoria proiectului - toate PATRU se actualizeaza fara sa mai cer.
 - **Sheet adus la zi (intrarea 80):** calendarul si checklistul au randurile de azi, regula corectata de selectie a comenzilor, valorile DNS verificate, plus trei defecte reparate (textul despre SSL copiat peste pasul de comanda reala, randul de GTM dispărut, regula de canonic mutata inaintea DNS-ului).
 - **Intrebarile de livrare, finalizate (intrarile 87 si 88, F10-17).** Greseala de tipar reparata, iar treptele sunt acum o alegere 0/1/2/3/4+. Clientul vede cifrele, dar se salveaza „0 steps" … „4+ steps", fiindca WooCommerce trateaza un „0" curat ca raspuns lipsa la un camp obligatoriu. Comenzile importate nu se convertesc.
 - **Cum au fost preluate (intrarea 87).** Preluate 1:1 de pe site-ul vechi (check_doors YES/NO si stairs, amandoua obligatorii), implementate in pluginul nostru prin Additional Checkout Fields API, fiindca checkout-ul e pe BLOCURI; raspunsurile sunt oglindite in cheile vechi, deci si comenzile importate se afiseaza. De decis de client: greseala de tipar „recomend" din eticheta si dacă `stairs` rămâne text liber (396 de raspunsuri distincte pe site-ul vechi).
