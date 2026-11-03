@@ -1352,6 +1352,16 @@ Migrate Guru rămâne si varianta cea mai blanda pentru un magazin viu: nu const
 
 **Varianta fara nimic instalat pe live** rămâne FTP/SFTP plus dump de baza de date de la Ambrit — zero scrieri pe magazin, exact metoda din iulie. E deja pe lista de cerut de la Mads; daca vine accesul, dump-ul si arhiva le fac eu si le import pe backup.
 
+## 71. cURL error 60 la Initiate migration — magazia de certificate a WordPress-ului vechi (2026-11-03)
+
+Doru, dupa ce a actualizat pluginul si a introdus cheia de migrare a backupului: „mi-a dat eroarea «Failed to connect to migration service: cURL error 60: SSL certificate OpenSSL verify result: unable to get local issuer certificate (20)»".
+
+**Diagnostic, cu dovada.** Am descarcat pluginul din repo si i-am citit codul: cererea de pornire a migrarii pleaca prin `wp_remote_post` (`wp_admin.php:357`), iar gazda API nu e `migrateguru.com`, ci **`https://mg.blogvault.net`** (`info.php:16`, prin `appUrl()`). Certificatul ei e `*.blogvault.net`, emis de **GlobalSign GCC R46 AlphaSSL CA 2025**, deci urca spre radacina GlobalSign Root R46. WordPress nu foloseste magazia de certificate a sistemului, ci lista proprie, `wp-includes/certificates/ca-bundle.crt`, pe care o trimite lui cURL prin argumentul `sslcertificates`. Am luat fisierul acela chiar de pe live (e servit public) si am verificat lanțul cu el: `verify error:num=20:unable to get local issuer certificate` — exact eroarea din interfata. Cu lista Mozilla actuala, acelasi lanț da `Verify return code: 0 (ok)`. Deci lista de radacini din WordPress 6.0 e mai veche decat radacina GlobalSign pe care o foloseste acum blogvault, si nu are legatura nici cu PHP 7.2, nici cu versiunea pluginului.
+
+**Reparatia:** un plugin mic, de unica folosinta, care pentru cererile catre `blogvault.net` si `migrateguru.com` inlocuieste doar magazia de certificate cu una actuala, livrata in arhiva. Verificarea certificatului rămâne pornita — se schimba lista de radacini, nu nivelul de securitate — si nicio alta cerere a site-ului nu e atinsa. Pluginul arata si o notificare pe pagina Plugins, cu rezultatul unei cereri de test catre API, ca sa se vada inainte de migrare daca drumul e liber. Arhiva: `ecofridge-tls-fix.zip`, doua fisiere, ~115 KB, generata in scratchpad-ul sesiunii. Se urca din Plugins → Add New → Upload Plugin, se activeaza, se reia Initiate migration, apoi se dezactiveaza si se sterge.
+
+**Daca tot refuza:** fie OpenSSL de pe serverul vechi e prea batran ca sa construiasca lanțul, fie portul 443 spre exterior e filtrat. Atunci: ori ceream gazdei lui Ambrit sa reinnoiasca pachetul `ca-certificates`, ceea ce e reparatia corecta pentru tot site-ul, ori trecem pe varianta fara conexiuni spre exterior — export cu WPvivid sau All-in-One, descarcat prin browser, iar eu il asez pe backup prin SSH si il restaurez de acolo, ocolind si limita de upload a destinatiei.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
