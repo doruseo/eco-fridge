@@ -1485,7 +1485,7 @@ Doru: „migrarea a inceput pe Migrate Guru. (…) Intre timp, in timp ce se fac
 - **Lansare:** sambata 7 noiembrie 2026, 05:00–09:00. Repetitia migrarii: joi 5 noiembrie. DNS: o singura inregistrare, din contul IONOS.
 - **Site vechi:** PHP 7.2.34, WordPress 6.0.x, WooCommerce 3.5.10, Migrate Guru actualizat la 6.72 (era 5.65).
 - **Clona:** `eco-fridge-backup.o2dev.de`, WordPress 7.1.4, SSH `ef-backup` merge. **De facut in hPanel, de Doru:** PHP pe 7.4, CDN off, auto-update pe „Don't update".
-- **Azi, in lucru:** migrarea de test site vechi →  ruleaza prin Migrate Guru; in paralel, clonarea staging → site nou cu unealta Hostinger (lista de verificari de dupa: intrarea 74).
+- **Azi, in lucru:** migrarea de test site vechi → `eco-fridge-backup.o2dev.de` ruleaza prin Migrate Guru; in paralel, clonarea staging → site nou cu unealta Hostinger (lista de verificari de dupa: intrarea 74).
 - **Blocajul de azi, rezolvat:** „Initiate migration" cadea cu cURL error 60. Cauza gasita si dovedita: lista de radacini a WordPress-ului 6.0 de pe live nu cunoaste radacina GlobalSign Root R46 folosita de `mg.blogvault.net`. Reparatia e `tools/ecofridge-tls-fix.zip`, de urcat pe site-ul vechi; **inca netestata pe viu** — asta e primul lucru de incercat.
 - **Daca reparatia nu merge:** variantele din intrarea 72, secțiunea 5, in ordinea de acolo.
 - **Procedura completa pentru sambata:** intrarea 72, de citit de la cap la coada inainte de orice clic.
