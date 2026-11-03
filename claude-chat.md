@@ -1302,6 +1302,397 @@ Doru a trimis datele firmei si le-am verificat direct in registrul britanic, pe 
 
 **Adeverinta pentru ONRC.** Tot azi am scris, la cererea lui Doru, o adeverinta de angajare in engleza, pe antet de companie, pentru dosarul de infiintare a unui PFA in Romania: `employment-reference-doru-hanganu-2026-11-02.html`, gata de tiparit sau salvat ca PDF din browser. Antetul poarta datele oficiale de mai sus, iar numele companiei e scris in forma inregistrata, „ECO-FRIDGE UK LIMITED", fiindca intr-un act depus la un registru de comert forma prescurtata poate fi contestata la traducere. Documentul atesta perioada 5 februarie 2020 — 31 martie 2024, cele doua pozitii (Digital Marketing Specialist, apoi Full-Stack Developer), atributiile tehnice, si spune explicit ca e emis pentru depunerea la Oficiul National al Registrului Comertului. Se semneaza de Kaseem Traboulsi, Managing Director. Fisierul e exclus din git, fiindca include numarul de pasaport.
 
+## 69. Ce PHP si ce WordPress trebuie pe site-ul de backup (2026-11-03)
+
+Intrebarea lui Doru: „pentru ca site-ul de backup eco-fridge-backup.o2dev.de sa primeasca clona site-ului live https://www.eco-fridge.co.uk/ ar trebui setat sa aiba php 7.4 sau cat, conteaza si versiunea de wp? Ce versiune de WP si ce php trebuie sa aiba?"
+
+**Ce am verificat azi, direct pe live** (doar cereri HTTP, nimic scris): antetul de raspuns da `Server: Apache` si `X-Powered-By: PHP/7.2.34`, deci site-ul vechi ruleaza inca pe **PHP 7.2.34**. Versiunea de WordPress nu e expusa (fara meta generator, fara `?ver=` pe assets), asa ca am dedus-o din fisierele de nucleu servite: `wp-includes/blocks/read-more`, `avatar`, `post-navigation-link` si `comments-query-loop` exista, dar `comments`, `footnotes` si `details` dau 404, iar jQuery e 3.6.0 cu Migrate 3.3.2 — combinatia asta e **WordPress 6.0.x** (`comments-query-loop` a fost inlocuit de `comments` in 6.1, `footnotes`/`details` au venit in 6.3). Reamintire din audit: WooCommerce de pe live e **3.5.10**, iar tema `eco-fridge` nu ruleaza pe PHP 8 (`like_escape()`, ghilimele „smart" in cod, acces cu acolade la string-uri).
+
+**Ce ruleaza acum pe backup** (o singura conexiune SSH, `ef-backup`): WordPress **7.1.4**, cu `$required_php_version = '7.4'`, PHP CLI 7.4.33, docroot `~/websites/biqFdbY8d/public_html`. Pe masina exista binarele 7.4, 8.0, 8.1, 8.2, 8.3, 8.4 si 8.5, deci **7.4 e selectabil** din hPanel. Folderul site-ului are si simlinkurile Hostinger `__wp__ -> /opt/h5g/flavors/wp-7.1.4` si `.mp`, adica „flavour"-ul h5g e legat de versiunea 7.1.4.
+
+**Raspunsul, pe scurt:**
+
+1. **PHP: 7.4, nu mai mult.** Live e pe 7.2.34, dar nu avem nevoie sa potrivim exact — 7.4 ruleaza acelasi cod fara probleme (copia din iulie a mers pe 7.4.33) si e cea mai mare versiune care mai duce WooCommerce 3.5.10 plus tema veche. Pe 8.0+ sunt erori fatale, nu doar avertismente. Se schimba din hPanel → Websites → eco-fridge-backup → Advanced → PHP Configuration → 7.4; se poate face si acum, fiindca WP 7.1.4 cere minim 7.4, deci Migrate Guru nu se strica intre timp.
+2. **Versiunea de WP conteaza, dar nu o alegem noi** — nu e o setare de gazduire, vine din clona. Atentie insa la capcana din iulie: copia migrata atunci a ajuns pe **WP 7.0** desi live era pe 6.0, semn ca in fluxul asta nucleul destinatiei ramane, nu e suprascris. Deci dupa clonare se verifica `wp-includes/version.php` pe backup: daca scrie tot 7.1.4 peste o baza de date de WP 6.0 + Woo 3.5.10, fie inlocuim nucleul cu **6.0.x** exact (de pe wordpress.org) ca sa se potriveasca cu baza, fie nu deschidem deloc wp-admin si extragem la nivel de SQL + `uploads`, care oricum e planul.
+3. **Must-use-urile Hostinger** (`hostinger-h5g-plugin`, `hostinger-preview-domain`) si drop-in-ul `object-cache.php` de la LiteSpeed se scot de pe clona — sunt legate de WP 7.1.4 si de contul gazduirii, nu de site-ul vechi.
+4. **Update-urile automate se opresc pe backup** inainte de clonare (`WP_AUTO_UPDATE_CORE` pe `false`, auto-update pluginuri off). Daca WooCommerce s-ar actualiza singur pe copie, updaterul lui ar putea rescrie schema comenzilor (HPOS) — exact datele pe care vrem sa le copiem 1:1.
+5. **Limite PHP pentru import**, pentru o baza de 756 MB (162 MB gzip): `memory_limit` 512M, `max_execution_time` 300, `upload_max_filesize` si `post_max_size` 256M.
+6. Backupul ramane **blocat cu parola si noindex**, ca o clona identica a live-ului sa nu intre in index cu o zi inainte de lansare.
+
+Nimic schimbat inca pe backup; setarea de PHP o face Doru din hPanel, restul intra in repetitia migrarii.
+
+**Completare, aceeasi zi — de unde se opresc update-urile automate si ce facem cu CDN-ul.** Doru a intrebat ambele; am verificat starea reala pe backup.
+
+**Update-uri automate, doua straturi.** In hPanel: Websites → eco-fridge-backup.o2dev.de → Dashboard → WordPress → Security, secțiunea de update-uri, unde nucleul se pune pe „Don't update", iar din „Customize" se trec si pluginurile si temele pe manual. Astea sunt „smart auto-updates"-urile Hostinger, care ruleaza din afara WordPress-ului, deci setarea din hPanel e cea care conteaza — Hostinger le porneste implicit la site-urile eligibile. In WordPress: `wp-config.php` are deja `WP_AUTO_UPDATE_CORE` pe `false` (linia 4, pus de Hostinger), dar in baza de date `auto_update_core_dev/minor/major` sunt toate `enabled`; constanta are prioritate, iar `auto_update_plugins` si `auto_update_themes` nici nu exista acum. Dupa clonare insa vin opțiunile din baza live, deci se reverifica. Centura si bretele, de adaugat in `wp-config.php` **dupa** ce clonarea s-a terminat: `AUTOMATIC_UPDATER_DISABLED` si `DISALLOW_FILE_MODS` pe `true` — a doua blocheaza si instalarea de pluginuri, deci nu inainte, ca sa nu incurce Migrate Guru.
+
+**CDN: da, se dezactiveaza.** Chiar e activ acum — antetul de raspuns al backupului da `Server: hcdn`, in timp ce staging-ul da `hws`; Hostinger a pornit CDN-ul automat la site-urile eligibile din august 2026. De unde: Websites → Dashboard → Performance → CDN, cu doua variante — „Development mode", care sare peste cache si e reversibil dintr-un clic, sau „Disable" complet. Pentru o copie de unica folosinta merge „Disable". Motivul: clonarea schimba tot site-ul sub cache-ul de la margine, deci am vedea pagini si assets vechi, iar diff-urile de conținut si de URL-uri intre clona si site-ul nou ar ieși false. De reținut pentru ziua lansarii: la fel se poate intampla si pe `eco-fridge.co.uk` cand ajunge in cont, deci se verifica Performance → CDN si se face purge dupa go-live; cat e CDN-ul activ, Hostinger ține blocate si inregistrarile A/www. Pluginul `litespeed-cache` e instalat dar inactiv (`active_plugins` are doar `migrate-guru`), deci nu incurca; opțiunile `litespeed.conf.*` dispar oricum la clonare.
+
+**Semnalare care nu era in plan: backupul e acum public si indexabil.** Nu are parola (raspunde 200 fara autentificare), `blog_public` e `1`, nu exista meta robots si `robots.txt` da 404. Dupa clonare devine copie 1:1 a magazinului live, cu cateva zile inainte de lansare — exact tipul de duplicat care nu trebuie sa ajunga in index. Imediat dupa clonare: `.htpasswd` ca pe staging si `blog_public` pe `0`.
+
+
+## 70. „Your installed plugin is outdated" pe live — de fapt nu ne trebuie alt plugin (2026-11-03)
+
+Doru: „pe site-ul live eco-fridge.co.uk imi cere «Your installed plugin is outdated. Please re-download the latest plugin and try again.» deci nu mai pot folosi Migrate Guru. Cum sa fac clona site-ului vechi?" si, imediat dupa, „ce plugin de clonare mai este compatibil cu php 7.2.34?"
+
+**Diagnosticul, citit direct de pe live:** `wp-content/plugins/migrate-guru/readme.txt` de pe site-ul vechi are `Stable tag: 5.65` si „Tested up to 6.6", adica pluginul instalat acolo e vechi de cateva versiuni. In repo-ul WordPress versiunea curenta e **6.72**, cu `Requires PHP: 7.0` si `Requires at least: 4.0`. Live e pe PHP **7.2.34** si WP **6.0**, deci versiunea noua ruleaza fara probleme acolo — mesajul e doar verificarea de versiune a serverelor Migrate Guru, nu o incompatibilitate cu gazduirea veche. **Concluzia: nu schimbam unealta, doar actualizam pluginul.**
+
+**Pasii:** Plugins → Migrate Guru → Update now; daca serverul vechi nu ajunge la wordpress.org, se descarca `https://downloads.wordpress.org/plugin/migrate-guru.zip` (~1 MB, verificat 200) si se urca din Plugins → Add New → Upload Plugin, cu „Replace current with uploaded". Apoi se verifica sa scrie 6.72 si se reia migrarea cu cheia de pe backup. Inainte de rulare: PHP 7.4 pe backup si CDN pe off sau Development mode.
+
+Migrate Guru rămâne si varianta cea mai blanda pentru un magazin viu: nu construieste arhiva pe serverul vechi, trimite in bucati catre serverele lor. Un plugin care face arhiva local, pe o baza de 756 MB plus uploads, poate incarca serios serverul lui Ambrit.
+
+**Compatibilitatea celorlalte unelte cu PHP 7.2.34**, verificata in paginile lor din repo:
+
+| Plugin | Requires PHP | Verdict |
+|---|---|---|
+| Migrate Guru 6.72 | 7.0+ | merge — prima opțiune |
+| WPvivid Backup & Migration 0.9.139 | 5.6+ | plan B; migrare site-la-site cu cheie, arhiva sparta in bucati |
+| All-in-One WP Migration 7.113 | 5.3+ | plan C; exportul e de orice dimensiune, importul gratuit e limitat de upload-ul destinatiei |
+| UpdraftPlus 1.26.14 | nedeclarat, avertizeaza sub 5.6.1 | pe 29 octombrie notasem ca nu s-a putut instala acolo; parti din UI cer 7.4+ |
+| Duplicator 5.1.0 | 7.4+, WP 6.2+ | incompatibil cu live |
+
+**Varianta fara nimic instalat pe live** rămâne FTP/SFTP plus dump de baza de date de la Ambrit — zero scrieri pe magazin, exact metoda din iulie. E deja pe lista de cerut de la Mads; daca vine accesul, dump-ul si arhiva le fac eu si le import pe backup.
+
+## 71. cURL error 60 la Initiate migration — magazia de certificate a WordPress-ului vechi (2026-11-03)
+
+Doru, dupa ce a actualizat pluginul si a introdus cheia de migrare a backupului: „mi-a dat eroarea «Failed to connect to migration service: cURL error 60: SSL certificate OpenSSL verify result: unable to get local issuer certificate (20)»".
+
+**Diagnostic, cu dovada.** Am descarcat pluginul din repo si i-am citit codul: cererea de pornire a migrarii pleaca prin `wp_remote_post` (`wp_admin.php:357`), iar gazda API nu e `migrateguru.com`, ci **`https://mg.blogvault.net`** (`info.php:16`, prin `appUrl()`). Certificatul ei e `*.blogvault.net`, emis de **GlobalSign GCC R46 AlphaSSL CA 2025**, deci urca spre radacina GlobalSign Root R46. WordPress nu foloseste magazia de certificate a sistemului, ci lista proprie, `wp-includes/certificates/ca-bundle.crt`, pe care o trimite lui cURL prin argumentul `sslcertificates`. Am luat fisierul acela chiar de pe live (e servit public) si am verificat lanțul cu el: `verify error:num=20:unable to get local issuer certificate` — exact eroarea din interfata. Cu lista Mozilla actuala, acelasi lanț da `Verify return code: 0 (ok)`. Deci lista de radacini din WordPress 6.0 e mai veche decat radacina GlobalSign pe care o foloseste acum blogvault, si nu are legatura nici cu PHP 7.2, nici cu versiunea pluginului.
+
+**Reparatia:** un plugin mic, de unica folosinta, care pentru cererile catre `blogvault.net` si `migrateguru.com` inlocuieste doar magazia de certificate cu una actuala, livrata in arhiva. Verificarea certificatului rămâne pornita — se schimba lista de radacini, nu nivelul de securitate — si nicio alta cerere a site-ului nu e atinsa. Pluginul arata si o notificare pe pagina Plugins, cu rezultatul unei cereri de test catre API, ca sa se vada inainte de migrare daca drumul e liber. Arhiva: `ecofridge-tls-fix.zip`, doua fisiere, ~115 KB, generata in scratchpad-ul sesiunii. Se urca din Plugins → Add New → Upload Plugin, se activeaza, se reia Initiate migration, apoi se dezactiveaza si se sterge.
+
+**Daca tot refuza:** fie OpenSSL de pe serverul vechi e prea batran ca sa construiasca lanțul, fie portul 443 spre exterior e filtrat. Atunci: ori ceream gazdei lui Ambrit sa reinnoiasca pachetul `ca-certificates`, ceea ce e reparatia corecta pentru tot site-ul, ori trecem pe varianta fara conexiuni spre exterior — export cu WPvivid sau All-in-One, descarcat prin browser, iar eu il asez pe backup prin SSH si il restaurez de acolo, ocolind si limita de upload a destinatiei.
+
+## 72. CLONA SITE-ULUI VECHI — PROCEDURA COMPLETA, DE CITIT SAMBATA (scrisa 2026-11-03)
+
+Doru: „noteaza absolut tot in fisierul claude-chat.md sa stim sambata ce avem de facut". Mai jos e totul, in ordinea in care se executa, cu motivul fiecarui pas si cu variantele de rezerva. Repetitia e **joi 5 noiembrie**, treaba pe viu **sambata 7 noiembrie, 05:00–09:00**. Lista datelor de preluat din clona rămâne cea din planul de backup (randurile F15-01…F15-11); aici e **cum** obtinem clona si ce facem cu ea imediat dupa.
+
+### 0. Coordonate si stare
+
+| Ce | Valoare |
+|---|---|
+| Site vechi (sursa) | `https://www.eco-fridge.co.uk` — Apache, **PHP 7.2.34**, **WordPress 6.0.x**, WooCommerce 3.5.10 |
+| Clona (destinatie) | `eco-fridge-backup.o2dev.de` — WordPress 7.1.4, Migrate Guru 6.72 |
+| SSH clona | alias `ef-backup` → 148.230.121.74, port 65002, user `u510186744_biqFdbY8d` |
+| Docroot clona | `/home/u510186744/websites/biqFdbY8d/public_html` |
+| Ultima comanda reala preluata in iulie | **#7261, 10 iulie 2026** — tot ce e dupa ea trebuie sa vina acum |
+| Comenzi de test, de sters INAINTE de import | #8007, #8029, #8030, #8036, #8037 si produsul ascuns #8035 |
+| Regula SSH | **o singura conexiune la Hostinger in acelasi timp**, niciodata doua in paralel |
+
+### 1. Pe clona, in hPanel, inainte de orice (DORU)
+
+1. **PHP → 7.4.** Websites → eco-fridge-backup.o2dev.de → Advanced → PHP Configuration → 7.4. Motiv: WooCommerce 3.5.10 si tema veche mor pe PHP 8 (functia `like_escape()` scoasa din WordPress, ghilimele „smart" in cod); 7.4 e cea mai mare versiune care le duce, iar copia din iulie a mers pe 7.4.33. Se poate pune de acum: WP 7.1.4 cere minim 7.4, deci Migrate Guru nu se strica intre timp.
+2. **CDN → off** (sau „Development mode"). Websites → Dashboard → Performance → CDN. Verificat pe 3 noiembrie: CDN-ul **era pornit** — antetul clonei dadea `Server: hcdn`, in timp ce staging-ul da `hws`; Hostinger il porneste automat la site-urile eligibile. Motiv: clonarea schimba tot site-ul sub cache-ul de la margine, deci am verifica pagini vechi si am obtine diff-uri false la conținut si la URL-uri.
+3. **Auto-update → „Don't update".** Websites → Dashboard → WordPress → Security, sectiunea de update-uri; din „Customize" se trec si pluginurile si temele pe manual. Astea sunt „smart auto-updates"-urile Hostinger, care ruleaza din afara WordPress-ului, deci setarea din hPanel e cea care conteaza. In `wp-config.php` exista deja `WP_AUTO_UPDATE_CORE` pe `false`, dar in baza de date `auto_update_core_dev`, `auto_update_core_minor` si `auto_update_core_major` sunt toate `enabled`. Motivul greu: daca WooCommerce s-ar actualiza singur pe clona, updaterul lui ar putea rescrie schema comenzilor (HPOS) — exact datele pe care vrem sa le copiem 1:1.
+4. **Limite PHP**, pentru o baza de 756 MB (162 MB gzip): `memory_limit` 512M, `max_execution_time` 300, `upload_max_filesize` si `post_max_size` 256M.
+
+### 2. Pe site-ul vechi, inainte de clonare (DORU)
+
+1. **Migrate Guru la zi.** Pe live era instalat **5.65** (citit din `wp-content/plugins/migrate-guru/readme.txt`), iar serverele lor refuza versiunile vechi cu „Your installed plugin is outdated". Versiunea curenta e **6.72**, cere PHP 7.0+ si WP 4.0+, deci merge pe serverul vechi. Plugins → Update now; daca serverul nu ajunge la wordpress.org, se urca `https://downloads.wordpress.org/plugin/migrate-guru.zip` din Plugins → Add New → Upload Plugin, cu „Replace current with uploaded".
+2. **Pluginul de reparat certificatele.** Fara el, „Initiate migration" cade cu `cURL error 60: unable to get local issuer certificate (20)`. Arhiva e in repo: **`tools/ecofridge-tls-fix.zip`**, sursa in `tools/ecofridge-tls-fix/` cu README. Plugins → Add New → Upload Plugin → Install → Activate, apoi se citeste notificarea de pe pagina Plugins: verde = API-ul raspunde cu verificarea certificatului pornita. Motivul: Migrate Guru suna `https://mg.blogvault.net` (din `info.php`, prin `appUrl()`), al carui certificat `*.blogvault.net` urca spre radacina GlobalSign Root R46, iar lista de radacini pe care WordPress 6.0 o da lui cURL, `wp-includes/certificates/ca-bundle.crt`, e mai veche decat acea radacina. Dovada, facuta pe 3 noiembrie: lanțul verificat cu lista luata chiar de pe live da `verify error:num=20`, iar cu lista Mozilla actuala da `Verify return code: 0 (ok)`.
+3. Nimic altceva nu se atinge pe magazinul viu. Pluginul de TLS **se dezactiveaza si se sterge** dupa migrare.
+
+### 3. Clonarea (DORU la butoane, CLAUDE verifica)
+
+1. Pe clona: Migrate Guru → se copiaza **migration key**.
+2. Pe site-ul vechi: Migrate Guru → se lipeste cheia si emailul → **Initiate migration**.
+3. Migrate Guru trimite in bucati catre serverele lor, deci **nu construieste arhiva pe serverul lui Ambrit** — de-aia rămâne prima varianta pentru un magazin viu.
+4. Cat ruleaza, nu se atinge nimic pe niciunul din cele doua site-uri.
+
+### 4. Imediat dupa clonare, prin SSH (CLAUDE) — o singura conexiune
+
+Ordinea conteaza: mai intai inchidem site-ul, apoi verificam, abia apoi citim date.
+
+1. **Lacat si noindex.** Verificat pe 3 noiembrie: clona e acum **publica si indexabila** — raspunde 200 fara parola, `blog_public` e `1`, nu are meta robots, iar `robots.txt` da 404. Dupa clonare devine copie 1:1 a magazinului, cu zile inainte de lansare, adica exact ce nu trebuie sa intre in index. Deci: bloc `AuthType Basic` in `.htaccess`, cu `AuthUserFile /home/u510186744/websites/biqFdbY8d/.htpasswd` si `Require valid-user`, parola generata cu `openssl passwd -apr1`, plus `UPDATE <prefix>_options SET option_value='0' WHERE option_name='blog_public';`.
+2. **Oprit orice update.** In `wp-config.php` al clonei: `AUTOMATIC_UPDATER_DISABLED` si `DISALLOW_FILE_MODS` pe `true` — a doua blocheaza si instalarea de pluginuri, de-aia **numai acum**, nu inainte de clonare. Se verifica si ca `wp-config.php` a rămas cu datele de conectare ale clonei, nu ale sursei.
+3. **Scos ce e al gazduirii, nu al site-ului vechi:** `wp-content/mu-plugins/hostinger-h5g-plugin.php`, `wp-content/mu-plugins/hostinger-preview-domain.php` si, daca apar, `wp-content/object-cache.php` si `advanced-cache.php` (LiteSpeed).
+4. **Potrivirea nucleului cu baza de date.** Se citeste `wp-includes/version.php`. Daca scrie tot **7.1.4** peste o baza venita de la WordPress 6.0 cu Woo 3.5.10, **nu se deschide wp-admin**: fie punem nucleul 6.0.x de pe wordpress.org, fie lucram doar la nivel de SQL. Capcana e dovedita — copia din iulie a ajuns pe WP 7.0 desi live era pe 6.0, semn ca in fluxul asta nucleul destinatiei rămâne. Daca se deschide adminul cu nucleu nepotrivit, WordPress si WooCommerce isi pornesc rutinele de upgrade pe baza de date, adica strica exact ce am venit sa copiem.
+5. **Verificari de integritate**, de comparat cu site-ul vechi: numarul de tabele, numarul de comenzi (`SELECT COUNT(*) FROM <prefix>_posts WHERE post_type='shop_order';`), cel mai mare ID (`SELECT MAX(ID) FROM <prefix>_posts;`) si `siteurl` plus `home` din `<prefix>_options`, ca sa vedem ca inlocuirea de URL-uri s-a facut.
+6. **Dump-ul de lucru**, din care extragem datele: `mariadb-dump` — pe serverul asta **nu** exista `mysqldump` — comprimat si descarcat local. Din clipa aia datele nu se mai mișca si putem repeta extragerea de cate ori vrem.
+
+### 5. Variante de rezerva, in ordinea in care le incercam
+
+1. **Pluginul de TLS nu ajuta** (OpenSSL prea batran pe serverul vechi, sau 443 spre exterior filtrat) → cerem gazdei lui Ambrit sa reinnoiasca pachetul `ca-certificates`. E reparatia corecta pentru tot site-ul vechi, nu doar pentru migrare, dar depinde de altcineva, deci se cere **joi**, nu sambata.
+2. **Fara nicio conexiune spre exterior:** export cu **WPvivid** (cere PHP 5.6+, sparge arhiva in bucati, bun pe server vechi) sau cu **All-in-One WP Migration** (PHP 5.3+), descarcat prin browser; eu asez fisierul pe clona prin SSH, direct in folderul de backupuri al pluginului, si il restaurez de acolo — asa ocolim si limita de upload a destinatiei, fara extensie platita. **Duplicator nu merge**: cere PHP 7.4+ si WP 6.2+.
+3. **Fara niciun plugin pe magazinul viu:** FTP/SFTP plus dump de baza de date de la Ambrit, exact metoda din iulie, cu zero scrieri pe live. Accesul e deja pe lista de cerut de la Mads.
+4. **Doar media noua**, daca restul vine altfel: fisierele din `uploads` sunt publice, deci le pot descarca direct prin HTTP de pe site-ul vechi, pe baza diferentei fata de ce avem din iulie.
+
+### 6. Ce nu facem
+
+- Nu deschidem wp-admin pe clona cu nucleu nepotrivit (vezi 4.4).
+- Nu lasam WooCommerce sa se actualizeze pe clona.
+- Nu pornim migrarea cu CDN-ul activ pe destinatie.
+- Nu lasam clona fara parola nicio ora dupa ce e plina.
+- Nu stergem WebToffee PDF Invoices de pe site-ul nou; rămâne inactiv, nesters.
+- Nu punem date de plata in `claude-chat.md` sau in git.
+
+
+## 73. „We are unable to connect to your destination site" — cheia de migrare expirase (2026-11-03)
+
+Doru, dupa ce a urcat pluginul de TLS pe site-ul vechi: **initierea migrarii a functionat**. Apoi, in panoul Migrate Guru: „We are unable to connect to your destination site `https://eco-fridge-backup.o2dev.de`", cu propunerea de a introduce totul manual, prin date de FTP. Intrebarea lui: „pot face ceva sa mearga automat?"
+
+**Da, si nu e nevoie de niciun FTP.** Am verificat pe rand fiecare motiv posibil:
+
+- **Accesibilitatea clonei din exterior:** merge. Cererea pe care o face serviciul lor — adresa site-ului cu parametrul `blogvaultkey` — raspunde 200 atat pe `http`, cat si pe `https`; nu exista parola de acces, nu exista redirect ciudat, iar certificatul `eco-fridge-backup.o2dev.de` e valid (Let's Encrypt, `Verify return code: 0 (ok)`).
+- **CDN-ul:** deja oprit de Doru — antetul clonei da acum `Server: hws`, nu `hcdn`. Deci nu mai e in cale.
+- **Cauza reala, gasita in baza de date a clonei:** pluginul tine cheia in opțiunea `bv_default_secret_key`, cu un `expires_at` alaturi. Pe clona scria **expires_at = 2026-11-03 03:56:36 UTC**, iar verificarea am facut-o la **04:07 UTC** — adica **cheia expirase cu zece minute inainte**. Fusese generata la activarea pluginului, pe 28 octombrie la 06:41 UTC. In codul pluginului, `getDefaultSecret()` returneaza `null` cand cheia a expirat, deci `connectionTag()` nu mai poate fi calculat si `verifyTag()` da fals: serviciul lor nu se mai poate autentifica la destinatie. De aici mesajul, care sugereaza greșit o problema de reța.
+
+**Ce e de facut, si e simplu:** cheia se regenereaza singura. `defaultSecret()` vede cheia lipsa sau expirata si apeleaza `refreshDefaultSecret()`, deci **e de ajuns sa deschizi pagina Migrate Guru pe clona**, care afiseaza o cheie noua. Se copiaza, se lipeste pe site-ul vechi si se porneste migrarea. Daca pagina nu arata una noua, dezactivare plus reactivare a pluginului pe clona o forteaza.
+
+**Atentie la fereastra de timp.** In versiunea 6.72 din repo, `MGRecover::SECRET_TTL` e **1800 de secunde, adica 30 de minute** (cheia veche de pe clona avea aproape 6 zile, deci fusese generata de o versiune mai veche). Asta inseamna: **se genereaza cheia, se copiaza si se porneste migrarea imediat**, in aceeasi sesiune de lucru. Nu se pregateste cheia seara ca sa fie folosita dimineata — exact capcana in care am intrat acum.
+
+**Si o reparatie de igiena, facuta de mine prin SSH:** `siteurl` si `home` ale clonei erau pe `http://`, in timp ce panoul lor vorbea despre `https://`. Le-am trecut pe `https://eco-fridge-backup.o2dev.de`, fiindca certificatul e valid si oricum asa trebuie sa fie; nepotrivirea de schema e un al doilea motiv tipic pentru care verificarea destinatiei cade.
+
+**Pentru sambata, de pus langa pasii din intrarea 72:** cheia de migrare se ia de pe clona **in momentul** in care pornim migrarea, nu inainte; daca mesajul reapare, nu e nevoie de FTP, se regenereaza cheia si se reia. Varianta manuala cu date de FTP rămâne ultima, fiindca inseamna sa dam datele de acces ale gazduirii unui serviciu din afara.
+
+**Despre folderul pluginului de TLS:** prima versiune a arhivei a ieșit in folderul temporar al sesiunii, ceea ce a fost o alegere proasta — un fisier de care avem nevoie sambata nu are ce caută acolo. Sursa si arhiva sunt acum in proiect, la `tools/ecofridge-tls-fix/` si `tools/ecofridge-tls-fix.zip`, cu README care explica de ce exista si cum se reconstruieste arhiva.
+
+## 74. Migrarea de test a pornit, plus clonarea staging → site nou cu unealta Hostinger (2026-11-03)
+
+Doru: „migrarea a inceput pe Migrate Guru. (…) Intre timp, in timp ce se face migrarea de test din vechiul site catre backup site, testez migrarea site-ului de staging catre noul site eco-fridge — am ales optiunea din Hostinger de clone site (din lista de websites, langa butonul de create a new website), am ales sa cloneze site-ul de staging eco-fridge.o2dev.de si acum il cloneaza. (…) Astept sau apas butonul Continue?"
+
+**Migrate Guru ruleaza.** Deci lanțul de azi e inchis: plugin actualizat 5.65 → 6.72, pluginul de TLS urcat pe site-ul vechi, cheie de migrare regenerata pe clona si folosita imediat, `siteurl`/`home` ale clonei trecute pe `https`. Migrarea de test din site-ul vechi catre `eco-fridge-backup.o2dev.de` a pornit.
+
+**Raspunsul la intrebare: se apasa Continue.** Clonarea ruleaza pe serverul Hostinger, nu in pagina din browser — chiar asa scrie si mesajul lor, „You can leave this page". Butonul doar inchide ecranul de progres; site-ul clonat apare in lista Websites cand e gata, in pana la ~15 minute pe site. Statul pe pagina nu grabeste nimic.
+
+**Observatia de moment:** ruleaza **doua operatii grele in acelasi cont** — Migrate Guru scrie in backup site, iar unealta Hostinger copiaza staging → site nou. Nu e o problema in sine, dar nu pornim o a treia si e normal ca staging-ul sa raspunda mai lent in intervalul asta.
+
+**Ce verificam pe site-ul nou imediat ce clonarea se termina** (clonarea Hostinger copiaza fisiere plus baza de date intre doua site-uri din acelasi cont, dar nu stim inca daca inlocuieste singura URL-urile — azi aflam, si de-aia facem repetitia acum, nu sambata la 06:45):
+
+1. **URL-urile:** `siteurl` si `home`, plus cat conținut a rămas cu `eco-fridge.o2dev.de` in baza de date. Daca unealta nu a facut inlocuirea, o fac eu prin SSH, pe tabelele de opțiuni, posturi, postmeta, termmeta si pe conținutul blocurilor.
+2. **Lacatul de staging:** blocul `AuthType Basic` din `.htaccess` vine cu copia, iar `AuthUserFile` pointeaza spre calea veche a staging-ului, deci pe site-ul nou poate da eroare de server. Se corecteaza calea sau se scoate blocul — dar site-ul nou **rămâne inchis** pana la go-live, nu se lasa deschis.
+3. **Indexarea:** `blog_public` si `robots.txt` fizic din radacina. Staging-ul e pe noindex; site-ul nou trebuie sa iasa din noindex **la lansare**, nu inainte, si asta e un pas separat in ghid.
+4. **PHP:** site-ul nou merge pe stiva moderna, ca staging-ul — deci **nu** 7.4; acela e doar pentru clona site-ului vechi. De verificat ca versiunea aleasa de unealta e aceeasi cu a staging-ului.
+5. **CDN:** Hostinger il porneste automat la site-urile eligibile, deci se verifica Performance → CDN si se face purge dupa go-live.
+6. **Cache si must-use:** `object-cache.php` de la LiteSpeed si pluginurile must-use ale gazduirii sunt legate de site-ul lor, nu de conținut — se verifica sa nu tina pagini vechi.
+7. **Paritate:** acelasi numar de tabele, de produse, de comenzi si de pagini ca pe staging; copiile `.avif`/`.webp` prezente in `uploads`.
+8. **Licenta AG Lloyds Cardnet** poate fi legata de domeniu — se verifica dupa ce domeniul final e pe site-ul nou.
+9. **SSH:** un site nou inseamna un utilizator SSH nou, deci **cheia mea publica trebuie adaugata din nou** pe el (pasul J7 din ghid). Fara asta nu pot face verificarile de mai sus.
+
+**Ce rămâne nelamurit pana se termina:** daca unealta de clonare inlocuieste singura URL-urile si cu ce domeniu a creat site-ul nou (temporar sau cel final). Amandoua se vad in lista Websites dupa clonare.
+
+## 75. Clona staging → site nou a reusit; ce am verificat pe ea si daca se poate conecta domeniul de test (2026-11-03)
+
+Doru: „clonarea din staging in noul site s-a facut, am copia 1:1 a staging site pe `https://eco-fridge-o2dev-de-857081.hostingersite.com/` si am buton de Connect your domain unde o sa scriu domeniul eco-fridge.co.uk — are rost sa scriu acum de test domeniul sa vad ce se intampla sau stric ceva? Oricum o sa stergem acest site si repetam sambata."
+
+### Ce am verificat pe copie, prin HTTP, cat timp aștepta
+
+- **URL-urile au fost inlocuite complet, singure.** Zero apariții literale ale `eco-fridge.o2dev.de` in pagina, 1363 pentru noul host, iar `og:url` arata deja `https://eco-fridge-o2dev-de-857081.hostingersite.com/`. **Asta inchide intrebarea deschisa din plan**: unealta „clone site" din Hostinger face si search-replace-ul de domeniu, nu doar copia de fisiere si baza de date. Pentru sambata inseamna ca nu mai trebuie sa pregatesc un search-replace manual ca plan principal — rămâne doar ca verificare.
+- **Noindex a venit cu copia:** `<meta name="robots" content="nofollow, noindex"/>`. Bun pentru moment, dar e si capcana de sambata: pe site-ul final trebuie **scos** la lansare.
+- **Dar copia nu are parola.** Lacatul de staging nu a venit: pagina principala da 200 fara autentificare, `wp-login.php` da 200, iar `my-account` si `checkout` dau 302. E o copie 1:1 a magazinului, **cu date reale de clienti si comenzi**, deschisa oricui nimerește adresa. De pus protectie cu parola din hPanel cat timp exista copia, sau de sters site-ul de test imediat ce se termina repetitia. Ca regula pentru sambata: **site-ul nou se inchide inainte de a fi umplut**, nu dupa.
+- **CDN pornit automat si aici:** antetul da `Server: hcdn`. De verificat si pe site-ul final.
+- Cele 3 apariții ale `eco-fridge.co.uk` rămase sunt conținut legitim (emailul din schema, linkul `g.page`), nu URL-uri de reparat.
+
+### Raspunsul despre „Connect your domain"
+
+**Se poate, nu strica magazinul live.** DNS-ul domeniului e la IONOS, iar adaugarea unui domeniu intr-un cont Hostinger nu atinge nicio inregistrare DNS: doar pregateste gazdirea sa raspunda pentru acel nume. Singurul lucru care ar muta vizitatorii inainte de vreme e **schimbarea DNS-ului sau a nameserverelor la IONOS** — asta nu se atinge pana sambata.
+
+**Doua precauții:**
+
+1. **Se face ultimul**, dupa orice altceva vrem sa verificam pe copia asta. Hostinger poate trece domeniul principal al site-ului pe `eco-fridge.co.uk`, iar atunci copia poate sa nu mai raspunda pe adresa de preview, fiindca numele cel nou rezolva inca spre Ambrit. Nu pierdem nimic — site-ul se sterge oricum — dar s-ar termina testele de azi pe el.
+2. **SSL-ul nu se poate emite** cat timp DNS-ul nu indica spre Hostinger; e normal sa apara „pending" sau o eroare de validare. Nu e o problema si nu ne strica nimic pentru sambata.
+
+**Ce merita urmarit in dialog, fiindca de asta avem nevoie sambata:** daca adauga si varianta **`www`** (canonicalul nostru e `https://www.eco-fridge.co.uk`), daca cere nameservere sau doar o inregistrare A, si ce adresa IP arata — ca sa o pot compara cu ce punem in IONOS.
+
+### Ordinea corecta sambata, confirmata de repetitia asta
+
+1. Site nou creat si **inchis cu parola** din prima clipa.
+2. Clonare staging → site nou (URL-urile se inlocuiesc singure; se verifica).
+3. Connect your domain, cu `eco-fridge.co.uk` **si** `www`.
+4. DNS la IONOS: o singura inregistrare schimbata.
+5. Se aștepta emiterea certificatului.
+6. `siteurl` si `home` pe `https://www.eco-fridge.co.uk`.
+7. Se scoate noindex-ul si se scoate parola — in ordinea asta, ultimul pas.
+8. CDN verificat si purge dupa go-live.
+
+## 76. Domeniul pe site-ul nou: parked vs domeniu principal, si varianta www (2026-11-03)
+
+Doru: „la noul site (ce va deveni live site) la parked domains vad doar eco-fridge.co.uk — adaug si www.eco-fridge.co.uk la Parked Domains in Hostinger?"
+
+**Raspuns scurt:** da, se poate adauga, nu strica nimic, dar nu e asta lucrul important. Important e ca `eco-fridge.co.uk` sa ajunga **domeniul principal** al site-ului, nu un domeniu parcat, fiindca domeniul principal e cel care primeste gazda virtuala si certificatul — iar certificatul trebuie sa acopere **si** `www`, de vreme ce canonicul nostru e `https://www.eco-fridge.co.uk`.
+
+**Ce spune documentatia Hostinger:** un domeniu parcat „afiseaza acelasi conținut ca domeniul principal", adica e un alias peste acelasi docroot, si **trebuie sa indice deja spre serverele lor** (nameservere sau inregistrare A) ca sa poata fi adaugat; altfel adaugarea da eroare. De-aia `eco-fridge.co.uk` apare acum acolo fara sa functioneze: DNS-ul e inca la Ambrit. Daca varianta `www` e adaugata automat la un domeniu parcat, documentatia **nu spune**, si exact de aia nu ne bazam pe presupunere: dacă `www` nu intra in certificat, vizitatorii care ajung pe canonicul nostru vad avertisment de securitate in browser. Deci: se adauga explicit dacă panoul o accepta, iar **inainte de a scoate parola** se verifica in pagina de SSL ca certificatul conține amandoua numele.
+
+**Verificarea pe care am incercat-o si de ce nu a mers:** am vrut sa intreb serverul direct, cu `curl --resolve`, dacă raspunde pentru `eco-fridge.co.uk` si `www.eco-fridge.co.uk` inainte de mutarea DNS-ului. Nu se poate deocamdata: adresa de preview a site-ului nou e un CNAME catre **`free.cdn.hstgr.net`**, adica spre marginea CDN-ului Hostinger, deci din afara nu exista un IP de origine pe care sa-l interoghez. Doua concluzii practice din asta:
+
+1. **CDN-ul pe site-ul final rămâne oprit la go-live.** Il pornim, dacă vrem, dupa ce totul e verificat; altfel verificam o margine de cache, nu site-ul, exact cand avem cel mai mult nevoie de adevar.
+2. **Ce inregistrare cere Hostinger** pentru domeniu — o inregistrare A spre IP-ul planului, sau un CNAME spre CDN-ul lor — se citeste din hPanel **inainte** de a schimba ceva la IONOS, fiindca la IONOS schimbam o singura inregistrare si vrem sa fie cea corecta din prima.
+
+**Ordinea pe domeniu, de pus langa pasii din intrarea 75:**
+
+1. `eco-fridge.co.uk` setat ca **domeniu principal** al site-ului nou (nu doar parcat); dacă panoul ofera „main domain" sau „connect domain", asta e drumul.
+2. `www.eco-fridge.co.uk` acoperit si el — adaugat explicit dacă nu apare singur.
+3. Se citeste din hPanel ce inregistrare DNS cere.
+4. Se schimba inregistrarea la IONOS.
+5. Se aștepta certificatul si **se verifica in pagina de SSL ca are amandoua numele**.
+6. Verificarile mele de dupa: `https://eco-fridge.co.uk` si `https://www.eco-fridge.co.uk` raspund amandoua, certificat valid pe amandoua, iar varianta fara `www` face 301 spre `www` — regula de canonic din `.htaccess` e pe numele gazdei, nu pe `%{HTTPS}`, ca sa nu intram in bucle in spatele LiteSpeed.
+7. Abia apoi se scoate noindex-ul si, la final, parola.
+
+**Completare, aceeasi zi.** Panoul refuza varianta `www`: `failed [without_subdomain:www] rule validation`. **Nu e o problema de moment, ci o regula de validare** — campul interzice din principiu un domeniu scris cu `www.` in fata, deci nu se va putea nici dupa mutarea DNS-ului la IONOS. Si asta confirma exact ce voiam sa aflam: Hostinger trateaza `www` ca parte a aceluiasi domeniu, nu ca o intrare separata, de-aia nici nu te lasa sa-l scrii. Doru: „sper sa pot dupa conectarea domeniului din ionos" — nu, si nu e nevoie.
+
+Prin urmare lista de reincercat dupa DNS e goala, iar verificarile rămân: certificatul din pagina de SSL a site-ului sa conțină **amandoua numele** (documentatia Hostinger promite SSL gratuit pentru fiecare domeniu si subdomeniu gazduit la ei, reinnoit automat cat timp domeniul indica spre ei, dar acoperirea `www` plus non-`www` apare doar in surse terte, deci se verifica cu ochii); amandoua adresele sa raspunda cu certificat valid; apex sa faca 301 spre `www`. Dacă `www` lipseste din certificat, se reemite SSL-ul din hPanel dupa propagarea completa, si abia apoi e caz de suport Hostinger — nu se rezolva prin parked domains.
+
+## 77. Stergerea site-ului de test si ce a dovedit repetitia (2026-11-03)
+
+Doru: „acum sterg acest site eco-fridge.co.uk si vom relua procedura de la zero din nou sambata. Confirmi?"
+
+**Confirmat.** Copia e de o ora, facuta din staging, si nu s-a creat nimic pe ea; staging-ul e intact, iar magazinul live nu e atins in niciun fel, de vreme ce DNS-ul e in continuare la IONOS catre Ambrit. Stergerea unui website din cont scoate fisierele, baza de date si gazda virtuala ale acelui website, nimic altceva.
+
+**Ce i-am cerut inainte de a apasa:**
+
+1. **Sa noteze inregistrarea DNS pe care o arata hPanel** pentru `eco-fridge.co.uk` — IP-ul pentru A record sau CNAME-ul. IP-ul e al planului, nu al site-ului, deci va fi acelasi sambata, dar daca il avem acum nu-l mai cautam in fereastra de lansare si pot pregati valoarea pentru IONOS din timp.
+2. **Sa verifice de doua ori rândul pe care il sterge:** `eco-fridge-o2dev-de-857081.hostingersite.com`. In aceeasi lista, langa el, e `eco-fridge.o2dev.de` — staging-ul, care conține toata munca si din care clonam sambata. Asta e singura greseala cu adevarat costisitoare din toata operatia de azi.
+
+**Ce i-am cerut dupa stergere:** sa se uite daca `eco-fridge.co.uk` a mai rămas agatat undeva in cont — la Parked domains al altui site sau in lista de domenii. Daca rămâne ocupat, sambata „Connect domain" ar da „domain already in use" exact in fereastra de lansare.
+
+**Despre mailuri:** la Hostinger nu exista cutii postale pentru `eco-fridge.co.uk`, iar MX-urile sunt la IONOS si nu se ating cand domeniul e scos de pe un website. Avertismentul din documentatia lor despre stergerea adreselor de email la despachetare nu ne priveste.
+
+**Migrarea Migrate Guru** catre backup site nu e afectata: e alt website in cont.
+
+### Ce a dovedit repetitia de azi, ca sa nu refacem descoperirile sambata
+
+1. Unealta „clone site" din Hostinger copiaza fisiere plus baza de date **si face singura inlocuirea de URL-uri** — zero apariții ale domeniului de staging in pagina clonata.
+2. **Noindex-ul vine cu copia**, deci site-ul nou va fi pe noindex din start si trebuie scos la lansare, ca pas separat si ultim.
+3. **Parola nu vine cu copia** — copia a fost deschisa oricui, cu date reale de clienti. De aceea, sambata, site-ul nou se inchide cu parola **inainte** de a fi umplut.
+4. **CDN-ul se porneste automat** pe site-urile noi, iar adresa de preview e un CNAME catre `free.cdn.hstgr.net`. Deci: CDN oprit pana dupa verificari, altfel verificam cache-ul, nu site-ul.
+5. **Varianta `www` nu se adauga separat** — formularul o refuza prin regula `without_subdomain:www`, fiindca `www` aparține aceleiasi intrari ca domeniul fara `www`. Se verifica doar ca certificatul le conține pe amandoua.
+6. Un website nou inseamna **utilizator SSH nou**, deci cheia mea publica se adauga din nou (pasul J7 din ghid) inainte sa pot verifica ceva pe server.
+
+## 78. DNS-ul de sambata, lamurit complet: o singura inregistrare, plus TTL-ul de coborat ASTAZI (2026-11-03)
+
+Doru a trimis din hPanel: „nu apare nicio inregistrare in DNS records", dar la Hosting details scrie `Access your website at https://eco-fridge.co.uk`, `Access your website with www https://www.eco-fridge.co.uk`, **Website IP address 148.230.121.74**, iar serverul e `uk-fast-h5g-node15.hstgr.io`, locatie United Kingdom.
+
+**De ce nu apar inregistrari DNS la Hostinger:** zona domeniului e la IONOS. Nameserverele publice sunt `ns1030.ui-dns.de / .com / .biz / .org` (TTL 172800), adica IONOS, iar editorul de DNS din hPanel administreaza doar domeniile care folosesc nameserverele Hostinger. Nu lipseste nimic si nu e nimic de reparat.
+
+**IP-ul de pus la IONOS: `148.230.121.74`.** E acelasi IP pe care stau si staging-ul si backup site-ul — e IP-ul planului, partajat, iar serverul alege site-ul dupa numele din cerere, nu dupa IP. Deci e normal si corect asa.
+
+**Starea reala a zonei, interogata azi din exterior:**
+
+| Inregistrare | Valoare acum | TTL | Ce facem sambata |
+|---|---|---|---|
+| `eco-fridge.co.uk` A | **185.230.220.98** (Ambrit) | **3600** | **se schimba in `148.230.121.74`** |
+| `www.eco-fridge.co.uk` | **CNAME → `eco-fridge.co.uk`** | 3600 | **nu se atinge** — urmeaza automat |
+| AAAA (apex si www) | **nu exista** | — | nimic |
+| CAA | **nu exista** | — | nimic |
+| MX | `mx00.ionos.co.uk`, `mx01.ionos.co.uk` | 3600 | **nu se ating** |
+| TXT | SPF `v=spf1 +a +mx +ip4:83.223.113.98 include:_spf-eu.ionos.com ~all` si `google-site-verification=…` | 3600 | **nu se ating** |
+
+**Trei lucruri bune care ies din tabel:**
+
+1. **Chiar e o singura inregistrare de schimbat.** `www` e un CNAME spre apex, deci se mută singur odata cu A-ul — ceea ce confirma si randul „Access your website with www" din hPanel: gazduirea raspunde pentru amandoua numele, fara sa adaugam nimic (si de-aia formularul de parked domains refuza varianta `www`).
+2. **Nu exista AAAA.** Asta scoate din joc capcana clasica de lansare, in care se schimba doar A-ul iar clientii cu IPv6 ajung in continuare pe serverul vechi.
+3. **Nu exista CAA**, deci nimic nu blocheaza emiterea certificatului Let's Encrypt pentru cele doua nume.
+
+**De facut ASTAZI, nu sambata: coborat TTL-ul.** Inregistrarea A are TTL 3600, deci dupa schimbare resolverele pot servi inca pana la o ora IP-ul vechi — adica unii clienti ar vedea magazinul vechi, in modul mentenanta, dupa ce noi credem ca am lansat. Reparatia: la IONOS, **se schimba doar TTL-ul inregistrarii A la 300 de secunde, valoarea rămâne 185.230.220.98**. Efect vizibil pe magazinul de acum: zero. Dar coborarea devine efectiva abia dupa ce expira TTL-ul vechi la resolverele care au deja raspunsul in cache, deci se face **cu cateva zile inainte**, iar azi e marti si lansarea e sambata: momentul potrivit e acum. Dupa ce lansarea e verificata, TTL-ul se poate urca din nou la 3600.
+
+**O observatie despre emailuri, de tinut minte la verificarile de dupa lansare:** SPF-ul conține `+a`, adica autorizeaza sa trimita email exact IP-ul din inregistrarea A. Dupa mutare, acela devine serverul Hostinger, deci emailurile de comanda trimise de server rămân autorizate automat; nu e nevoie sa schimbam SPF-ul. Rămâne totusi de verificat livrarea efectiva a emailurilor de comanda dupa go-live.
+
+**Si un detaliu care ne ajuta, desi Doru credea ca nu:** serverul e in Marea Britanie (`uk-fast-h5g-node15.hstgr.io`). Pentru un magazin britanic e exact unde trebuie, iar la masurarea Core Web Vitals de dupa lansare conteaza: comparatia cu scorurile de pe staging e corecta, fiindca staging-ul e pe acelasi nod.
+
+## 79. Clona site-ului vechi: inchisa, ingheţata — si trei descoperiri care schimba planul (2026-11-03)
+
+Doru: migrarea din site-ul vechi catre `eco-fridge-backup.o2dev.de` s-a terminat cu succes, clona arata exact ca site-ul vechi, site-ul de test al noului site a fost sters, iar TTL-urile le coboara el. Cererea: „pune tu noindex si orice e nevoie la eco-fridge-backup.o2dev.de ca sa nu apara online si sa nu poata fi gasit."
+
+### Ce am facut, si cum am ajuns acolo
+
+Am lucrat cu scripturi urcate pe server, nu cu comenzi inline, si am avut nevoie de patru treceri, fiindca serverul are trei limite pe care nu le stiam:
+
+1. **Folderul site-ului si `$HOME` nu sunt scriibile** (sunt ale lui `root`), deci fisierul de parole nu putea sta langa docroot, ca pe un server obisnuit.
+2. **`awk` nu exista**, iar **`sed -i` nu poate redenumi peste `wp-config.php`** („Device or resource busy") — fisierele de nucleu vin prin stratul h5g al Hostinger-ului. Soluția: se scrie in loc cu `cat fisier-nou > fisier`.
+3. **Autentificarea Basic din `.htaccess` e ignorata** de serverul lor: site-ul raspundea in continuare 200 fara parola, desi `Require all denied` **functioneaza** (fisierul `.htpasswd` dadea 403). Deci parola pe directoare se poate pune doar din hPanel, nu din `.htaccess`.
+
+**Lacatul final, la nivel de PHP, in `wp-config.php`:** orice cerere HTTP catre WordPress primeste **403** si `X-Robots-Tag: noindex, nofollow, noarchive`, in afara de cea care aduce tokenul; tokenul pune un cookie valabil sapte zile si dupa aceea copia se navigheaza normal. Tokenul si adresa de deblocare sunt in chat, **nu in git**. Verificat din exterior: `/`, `/wp-login.php`, `/wp-admin/`, `/feed/`, `/wp-json/wp/v2/posts` si `/sitemap_index.xml` dau toate 403 cu textul „Not available.", iar cu cookie-ul pus pagina principala revine cu titlul corect.
+
+**Si restul masurilor:**
+
+- `blog_public` pe **0**.
+- `robots.txt` fizic in radacina, cu `User-agent: *` / `Disallow: /`.
+- `.ht*` refuzate prin `.htaccess` (singura directiva de acces care chiar e respectata aici).
+- In `wp-config.php`: `AUTOMATIC_UPDATER_DISABLED`, `DISALLOW_FILE_MODS` si `DISABLE_WP_CRON`, toate pe `true` — nimic nu se mai actualizeaza si **nimic programat nu mai ruleaza** pe copie, deci Action Scheduler-ul lui WooCommerce nu poate atinge datele pe care venim sa le citim. `php -l` curat, copii `.bak-pre-*` pastrate pentru fiecare fisier atins.
+- **Nu am putut** muta pluginurile must-use ale Hostinger-ului (`hostinger-h5g-plugin.php`, `hostinger-preview-domain.php`): folderul `mu-plugins` e al lui `root`. Rămân pe loc; nu deranjeaza extragerea de date, dar pasul 4.3 din intrarea 72 e de corectat — pe clona nu se poate face.
+- Nucleul clonei a rămas **WordPress 7.1.4** peste baza de date a site-ului vechi, exact capcana prevazuta. Site-ul se incarca, dar **wp-admin nu se deschide** pana nu decidem: ori nucleu 6.0.x, ori extragere doar prin SQL. Cu cronul oprit si update-urile blocate, riscul e ținut in loc.
+
+### Trei descoperiri din datele clonei, care schimba planul
+
+**Starea clonei:** prefix de tabele `43lz2ypq8_`, 281 de tabele, `siteurl`/`home` pe `https://eco-fridge-backup.o2dev.de`, 131 de produse publicate.
+
+1. **Regula „tot ce are ID peste 7261 e comanda noua" e GREȘITA.** Pe site-ul vechi, comenzile merg de la **#2741 (26 martie 2019)** pana la **#14632 (31 octombrie 2026)**. Dupa ID, 5.168 de comenzi ar parea „noi"; in realitate, **comenzi plasate de la 10 iulie 2026 incoace sunt 85**, cu ID-uri intre **#14514 si #14632**, iar inainte de 10 iulie sunt 5.929. Deci #7261 e un numar din **numerotarea site-ului nou**, nu din cea a site-ului vechi: migrarea din iulie a reimportat comenzile ca posturi noi, cu ID-uri noi. **Delta se selecteaza dupa data (`post_date >= 2026-07-10`), niciodata dupa ID.** Cele 85 de comenzi se potrivesc exact cu estimarea de ~20 pe luna.
+2. **Numerotarea viitoare trebuie decisa.** Nu exista meta `_order_number` pe site-ul vechi (zero randuri), deci **numarul comenzii ESTE ID-ul postului**. Clientii au primit prin email numere de forma #14xxx, in timp ce site-ul nou e la #8037. Dacă importam cele 85 de comenzi cu numerele lor originale, urmatorul numar pe site-ul nou trebuie sa fie **peste 14632**, nu peste 8037 — altfel doua comenzi diferite pot primi acelasi numar. Alternativa e sa le renumerotam si sa acceptam ca numarul din emailul clientului nu mai corespunde. **Decizia e a lui Doru si a lui Mads**, dar trebuie luata inainte de import.
+3. **„Clienti noi" e aproape o lista goala, si asta e o veste bună.** Tabela de utilizatori are **5 conturi**, toate de personal (`ECO-Fridge` si `manager` administratori, `Eco-fridge-shop` shop manager, plus `Distinctly` si `Lockouts`). Din comenzi, **6.008 sunt plasate ca oaspete** si doar **6** au cont atasat. Exista 3.565 de adrese de facturare distincte, dar ele trăiesc in meta comenzilor, nu ca utilizatori. Prin urmare punctul 3 din planul de backup — conturi, adrese, parole — nu are practic ce migra; datele clientilor vin odata cu comenzile.
+
+### Ce rămâne de facut pe clona
+
+Dump-ul de lucru cu `mariadb-dump`, descarcat local, din care extragem cele 85 de comenzi, diferentele de produse si pagini, media noua, redirecturile si metadatele SEO. Il fac la cerere; de preferat dupa ce Doru confirma decizia de numerotare, fiindca de ea depinde forma importului.
+
+## 80. Checklistul si calendarul din Sheet aduse la zi (2026-11-03)
+
+Doru: „actualizeaza-mi si checklist dar mai ales calendarul". Am lucrat direct in „Eco-fridge: checklist cu bife", in ambele foi; linkul rămâne acelasi.
+
+### Calendar lansare
+
+**Mutat mai devreme, fiindca s-a facut azi:** randul de TTL si randul „Repetiție: copia site-ului vechi" au trecut de la joi 5 noiembrie la **marti 3 noiembrie**. TTL-ul e „in lucru", copia e bifata, iar randul de extragere a datelor a devenit „sambata, dupa copia finala", fiindca repetitia lui nu mai are rost separat — avem deja copia.
+
+**Rand nou, chiar inaintea blocului de sambata: „Ce a dovedit repetitia si ce se schimba in ziua lansarii".** Sase puncte, scrise ca sa fie citite o singura data, dimineata: unealta „Clone site" exista si inlocuieste singura URL-urile; noindex vine cu copia dar **parola nu**, deci site-ul nou se inchide **inainte** de a fi umplut; CDN-ul porneste automat si se opreste pana dupa verificari; domeniul adaugat sta la Parked domains pana la DNS, iar varianta `www` nu se poate adauga separat; IP-ul pentru IONOS e 148.230.121.74 pe nodul britanic `uk-fast-h5g-node15.hstgr.io`; Migrate Guru are cele trei capcane deja rezolvate.
+
+**Corectat randul critic de la 05:40** — importul comenzilor. Scria „TOATE comenzile apărute după #7261"; acum scrie regula adevarata: selectie **dupa data** (`post_date >= 2026-07-10`), 85 de comenzi cu ID-uri **#14514–#14632**, plus decizia de numerotare care trebuie luata inainte de import si faptul ca nu exista conturi de clienti de migrat.
+
+**Randul de DNS de la 07:30** are acum valorile verificate azi din exterior: A @ `185.230.220.98` → `148.230.121.74`, `www` e CNAME si urmeaza singur, **nu exista AAAA** (deci nicio capcana IPv6) si **nu exista CAA** (deci nimic nu blocheaza Let's Encrypt), MX si TXT neatinse, TTL coborat azi.
+
+**Si trei defecte ale foii, reparate:**
+
+1. Randul de la **08:30, „Comandă și formular reale", avea copiat textul despre SSL** — pasul isi pierduse continutul. L-am rescris cu ce se face de fapt: o comanda reala cu cardul, de la cos la pagina de mulțumire, si un formular real din pagina de contact, cu verificarea emailurilor si a SMS-ului.
+2. Randul de **GTM si Consent Mode v2 dispăruse**: textul lui fusese inlocuit de regula de canonic. I-am facut rand propriu la 08:15, cu ce trebuie verificat, inclusiv faptul ca vechiul site rula `GTM-NFMC9Z3`, deci containerul de pe site-ul nou se confirma inainte de a fi pus.
+3. **Regula de canonic statea la 08:15, desi textul ei cere sa fie inainte de DNS.** Am mutat-o la **07:10**, dupa copiere si inaintea schimbarii DNS-ului, si am sters randul rămas dublat. Randul de SSL de la 07:45 nu avea nici „Cine", nici „Status"; le-am completat.
+
+### Checklist eco-fridge
+
+- **F15-01** (copia completa): bifat **◐ Parțial** cu data de azi — repetitia e facuta, rularea reala e sambata — si descrierea celor trei obstacole Migrate Guru plus starea de acum a clonei (403 fara token, update-uri si cron oprite, nucleu 7.1.4 peste baza veche deci wp-admin nu se deschide, must-use ale Hostinger nemutabile). Dovada: `tools/ecofridge-tls-fix/`.
+- **F15-02** (comenzile): regula corectata, cu motivul numeric, si trimitere la F15-10 pentru numerotare.
+- **F15-03** (clientii noi): **◐ Parțial**, lamurit — 5 conturi de personal, 6.008 comenzi ca oaspete, 6 cu cont, 3.565 de adrese de facturare care trăiesc in meta comenzilor. Nu e nimic de migrat ca utilizatori; rămâne doar verificarea ca meta de facturare a venit intreaga.
+- **F15-10** (reconciliere si numarul urmator): scrisa ca **decizie**, cu cele doua variante si consecinta fiecareia.
+
+Ce **nu** am atins: randurile F14 de lansare, fiindca detaliul zilei sta in calendar si nu are rost dublat, si nicio alta foaie sau formula.
+
+## 81. Numerotarea comenzilor: decizia lui Doru, si de ce recomand totusi stergerea comenzilor de test (2026-11-03)
+
+Doru: „sambata, comenzile noastre de test vor fi renumerotate astfel incat sa vina dupa (adica sa urmeze) ultima comanda ce a fost plasata pe site-ul live vechi inainte de sambata (…) Apoi, decizi tu daca este mai bine sa le stergem sau pastram si daca ii strica ceva in evidenta lui Mads daca le pastram".
+
+**Decizia pe partea de numerotare e luata si e cea corecta:** comenzile reale vin cu numerele lor originale, iar magazinul nou continua dupa ele. Asta inseamna ca un client care caută numarul din emailul primit il regaseste identic, ceea ce e singurul lucru care conteaza pe termen lung.
+
+### Ce am verificat pe staging inainte sa raspund
+
+- **HPOS e OPRIT** pe site-ul nou: `woocommerce_custom_orders_table_enabled = no`, tabela `wp_wc_orders` nu exista. Deci comenzile sunt posturi, exact ca pe site-ul vechi, iar **numarul comenzii ESTE ID-ul postului** pe ambele parti. Vestea buna pentru sambata: cele 85 de comenzi se mută post-la-post, in aceeasi forma de stocare.
+- **Starea numerelor acum:** 5.938 de comenzi importate in iulie, cu numere pana la **#7261**; comenzile noastre de test ocupa **#8007, #8029, #8030, #8036, #8037, #8038, #8039**, iar **cel mai mare ID de post e 8042**, cu `AUTO_INCREMENT = 8043`.
+- **Statusurile comenzilor de test:** #8036, #8037, #8038 sunt **Processing** (£1,00 fiecare, plata reala cu cardul); #8007 (£1.542, transfer bancar) si #8039 (£1,00, testul SMS) sunt **On hold**; #8029 si #8030 sunt **Cancelled**.
+
+### Recomandarea mea: se sterg, iar renumerotarea nu mai e necesara
+
+**Renumerotarea costa mai mult decat stergerea, si tocmai pe comenzi pe care oricum le aruncam.** Cu HPOS oprit, schimbarea numarului unei comenzi inseamna schimbarea ID-ului postului, deci `UPDATE` pe `wp_posts`, `wp_postmeta`, `woocommerce_order_items`, `wp_wc_order_stats`, `wp_wc_order_product_lookup`, tabelele de lookup pentru taxe si cupoane, plus `wp_comments` pentru notele comenzii — sase-opt tabele per comanda, cu grija la coliziuni de chei. E chirurgie de baza de date, facuta la 05:40 in dimineata lansarii, pentru sapte comenzi care nu reprezinta vanzari reale. Stergerea e un clic pe fiecare.
+
+**Iar rezultatul pe care il vrei se obtine cu o singura comanda SQL.** Dupa import, se pune `AUTO_INCREMENT` al tabelei `wp_posts` peste cel mai mare numar importat — daca ultima comanda reala de sambata e, sa zicem, #14888, se pune 14901. De acolo magazinul nou continua singur. Exact efectul descris: nicio suprapunere, numerotare care curge mai departe.
+
+**Da, pastrarea lor strica ceva in evidenta, si concret:** WooCommerce Analytics exclude implicit doar comenzile `pending`, `failed` si `cancelled`. Comenzile **Processing** si **On hold** INTRA in rapoarte. Deci, pastrate, prima luna de pe site-ul nou ar arata cinci comenzi si aproximativ **£1.545** care nu exista — #8007 cu £1.542 fiind cea care strica cifra — plus o linie de produs pentru produsul ascuns de test in raportul de produse. Rapoartele se construiesc din `wp_wc_order_stats`, de aceea planul cere deja verificarea ca randurile de acolo dispar.
+
+**Ce NU se schimba, oricum alegem:** cele trei plati reale de £1,00 cu cardul sunt in decontarea Lloyds si rămân acolo, fiindca stergerea unei comenzi din WooCommerce nu atinge procesatorul. Contabilitatea lui Mads lucreaza din extrasul de cont si din decontarea Lloyds, deci partea de bani e identica in ambele variante. Diferenta e doar dacă magazinul raporteaza sau nu vanzari care nu au existat.
+
+**Si un risc in plus la pastrare:** dacă WebToffee PDF Invoices e activat vreodata, ar putea emite numere de factura pentru comenzi de test, iar o serie de facturare cu vanzari fictive e exact genul de lucru care se repara greu.
+
+**Dacă totusi vrei sa rămână**, varianta curata e: toate trecute pe **Cancelled**, cu o nota pe comanda („test intern, nu e o vanzare"), ca sa iasa din rapoarte — si atunci da, renumerotarea are sens, dar o fac prin script, testat pe o copie, nu improvizat in dimineata lansarii. Urmele de care am nevoie ca dovada ca plata a functionat pe gateway-ul live sunt deja in nota de proiect, unde stau si referintele de tranzactie, nu in git.
+
+**Concluzie, pe scurt:** ștergem cele sapte comenzi de test si produsul ascuns, importam comenzile reale cu numerele lor, apoi pornim secventa peste cel mai mare numar importat. Decizia de numerotare a lui Doru rămâne respectata integral — doar drumul pana la ea devine mai scurt si fara risc.
+
+## 82. Aprobare permanenta: jurnal, git cu merge, si Sheet-ul, fara sa mai cer (2026-11-03)
+
+Doru: „tine minte si noteaza in claude-chat.md: ai aprobarea mea sa actualizare a claude-chat.md, plus push, commit si merge automata pe git, plus actualizare calendar si checklist pe Google Drive."
+
+**Ce se schimba, de acum:** regula din 29 octombrie, care cerea actualizarea jurnalului dupa fiecare lucrare, se extinde cu doua lucruri pe care pana acum le lasam lui Doru:
+
+1. **Git, pana la capat.** Branch, commit, push, PR **si merge**, apoi inapoi pe `main` cu `pull`. Pana azi deschideam PR-ul si aparea pasul blocat „Merge Without Review", iar PR-urile se adunau. De acum le unesc eu. Dacă harnessul blocheaza totusi merge-ul, spun direct ca s-a blocat si las PR-ul deschis — nu caut ocolisuri.
+2. **Sheet-ul „Eco-fridge: checklist cu bife"**, ambele foi — calendarul de lansare si checklistul — actualizate in acelasi tur cu jurnalul, direct in fisier, cu linkul neschimbat.
+
+**Ce NU se schimba:** datele de plata, referintele de tranzactie si orice credentiale rămân in afara jurnalului, a Sheet-ului si a git-ului; stau in notele de proiect. Si rămâne regula de o singura conexiune SSH pe Hostinger la un moment dat.
+
+**Ce inseamna practic:** la finalul fiecarei lucrari sau decizii, trei locuri se actualizeaza singure — jurnalul, istoricul git si Sheet-ul. Doru nu mai trebuie sa ceara niciunul din ele si nu mai trebuie sa uneasca PR-uri manual.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
@@ -1310,3 +1701,23 @@ Doru a trimis datele firmei si le-am verificat direct in registrul britanic, pe 
 - **Audit:** cele patru rapoarte O2X citite și verificate; trei probleme reale găsite și reparate.
 - **De verificat pe live, imediat după mutare:** robots.txt răspunde 200, scorul SEO din Lighthouse revine la ~100, canonical-urile apar, paginile cu LCP mare se re-măsoară fără parola de staging.
 - **Urmează până joi 5 noiembrie:** repetiția migrării pe site-ul de backup, cross-browser, Rich Results Test, deciziile de produs ale lui Mads.
+
+## Stare la 2026-11-03 (dimineata)
+
+- **Git:** `main` cu PR #16–#55 unite. **PR #56 e deschis si neunit** — conține intrarile 69–72 din jurnal si pluginul `tools/ecofridge-tls-fix/`; merge-ul mi-a fost blocat de modul auto, deci il face Doru.
+- **Lansare:** sambata 7 noiembrie 2026, 05:00–09:00. Repetitia migrarii: joi 5 noiembrie. DNS: o singura inregistrare, din contul IONOS.
+- **Site vechi:** PHP 7.2.34, WordPress 6.0.x, WooCommerce 3.5.10, Migrate Guru actualizat la 6.72 (era 5.65).
+- **Clona:** `eco-fridge-backup.o2dev.de`, WordPress 7.1.4, SSH `ef-backup` merge. **De facut in hPanel, de Doru:** PHP pe 7.4, CDN off, auto-update pe „Don't update".
+- **Aprobare permanenta de la Doru, 3 nov (intrarea 82):** jurnal, git pana la merge, si Sheet-ul - toate trei se actualizeaza fara sa mai cer.
+- **Sheet adus la zi (intrarea 80):** calendarul si checklistul au randurile de azi, regula corectata de selectie a comenzilor, valorile DNS verificate, plus trei defecte reparate (textul despre SSL copiat peste pasul de comanda reala, randul de GTM dispărut, regula de canonic mutata inaintea DNS-ului).
+- **Numerotare comenzi (intrarea 81):** Doru a decis ca numerele reale se pastreaza si magazinul continua dupa ele. HPOS e OPRIT pe ambele site-uri, deci numarul comenzii e ID-ul postului; staging e la max ID 8042. Recomandarea mea: comenzile de test SE STERG, iar secventa se pune peste cel mai mare numar importat - renumerotarea lor ar fi chirurgie pe 6-8 tabele in dimineata lansarii, iar pastrate ar adauga ~£1.545 de vanzari inexistente in rapoartele primei luni.
+- **Clona site-ului vechi: GATA si INCHISA** (intrarea 79). Migrarea a reusit, copia e identica cu site-ul vechi, iar acum orice cerere HTTP da 403 in afara de cea cu token; blog_public 0, robots.txt Disallow, update-uri si cron oprite. **Descoperiri care schimba planul:** comenzile noi se selecteaza DUPA DATA (85 de la 10 iulie incoace, #14514-#14632), nu dupa ID; numarul comenzii pe site-ul vechi e ID-ul postului, deci numerotarea viitoare trebuie decisa (peste 14632 sau renumerotare); clientii sunt aproape toti oaspeti, deci nu avem conturi de migrat.
+- **DNS lamurit (intrarea 78):** sambata se schimba O SINGURA inregistrare, A de la apex, 185.230.220.98 -> 148.230.121.74; www e CNAME spre apex si urmeaza singur; nu exista AAAA si nici CAA; MX si TXT nu se ating. **De facut azi:** TTL-ul inregistrarii A coborat la 300 la IONOS, cu valoarea neschimbata.
+- **Site-ul de test se sterge** la finalul repetitiei, cu acordul cerut si dat; procedura se reia de la zero sambata, din staging-ul actualizat. Ce a dovedit repetitia: intrarea 77, punctele 1-6.
+- **Domeniu:** pe site-ul nou, eco-fridge.co.uk apare la Parked domains si nu merge inca, fiindca DNS-ul e la Ambrit. De urmarit: domeniu PRINCIPAL, nu parcat, plus varianta www acoperita de certificat (intrarea 76).
+- **Repetitia de azi, clonarea staging:** reusita, pe `https://eco-fridge-o2dev-de-857081.hostingersite.com/`; unealta Hostinger inlocuieste singura URL-urile, noindex vine cu copia, dar parola NU vine, deci copia e deschisa oricui — de inchis sau de sters. Detalii si ordinea corecta de sambata: intrarea 75.
+- **Azi, in lucru:** migrarea de test site vechi → `eco-fridge-backup.o2dev.de` ruleaza prin Migrate Guru; in paralel, clonarea staging → site nou cu unealta Hostinger (lista de verificari de dupa: intrarea 74).
+- **Blocajul de azi, rezolvat:** „Initiate migration" cadea cu cURL error 60. Cauza gasita si dovedita: lista de radacini a WordPress-ului 6.0 de pe live nu cunoaste radacina GlobalSign Root R46 folosita de `mg.blogvault.net`. Reparatia e `tools/ecofridge-tls-fix.zip`, de urcat pe site-ul vechi; **inca netestata pe viu** — asta e primul lucru de incercat.
+- **Daca reparatia nu merge:** variantele din intrarea 72, secțiunea 5, in ordinea de acolo.
+- **Procedura completa pentru sambata:** intrarea 72, de citit de la cap la coada inainte de orice clic.
+- **Rămâne de cerut de la Ambrit/Mads:** acces FTP/SFTP plus dump de baza de date (varianta curata, fara nimic instalat pe magazinul viu) si, daca e nevoie, reinnoirea pachetului `ca-certificates` pe serverul vechi.
