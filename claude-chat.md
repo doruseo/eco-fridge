@@ -1778,6 +1778,45 @@ Singura diferenta reala de stoc: **`upright-cake-display-fridge`** — pe site-u
 
 **Concluzia care conteaza:** repetitia a meritat de patru ori — fara ea, sambata am fi importat doua comenzi duplicate, am fi „reparat" 18 preturi corecte, am fi căutat produse si categorii care nu exista, si am fi ratat 25 de redirecturi.
 
+## 86. Scriptul de import, scris si rulat pe o copie — plus ce se reverifica sambata (2026-11-03)
+
+Doru: „da, scrie scriptul de import si ruleaza-l pe o copie, insa noteaza pentru sambata sa verificam daca au aparut produse noi, daca au fost sterse produse existente la noi pe staging, daca s-au modificat produsele existente, de verificat paginile si categoriile din nou daca s-au schimbat, sters, sau aparut altele noi."
+
+### Uneltele, acum in repo si reutilizabile
+
+| Fisier | Ce face |
+|---|---|
+| `migration/f15-run.sh` | rulează scripturile; `--old`/`--new` sunt `baza.prefix`, `--since` dă data de la care „modificat" conteaza, `--docker` rulează clientul in container, `--dry-run` se oprește după numărători |
+| `migration/f15-compare.sql` | citește si compara; nu scrie nimic |
+| `migration/f15-import-orders.sql` | importa comenzile selectate prin `_order_key`, cu verificări la final |
+
+Cele doua baze pot sta in **acelasi server cu prefixe diferite**, si exact asa se rulează pe staging: se incarca tabelele clonei langa ale noastre, se importa, apoi se sterg.
+
+### Repetitia, in ordinea exacta de sambata, pe baza locala (cu dump de siguranta pastrat)
+
+1. **Stergerea cu WP-CLI curata si rapoartele.** `wp post delete 8007 8029 8030 8036 8037 8035 --force` a scazut comenzile din 5.936 in 5.931 **si a sters singura randurile din `wp_wc_order_stats`**. Deci nu e nevoie de curatenie manuala in tabelele de analiza, cum credeam.
+2. **Importul a trecut toate verificările:** 83 de comenzi, 255 de linii, 4.232 de randuri de meta, 130 de note; zero coliziuni de ID; zero comenzi fara linii sau fara total; zero randuri de meta orfane dupa renumerotarea liniilor si a notelor (ID-urile de linie si de nota vin din secvente diferite pe fiecare site, deci se remapeaza).
+3. **Reconcilierea e exacta, masurata:** dupa import, **6.014 chei de comanda se potrivesc pe ambele parti, din 6.014** comenzi pe site-ul vechi. F15-10 cere diferenta zero — e zero.
+4. **WooCommerce citeste corect comanda importata.** `wc_get_order(14517)`: #14517, on-hold, GBP 1917,60, data corecta, „Direct bank transfer", adresa de facturare prezenta, linia „Multideck Fridge - Black Slimline (1000MM)" ×1, nota de comanda, si `stairs = 1`.
+5. **Rapoartele se reconstruiesc dintr-o comanda:** sincronizarea prin punctele oficiale WooCommerce a produs 83 de randuri in `wp_wc_order_stats` si 89 in lookup-ul de produse, cu 14 comenzi anulate sau in asteptare excluse. Echivalentul din interfata e *Analytics → Settings → Import historical data*.
+6. **Secventa continua corect:** `AUTO_INCREMENT` a ajuns la 14652.
+
+### Trei lucruri aflate pe drum
+
+**`stairs` e un camp real de livrare, nu un reziduu.** Raspunsurile clientilor sunt „No", „1", „none", „no steps", „2", „N/A", „1 step", iar 49 din cele 83 de comenzi il au: cate trepte sunt la adresa de livrare. Il pastrez la import, dar **site-ul nou nu mai intreaba nimic despre trepte** — de discutat cu Mads, separat de migrare, fiindca e o pierdere de informatie pentru echipa de livrare, nu o problema tehnica.
+
+**Un bug in propria unealta, prins pentru ca am testat-o.** Prima versiune a runner-ului nu inlocuia `@SINCE@`, deci filtrul de data compara cu un text invalid si returna **toate** cele 132 de produse ca „modificate" in loc de 34. Reparat si reverificat. Exact de aia uneltele se rulează inainte, nu in dimineata lansarii.
+
+**`post_modified` e un semnal slab pe site-ul vechi.** Pagina `support` are data 17 august si **conținut gol** — pe site-ul vechi textul stătea in campuri Toolset si in sabloane PHP, nu in `post_content`. Deci lista de „modificate" se foloseste ca lista de verificat cu ochii, nu ca adevar.
+
+### Ce se reverifica sambata, asa cum a cerut Doru
+
+Scris si in raport, si in checklist la F15-05, cu statusul „De facut sambata". Se rulează din nou `f15-compare.sql` pe clona proaspata si se citesc, pe rand: **produse noi** (azi zero), **produse sterse sau scoase din vanzare** acolo dar publicate la noi (azi doar produsul nostru de test), **produse modificate** (azi 34, cu avertismentul de mai sus), **categorii** noi sau dispărute pe slug (azi zero in ambele directii), **pagini** noi, dispărute sau modificate, plus pret si stoc pe pretul efectiv, media, cupoane si recenzii.
+
+Despre categorii, o nota ca sa nu „repare" nimeni nimic: 25 de categorii au la noi nume curate la plural in locul celor vechi cu cuvinte-cheie — „Bar Fridge - Mini Fridge" a devenit „Bar Fridges", „Glass Door Fridge - Upright Display Fridge" a devenit „Glass Door Fridges". Slug-urile sunt identice, deci URL-urile nu se schimba; diferenta de nume e a noastra, deliberata.
+
+**Starea bazei locale:** conține acum comenzile importate, ca sa pot verifica si in wp-admin. Dump-ul de dinainte e in `source-dump/db/local-before-f15-import-2026-11-03.sql.gz`, deci revenirea e un singur import.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
@@ -1795,6 +1834,7 @@ Singura diferenta reala de stoc: **`upright-cake-display-fridge`** — pe site-u
 - **Clona:** `eco-fridge-backup.o2dev.de`, WordPress 7.1.4, SSH `ef-backup` merge. **De facut in hPanel, de Doru:** PHP pe 7.4, CDN off, auto-update pe „Don't update".
 - **Aprobare permanenta de la Doru, 3 nov (intrarea 82):** jurnal, git pana la merge, si Sheet-ul - toate trei se actualizeaza fara sa mai cer.
 - **Sheet adus la zi (intrarea 80):** calendarul si checklistul au randurile de azi, regula corectata de selectie a comenzilor, valorile DNS verificate, plus trei defecte reparate (textul despre SSL copiat peste pasul de comanda reala, randul de GTM dispărut, regula de canonic mutata inaintea DNS-ului).
+- **Importul scris, rulat si dovedit (intrarea 86).** Unelte in repo: migration/f15-run.sh, f15-compare.sql, f15-import-orders.sql. Pe o copie locala: stergerea cu WP-CLI curata si wp_wc_order_stats, importul a trecut toate verificările, reconcilierea e 6.014 = 6.014, WooCommerce citeste corect comanda importata, rapoartele se reconstruiesc, secventa a ajuns la 14652. **De reverificat sambata pe clona proaspata** (cerere Doru): produse noi, sterse, modificate, categorii si pagini - cu f15-compare.sql. Si: `stairs` e un camp real de livrare pe care site-ul nou nu-l mai intreaba, de discutat cu Mads.
 - **Extragerea rulata pe date reale (intrarea 85, raport: migration/f15-delta-2026-11-03.md).** Comenzi de importat: **83**, nu 85 - selectia se face dupa `_order_key`, fiindca regula cu data includea doua comenzi pe care le avem deja. Reconcilierea e deja zero (5.931 = 5.931). Zero produse noi, zero categorii noi, zero cupoane, zero conturi, zero recenzii. Rămân: o schimbare de stoc, doua fisiere media, 25 de redirecturi lipsa, meta SEO pentru continutul nou. Si 18 din 19 diferente de pret sunt false pozitive - comparatia se face pe pretul efectiv.
 - **Dump de proba luat (intrarea 84):** source-dump/db/backup-clone-2026-11-03.sql.gz, 9,1 MB, 127 de tabele, verificat; fara tabelele Lloyds, Matomo si jurnale. Delta de media: DOUA fisiere, aflate din baza de date, fiindca datele fisierelor au fost rescrise de migrare. Copiile .bak din docroot au fost mutate afara si extensiile riscante refuzate.
 - **Numerotare comenzi: DECIS (intrarile 81 si 83).** Comenzile de test se sterg definitiv sambata, comenzile reale vin cu numerele originale, iar secventa site-ului nou se pune peste cel mai mare numar importat. Fara renumerotare.
