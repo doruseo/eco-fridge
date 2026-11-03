@@ -1531,6 +1531,32 @@ Doru: „la noul site (ce va deveni live site) la parked domains vad doar eco-fr
 
 Prin urmare lista de reincercat dupa DNS e goala, iar verificarile rămân: certificatul din pagina de SSL a site-ului sa conțină **amandoua numele** (documentatia Hostinger promite SSL gratuit pentru fiecare domeniu si subdomeniu gazduit la ei, reinnoit automat cat timp domeniul indica spre ei, dar acoperirea `www` plus non-`www` apare doar in surse terte, deci se verifica cu ochii); amandoua adresele sa raspunda cu certificat valid; apex sa faca 301 spre `www`. Dacă `www` lipseste din certificat, se reemite SSL-ul din hPanel dupa propagarea completa, si abia apoi e caz de suport Hostinger — nu se rezolva prin parked domains.
 
+## 77. Stergerea site-ului de test si ce a dovedit repetitia (2026-11-03)
+
+Doru: „acum sterg acest site eco-fridge.co.uk si vom relua procedura de la zero din nou sambata. Confirmi?"
+
+**Confirmat.** Copia e de o ora, facuta din staging, si nu s-a creat nimic pe ea; staging-ul e intact, iar magazinul live nu e atins in niciun fel, de vreme ce DNS-ul e in continuare la IONOS catre Ambrit. Stergerea unui website din cont scoate fisierele, baza de date si gazda virtuala ale acelui website, nimic altceva.
+
+**Ce i-am cerut inainte de a apasa:**
+
+1. **Sa noteze inregistrarea DNS pe care o arata hPanel** pentru `eco-fridge.co.uk` — IP-ul pentru A record sau CNAME-ul. IP-ul e al planului, nu al site-ului, deci va fi acelasi sambata, dar daca il avem acum nu-l mai cautam in fereastra de lansare si pot pregati valoarea pentru IONOS din timp.
+2. **Sa verifice de doua ori rândul pe care il sterge:** `eco-fridge-o2dev-de-857081.hostingersite.com`. In aceeasi lista, langa el, e `eco-fridge.o2dev.de` — staging-ul, care conține toata munca si din care clonam sambata. Asta e singura greseala cu adevarat costisitoare din toata operatia de azi.
+
+**Ce i-am cerut dupa stergere:** sa se uite daca `eco-fridge.co.uk` a mai rămas agatat undeva in cont — la Parked domains al altui site sau in lista de domenii. Daca rămâne ocupat, sambata „Connect domain" ar da „domain already in use" exact in fereastra de lansare.
+
+**Despre mailuri:** la Hostinger nu exista cutii postale pentru `eco-fridge.co.uk`, iar MX-urile sunt la IONOS si nu se ating cand domeniul e scos de pe un website. Avertismentul din documentatia lor despre stergerea adreselor de email la despachetare nu ne priveste.
+
+**Migrarea Migrate Guru** catre backup site nu e afectata: e alt website in cont.
+
+### Ce a dovedit repetitia de azi, ca sa nu refacem descoperirile sambata
+
+1. Unealta „clone site" din Hostinger copiaza fisiere plus baza de date **si face singura inlocuirea de URL-uri** — zero apariții ale domeniului de staging in pagina clonata.
+2. **Noindex-ul vine cu copia**, deci site-ul nou va fi pe noindex din start si trebuie scos la lansare, ca pas separat si ultim.
+3. **Parola nu vine cu copia** — copia a fost deschisa oricui, cu date reale de clienti. De aceea, sambata, site-ul nou se inchide cu parola **inainte** de a fi umplut.
+4. **CDN-ul se porneste automat** pe site-urile noi, iar adresa de preview e un CNAME catre `free.cdn.hstgr.net`. Deci: CDN oprit pana dupa verificari, altfel verificam cache-ul, nu site-ul.
+5. **Varianta `www` nu se adauga separat** — formularul o refuza prin regula `without_subdomain:www`, fiindca `www` aparține aceleiasi intrari ca domeniul fara `www`. Se verifica doar ca certificatul le conține pe amandoua.
+6. Un website nou inseamna **utilizator SSH nou**, deci cheia mea publica se adauga din nou (pasul J7 din ghid) inainte sa pot verifica ceva pe server.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
@@ -1546,6 +1572,7 @@ Prin urmare lista de reincercat dupa DNS e goala, iar verificarile rămân: cert
 - **Lansare:** sambata 7 noiembrie 2026, 05:00–09:00. Repetitia migrarii: joi 5 noiembrie. DNS: o singura inregistrare, din contul IONOS.
 - **Site vechi:** PHP 7.2.34, WordPress 6.0.x, WooCommerce 3.5.10, Migrate Guru actualizat la 6.72 (era 5.65).
 - **Clona:** `eco-fridge-backup.o2dev.de`, WordPress 7.1.4, SSH `ef-backup` merge. **De facut in hPanel, de Doru:** PHP pe 7.4, CDN off, auto-update pe „Don't update".
+- **Site-ul de test se sterge** la finalul repetitiei, cu acordul cerut si dat; procedura se reia de la zero sambata, din staging-ul actualizat. Ce a dovedit repetitia: intrarea 77, punctele 1-6.
 - **Domeniu:** pe site-ul nou, eco-fridge.co.uk apare la Parked domains si nu merge inca, fiindca DNS-ul e la Ambrit. De urmarit: domeniu PRINCIPAL, nu parcat, plus varianta www acoperita de certificat (intrarea 76).
 - **Repetitia de azi, clonarea staging:** reusita, pe `https://eco-fridge-o2dev-de-857081.hostingersite.com/`; unealta Hostinger inlocuieste singura URL-urile, noindex vine cu copia, dar parola NU vine, deci copia e deschisa oricui — de inchis sau de sters. Detalii si ordinea corecta de sambata: intrarea 75.
 - **Azi, in lucru:** migrarea de test site vechi → `eco-fridge-backup.o2dev.de` ruleaza prin Migrate Guru; in paralel, clonarea staging → site nou cu unealta Hostinger (lista de verificari de dupa: intrarea 74).
