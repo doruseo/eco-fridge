@@ -1504,6 +1504,29 @@ Doru: „clonarea din staging in noul site s-a facut, am copia 1:1 a staging sit
 7. Se scoate noindex-ul si se scoate parola — in ordinea asta, ultimul pas.
 8. CDN verificat si purge dupa go-live.
 
+## 76. Domeniul pe site-ul nou: parked vs domeniu principal, si varianta www (2026-11-03)
+
+Doru: „la noul site (ce va deveni live site) la parked domains vad doar eco-fridge.co.uk — adaug si www.eco-fridge.co.uk la Parked Domains in Hostinger?"
+
+**Raspuns scurt:** da, se poate adauga, nu strica nimic, dar nu e asta lucrul important. Important e ca `eco-fridge.co.uk` sa ajunga **domeniul principal** al site-ului, nu un domeniu parcat, fiindca domeniul principal e cel care primeste gazda virtuala si certificatul — iar certificatul trebuie sa acopere **si** `www`, de vreme ce canonicul nostru e `https://www.eco-fridge.co.uk`.
+
+**Ce spune documentatia Hostinger:** un domeniu parcat „afiseaza acelasi conținut ca domeniul principal", adica e un alias peste acelasi docroot, si **trebuie sa indice deja spre serverele lor** (nameservere sau inregistrare A) ca sa poata fi adaugat; altfel adaugarea da eroare. De-aia `eco-fridge.co.uk` apare acum acolo fara sa functioneze: DNS-ul e inca la Ambrit. Daca varianta `www` e adaugata automat la un domeniu parcat, documentatia **nu spune**, si exact de aia nu ne bazam pe presupunere: dacă `www` nu intra in certificat, vizitatorii care ajung pe canonicul nostru vad avertisment de securitate in browser. Deci: se adauga explicit dacă panoul o accepta, iar **inainte de a scoate parola** se verifica in pagina de SSL ca certificatul conține amandoua numele.
+
+**Verificarea pe care am incercat-o si de ce nu a mers:** am vrut sa intreb serverul direct, cu `curl --resolve`, dacă raspunde pentru `eco-fridge.co.uk` si `www.eco-fridge.co.uk` inainte de mutarea DNS-ului. Nu se poate deocamdata: adresa de preview a site-ului nou e un CNAME catre **`free.cdn.hstgr.net`**, adica spre marginea CDN-ului Hostinger, deci din afara nu exista un IP de origine pe care sa-l interoghez. Doua concluzii practice din asta:
+
+1. **CDN-ul pe site-ul final rămâne oprit la go-live.** Il pornim, dacă vrem, dupa ce totul e verificat; altfel verificam o margine de cache, nu site-ul, exact cand avem cel mai mult nevoie de adevar.
+2. **Ce inregistrare cere Hostinger** pentru domeniu — o inregistrare A spre IP-ul planului, sau un CNAME spre CDN-ul lor — se citeste din hPanel **inainte** de a schimba ceva la IONOS, fiindca la IONOS schimbam o singura inregistrare si vrem sa fie cea corecta din prima.
+
+**Ordinea pe domeniu, de pus langa pasii din intrarea 75:**
+
+1. `eco-fridge.co.uk` setat ca **domeniu principal** al site-ului nou (nu doar parcat); dacă panoul ofera „main domain" sau „connect domain", asta e drumul.
+2. `www.eco-fridge.co.uk` acoperit si el — adaugat explicit dacă nu apare singur.
+3. Se citeste din hPanel ce inregistrare DNS cere.
+4. Se schimba inregistrarea la IONOS.
+5. Se aștepta certificatul si **se verifica in pagina de SSL ca are amandoua numele**.
+6. Verificarile mele de dupa: `https://eco-fridge.co.uk` si `https://www.eco-fridge.co.uk` raspund amandoua, certificat valid pe amandoua, iar varianta fara `www` face 301 spre `www` — regula de canonic din `.htaccess` e pe numele gazdei, nu pe `%{HTTPS}`, ca sa nu intram in bucle in spatele LiteSpeed.
+7. Abia apoi se scoate noindex-ul si, la final, parola.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
@@ -1519,6 +1542,7 @@ Doru: „clonarea din staging in noul site s-a facut, am copia 1:1 a staging sit
 - **Lansare:** sambata 7 noiembrie 2026, 05:00–09:00. Repetitia migrarii: joi 5 noiembrie. DNS: o singura inregistrare, din contul IONOS.
 - **Site vechi:** PHP 7.2.34, WordPress 6.0.x, WooCommerce 3.5.10, Migrate Guru actualizat la 6.72 (era 5.65).
 - **Clona:** `eco-fridge-backup.o2dev.de`, WordPress 7.1.4, SSH `ef-backup` merge. **De facut in hPanel, de Doru:** PHP pe 7.4, CDN off, auto-update pe „Don't update".
+- **Domeniu:** pe site-ul nou, eco-fridge.co.uk apare la Parked domains si nu merge inca, fiindca DNS-ul e la Ambrit. De urmarit: domeniu PRINCIPAL, nu parcat, plus varianta www acoperita de certificat (intrarea 76).
 - **Repetitia de azi, clonarea staging:** reusita, pe `https://eco-fridge-o2dev-de-857081.hostingersite.com/`; unealta Hostinger inlocuieste singura URL-urile, noindex vine cu copia, dar parola NU vine, deci copia e deschisa oricui — de inchis sau de sters. Detalii si ordinea corecta de sambata: intrarea 75.
 - **Azi, in lucru:** migrarea de test site vechi → `eco-fridge-backup.o2dev.de` ruleaza prin Migrate Guru; in paralel, clonarea staging → site nou cu unealta Hostinger (lista de verificari de dupa: intrarea 74).
 - **Blocajul de azi, rezolvat:** „Initiate migration" cadea cu cURL error 60. Cauza gasita si dovedita: lista de radacini a WordPress-ului 6.0 de pe live nu cunoaste radacina GlobalSign Root R46 folosita de `mg.blogvault.net`. Reparatia e `tools/ecofridge-tls-fix.zip`, de urcat pe site-ul vechi; **inca netestata pe viu** — asta e primul lucru de incercat.
