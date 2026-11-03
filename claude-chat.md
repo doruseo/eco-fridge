@@ -1623,6 +1623,63 @@ Am lucrat cu scripturi urcate pe server, nu cu comenzi inline, si am avut nevoie
 
 Dump-ul de lucru cu `mariadb-dump`, descarcat local, din care extragem cele 85 de comenzi, diferentele de produse si pagini, media noua, redirecturile si metadatele SEO. Il fac la cerere; de preferat dupa ce Doru confirma decizia de numerotare, fiindca de ea depinde forma importului.
 
+## 80. Checklistul si calendarul din Sheet aduse la zi (2026-11-03)
+
+Doru: „actualizeaza-mi si checklist dar mai ales calendarul". Am lucrat direct in „Eco-fridge: checklist cu bife", in ambele foi; linkul rămâne acelasi.
+
+### Calendar lansare
+
+**Mutat mai devreme, fiindca s-a facut azi:** randul de TTL si randul „Repetiție: copia site-ului vechi" au trecut de la joi 5 noiembrie la **marti 3 noiembrie**. TTL-ul e „in lucru", copia e bifata, iar randul de extragere a datelor a devenit „sambata, dupa copia finala", fiindca repetitia lui nu mai are rost separat — avem deja copia.
+
+**Rand nou, chiar inaintea blocului de sambata: „Ce a dovedit repetitia si ce se schimba in ziua lansarii".** Sase puncte, scrise ca sa fie citite o singura data, dimineata: unealta „Clone site" exista si inlocuieste singura URL-urile; noindex vine cu copia dar **parola nu**, deci site-ul nou se inchide **inainte** de a fi umplut; CDN-ul porneste automat si se opreste pana dupa verificari; domeniul adaugat sta la Parked domains pana la DNS, iar varianta `www` nu se poate adauga separat; IP-ul pentru IONOS e 148.230.121.74 pe nodul britanic `uk-fast-h5g-node15.hstgr.io`; Migrate Guru are cele trei capcane deja rezolvate.
+
+**Corectat randul critic de la 05:40** — importul comenzilor. Scria „TOATE comenzile apărute după #7261"; acum scrie regula adevarata: selectie **dupa data** (`post_date >= 2026-07-10`), 85 de comenzi cu ID-uri **#14514–#14632**, plus decizia de numerotare care trebuie luata inainte de import si faptul ca nu exista conturi de clienti de migrat.
+
+**Randul de DNS de la 07:30** are acum valorile verificate azi din exterior: A @ `185.230.220.98` → `148.230.121.74`, `www` e CNAME si urmeaza singur, **nu exista AAAA** (deci nicio capcana IPv6) si **nu exista CAA** (deci nimic nu blocheaza Let's Encrypt), MX si TXT neatinse, TTL coborat azi.
+
+**Si trei defecte ale foii, reparate:**
+
+1. Randul de la **08:30, „Comandă și formular reale", avea copiat textul despre SSL** — pasul isi pierduse continutul. L-am rescris cu ce se face de fapt: o comanda reala cu cardul, de la cos la pagina de mulțumire, si un formular real din pagina de contact, cu verificarea emailurilor si a SMS-ului.
+2. Randul de **GTM si Consent Mode v2 dispăruse**: textul lui fusese inlocuit de regula de canonic. I-am facut rand propriu la 08:15, cu ce trebuie verificat, inclusiv faptul ca vechiul site rula `GTM-NFMC9Z3`, deci containerul de pe site-ul nou se confirma inainte de a fi pus.
+3. **Regula de canonic statea la 08:15, desi textul ei cere sa fie inainte de DNS.** Am mutat-o la **07:10**, dupa copiere si inaintea schimbarii DNS-ului, si am sters randul rămas dublat. Randul de SSL de la 07:45 nu avea nici „Cine", nici „Status"; le-am completat.
+
+### Checklist eco-fridge
+
+- **F15-01** (copia completa): bifat **◐ Parțial** cu data de azi — repetitia e facuta, rularea reala e sambata — si descrierea celor trei obstacole Migrate Guru plus starea de acum a clonei (403 fara token, update-uri si cron oprite, nucleu 7.1.4 peste baza veche deci wp-admin nu se deschide, must-use ale Hostinger nemutabile). Dovada: `tools/ecofridge-tls-fix/`.
+- **F15-02** (comenzile): regula corectata, cu motivul numeric, si trimitere la F15-10 pentru numerotare.
+- **F15-03** (clientii noi): **◐ Parțial**, lamurit — 5 conturi de personal, 6.008 comenzi ca oaspete, 6 cu cont, 3.565 de adrese de facturare care trăiesc in meta comenzilor. Nu e nimic de migrat ca utilizatori; rămâne doar verificarea ca meta de facturare a venit intreaga.
+- **F15-10** (reconciliere si numarul urmator): scrisa ca **decizie**, cu cele doua variante si consecinta fiecareia.
+
+Ce **nu** am atins: randurile F14 de lansare, fiindca detaliul zilei sta in calendar si nu are rost dublat, si nicio alta foaie sau formula.
+
+## 81. Numerotarea comenzilor: decizia lui Doru, si de ce recomand totusi stergerea comenzilor de test (2026-11-03)
+
+Doru: „sambata, comenzile noastre de test vor fi renumerotate astfel incat sa vina dupa (adica sa urmeze) ultima comanda ce a fost plasata pe site-ul live vechi inainte de sambata (…) Apoi, decizi tu daca este mai bine sa le stergem sau pastram si daca ii strica ceva in evidenta lui Mads daca le pastram".
+
+**Decizia pe partea de numerotare e luata si e cea corecta:** comenzile reale vin cu numerele lor originale, iar magazinul nou continua dupa ele. Asta inseamna ca un client care caută numarul din emailul primit il regaseste identic, ceea ce e singurul lucru care conteaza pe termen lung.
+
+### Ce am verificat pe staging inainte sa raspund
+
+- **HPOS e OPRIT** pe site-ul nou: `woocommerce_custom_orders_table_enabled = no`, tabela `wp_wc_orders` nu exista. Deci comenzile sunt posturi, exact ca pe site-ul vechi, iar **numarul comenzii ESTE ID-ul postului** pe ambele parti. Vestea buna pentru sambata: cele 85 de comenzi se mută post-la-post, in aceeasi forma de stocare.
+- **Starea numerelor acum:** 5.938 de comenzi importate in iulie, cu numere pana la **#7261**; comenzile noastre de test ocupa **#8007, #8029, #8030, #8036, #8037, #8038, #8039**, iar **cel mai mare ID de post e 8042**, cu `AUTO_INCREMENT = 8043`.
+- **Statusurile comenzilor de test:** #8036, #8037, #8038 sunt **Processing** (£1,00 fiecare, plata reala cu cardul); #8007 (£1.542, transfer bancar) si #8039 (£1,00, testul SMS) sunt **On hold**; #8029 si #8030 sunt **Cancelled**.
+
+### Recomandarea mea: se sterg, iar renumerotarea nu mai e necesara
+
+**Renumerotarea costa mai mult decat stergerea, si tocmai pe comenzi pe care oricum le aruncam.** Cu HPOS oprit, schimbarea numarului unei comenzi inseamna schimbarea ID-ului postului, deci `UPDATE` pe `wp_posts`, `wp_postmeta`, `woocommerce_order_items`, `wp_wc_order_stats`, `wp_wc_order_product_lookup`, tabelele de lookup pentru taxe si cupoane, plus `wp_comments` pentru notele comenzii — sase-opt tabele per comanda, cu grija la coliziuni de chei. E chirurgie de baza de date, facuta la 05:40 in dimineata lansarii, pentru sapte comenzi care nu reprezinta vanzari reale. Stergerea e un clic pe fiecare.
+
+**Iar rezultatul pe care il vrei se obtine cu o singura comanda SQL.** Dupa import, se pune `AUTO_INCREMENT` al tabelei `wp_posts` peste cel mai mare numar importat — daca ultima comanda reala de sambata e, sa zicem, #14888, se pune 14901. De acolo magazinul nou continua singur. Exact efectul descris: nicio suprapunere, numerotare care curge mai departe.
+
+**Da, pastrarea lor strica ceva in evidenta, si concret:** WooCommerce Analytics exclude implicit doar comenzile `pending`, `failed` si `cancelled`. Comenzile **Processing** si **On hold** INTRA in rapoarte. Deci, pastrate, prima luna de pe site-ul nou ar arata cinci comenzi si aproximativ **£1.545** care nu exista — #8007 cu £1.542 fiind cea care strica cifra — plus o linie de produs pentru produsul ascuns de test in raportul de produse. Rapoartele se construiesc din `wp_wc_order_stats`, de aceea planul cere deja verificarea ca randurile de acolo dispar.
+
+**Ce NU se schimba, oricum alegem:** cele trei plati reale de £1,00 cu cardul sunt in decontarea Lloyds si rămân acolo, fiindca stergerea unei comenzi din WooCommerce nu atinge procesatorul. Contabilitatea lui Mads lucreaza din extrasul de cont si din decontarea Lloyds, deci partea de bani e identica in ambele variante. Diferenta e doar dacă magazinul raporteaza sau nu vanzari care nu au existat.
+
+**Si un risc in plus la pastrare:** dacă WebToffee PDF Invoices e activat vreodata, ar putea emite numere de factura pentru comenzi de test, iar o serie de facturare cu vanzari fictive e exact genul de lucru care se repara greu.
+
+**Dacă totusi vrei sa rămână**, varianta curata e: toate trecute pe **Cancelled**, cu o nota pe comanda („test intern, nu e o vanzare"), ca sa iasa din rapoarte — si atunci da, renumerotarea are sens, dar o fac prin script, testat pe o copie, nu improvizat in dimineata lansarii. Urmele de care am nevoie ca dovada ca plata a functionat pe gateway-ul live sunt deja in nota de proiect, unde stau si referintele de tranzactie, nu in git.
+
+**Concluzie, pe scurt:** ștergem cele sapte comenzi de test si produsul ascuns, importam comenzile reale cu numerele lor, apoi pornim secventa peste cel mai mare numar importat. Decizia de numerotare a lui Doru rămâne respectata integral — doar drumul pana la ea devine mai scurt si fara risc.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
@@ -1638,6 +1695,8 @@ Dump-ul de lucru cu `mariadb-dump`, descarcat local, din care extragem cele 85 d
 - **Lansare:** sambata 7 noiembrie 2026, 05:00–09:00. Repetitia migrarii: joi 5 noiembrie. DNS: o singura inregistrare, din contul IONOS.
 - **Site vechi:** PHP 7.2.34, WordPress 6.0.x, WooCommerce 3.5.10, Migrate Guru actualizat la 6.72 (era 5.65).
 - **Clona:** `eco-fridge-backup.o2dev.de`, WordPress 7.1.4, SSH `ef-backup` merge. **De facut in hPanel, de Doru:** PHP pe 7.4, CDN off, auto-update pe „Don't update".
+- **Sheet adus la zi (intrarea 80):** calendarul si checklistul au randurile de azi, regula corectata de selectie a comenzilor, valorile DNS verificate, plus trei defecte reparate (textul despre SSL copiat peste pasul de comanda reala, randul de GTM dispărut, regula de canonic mutata inaintea DNS-ului).
+- **Numerotare comenzi (intrarea 81):** Doru a decis ca numerele reale se pastreaza si magazinul continua dupa ele. HPOS e OPRIT pe ambele site-uri, deci numarul comenzii e ID-ul postului; staging e la max ID 8042. Recomandarea mea: comenzile de test SE STERG, iar secventa se pune peste cel mai mare numar importat - renumerotarea lor ar fi chirurgie pe 6-8 tabele in dimineata lansarii, iar pastrate ar adauga ~£1.545 de vanzari inexistente in rapoartele primei luni.
 - **Clona site-ului vechi: GATA si INCHISA** (intrarea 79). Migrarea a reusit, copia e identica cu site-ul vechi, iar acum orice cerere HTTP da 403 in afara de cea cu token; blog_public 0, robots.txt Disallow, update-uri si cron oprite. **Descoperiri care schimba planul:** comenzile noi se selecteaza DUPA DATA (85 de la 10 iulie incoace, #14514-#14632), nu dupa ID; numarul comenzii pe site-ul vechi e ID-ul postului, deci numerotarea viitoare trebuie decisa (peste 14632 sau renumerotare); clientii sunt aproape toti oaspeti, deci nu avem conturi de migrat.
 - **DNS lamurit (intrarea 78):** sambata se schimba O SINGURA inregistrare, A de la apex, 185.230.220.98 -> 148.230.121.74; www e CNAME spre apex si urmeaza singur; nu exista AAAA si nici CAA; MX si TXT nu se ating. **De facut azi:** TTL-ul inregistrarii A coborat la 300 la IONOS, cu valoarea neschimbata.
 - **Site-ul de test se sterge** la finalul repetitiei, cu acordul cerut si dat; procedura se reia de la zero sambata, din staging-ul actualizat. Ce a dovedit repetitia: intrarea 77, punctele 1-6.
