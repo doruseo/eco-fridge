@@ -1738,6 +1738,46 @@ Scripturile de ieri lasaseră in docroot copii de siguranta `wp-config.php.bak-p
 
 **De tinut minte pentru sambata:** orice copie de siguranta pe care o fac in docroot trebuie sa plece imediat din docroot. Pe site-ul live, unde nu exista poarta, ar fi fost o scurgere adevarata, nu una pe o copie de unica folosinta.
 
+## 85. Scripturile rulate pe dump-ul de azi: 83 de comenzi, nu 85, si alte cinci lucruri aflate la timp (2026-11-03)
+
+Doru: „da, ruleaza scripturile pe dump-ul de azi."
+
+**Cum am lucrat:** am incarcat ambele baze in containerul MariaDB al wp-env, ca `oldsite` (copia site-ului vechi, prefix `43lz2ypq8_`) si `newsite` (site-ul nostru, prefix `wp_`), ca diferentele sa iasa din join-uri reale, nu din comparatii pe ochi. Raportul complet, cu cifre si liste, e in repo: **`migration/f15-delta-2026-11-03.md`**. Lista celor 83 de comenzi, cu numere, date, statusuri, totaluri si chei: `source-dump/_f15/orders-to-import.csv`, in afara git-ului.
+
+### Descoperirea principala: regula de selectie a comenzilor era greșita, si ar fi creat duplicate
+
+`_order_key` **s-a pastrat** la migrarea din iulie: **5.931 de comenzi se potrivesc exact** intre cele doua site-uri, iar site-ul vechi avea tot 5.931 pana la granita importului. **Reconcilierea e deja zero** — migrarea din iulie nu a pierdut nicio comanda, ceea ce e o veste bună in sine.
+
+Granita reala nu e „10 iulie", ci comanda veche **#14515** (10 iulie, 10:56:03, £1.558,80), care la noi e **#7261**. Prin urmare regula pe care o aveam in plan, `post_date >= 2026-07-10`, dadea **85** de comenzi si **includea doua pe care le avem deja** (#14514 si #14515 = #7260 si #7261 la noi) — adica doua duplicate importate in magazin, cu doua numere noi, in dimineata lansarii.
+
+Regula corecta: **comenzile a caror `_order_key` nu exista pe site-ul nou**. Ies **83 de comenzi, #14517–#14632, £205.708,74**, si niciuna nu e deja la noi. Si nu merge nici cu aritmetica: decalajul de ID-uri nu e constant (7253 la #14508, 7254 la #14510).
+
+**Ce conțin cele 83:** 42 on-hold, £106.786,92 — transferuri bancare neincasate; 27 processing, £63.653,22 — plătite cu cardul, probabil nelivrate; 10 cancelled, £25.821,60; 4 pending, £9.447. Pe luni: 18 in iulie, 19 in august, 24 in septembrie, 22 in octombrie. **Pentru Mads:** cele 69 de comenzi on-hold plus processing trebuie parcurse dupa lansare, nu doar importate.
+
+### A doua capcana: 18 din 19 „diferente de pret" sunt false
+
+Comparatia pe campuri brute arata 19 produse cu preturi diferite. La 18 tiparul e identic: pretul normal de pe site-ul vechi este **pretul redus** de la noi, iar noi avem un pret normal mai mare. Exemplu: `patisserie-display-fridge-eco-p75-90cc` — vechi 1435; la noi 1690 cu reducere la 1435. **Pretul de vanzare e acelasi**, diferenta e prezentarea noastra, cu RRP si reducere. Deci comparatia trebuie facuta pe **pretul efectiv**, nu pe campuri brute; altfel cineva ar fi „reparat" 18 produse sambata dimineata si ar fi distrus afisarea reducerilor.
+
+Singura diferenta reala de stoc: **`upright-cake-display-fridge`** — pe site-ul vechi `outofstock`, la noi `instock`, acelasi pret. Editat pe site-ul vechi **ieri, 2 noiembrie**.
+
+### Si patru lucruri care nu mai trebuie facute deloc
+
+- **Produse noi: zero.** Niciun produs publicat pe site-ul vechi nu lipseste la noi. Singurul produs publicat doar la noi e `live-payment-test-do-not-buy`, al nostru.
+- **Categorii noi: zero.** Toate cele 27 de `product_cat` ale site-ului vechi exista la noi; noi avem 83. Tag-urile sunt deliberat diferite — 164 de tag-uri SEO cu sufix `-tag` acolo, 36 de tag-uri de tip la noi — si **nu se importa**, lucru pe care l-am scris explicit in checklist ca sa nu incerce nimeni.
+- **Cupoane: zero.** Site-ul vechi nu are niciun cupon. Punctul F15-06 e gol.
+- **Conturi de clienti si recenzii: zero.** Din 10 iulie incoace exista 135 de note de comanda si nicio recenzie.
+
+### Ce rămâne, si e mic
+
+- **25 de redirecturi** din site-ul vechi nu sunt in harta noastra: 10 Yoast 301, 4 Yoast 410, 11 Simple 301, intre care `/condition/refurbished/`, `/condition/second-hand/`, `/multidecks/shutter-display-fridge/`, `/ranges/patisserie-display-fridges/`. La regenerare: tintele din Simple 301 sunt URL-uri absolute (in copie apar pe domeniul clonei, deci se transforma in cai relative), iar unele sunt lanturi, deci se rezolva pana la pagina finala. Mai exista 5 redirecturi cu query string, pe care o harta de cai nu le poate exprima.
+- **Meta SEO pe continutul nou:** 25 de titluri Yoast, 32 de meta-descrieri, 32 de focus keyword, plus `wpseo_taxonomy_meta` cu 58,9 KB de SEO pe termeni.
+- **Doua fisiere de media** si **o schimbare de stoc**.
+- **Trei pagini si un articol** exista doar pe site-ul vechi, toate resturi (`eco-fridge` cu titlul „Returns", `https-eco-fridge-co-uk`, `woo_lloydscardnetcw`, `add-media-test`); de verificat doar dacă apar in sitemapul live, caz in care au nevoie de redirect sau 410.
+
+**Actualizat in acelasi tur:** randul de 05:40 din calendar si randurile F15-02, F15-04, F15-05, F15-06, F15-07, F15-08, F15-09 din checklist, toate cu data de azi si cu trimitere la raport. F15-06 e marcat „nimic de facut".
+
+**Concluzia care conteaza:** repetitia a meritat de patru ori — fara ea, sambata am fi importat doua comenzi duplicate, am fi „reparat" 18 preturi corecte, am fi căutat produse si categorii care nu exista, si am fi ratat 25 de redirecturi.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
@@ -1755,6 +1795,7 @@ Scripturile de ieri lasaseră in docroot copii de siguranta `wp-config.php.bak-p
 - **Clona:** `eco-fridge-backup.o2dev.de`, WordPress 7.1.4, SSH `ef-backup` merge. **De facut in hPanel, de Doru:** PHP pe 7.4, CDN off, auto-update pe „Don't update".
 - **Aprobare permanenta de la Doru, 3 nov (intrarea 82):** jurnal, git pana la merge, si Sheet-ul - toate trei se actualizeaza fara sa mai cer.
 - **Sheet adus la zi (intrarea 80):** calendarul si checklistul au randurile de azi, regula corectata de selectie a comenzilor, valorile DNS verificate, plus trei defecte reparate (textul despre SSL copiat peste pasul de comanda reala, randul de GTM dispărut, regula de canonic mutata inaintea DNS-ului).
+- **Extragerea rulata pe date reale (intrarea 85, raport: migration/f15-delta-2026-11-03.md).** Comenzi de importat: **83**, nu 85 - selectia se face dupa `_order_key`, fiindca regula cu data includea doua comenzi pe care le avem deja. Reconcilierea e deja zero (5.931 = 5.931). Zero produse noi, zero categorii noi, zero cupoane, zero conturi, zero recenzii. Rămân: o schimbare de stoc, doua fisiere media, 25 de redirecturi lipsa, meta SEO pentru continutul nou. Si 18 din 19 diferente de pret sunt false pozitive - comparatia se face pe pretul efectiv.
 - **Dump de proba luat (intrarea 84):** source-dump/db/backup-clone-2026-11-03.sql.gz, 9,1 MB, 127 de tabele, verificat; fara tabelele Lloyds, Matomo si jurnale. Delta de media: DOUA fisiere, aflate din baza de date, fiindca datele fisierelor au fost rescrise de migrare. Copiile .bak din docroot au fost mutate afara si extensiile riscante refuzate.
 - **Numerotare comenzi: DECIS (intrarile 81 si 83).** Comenzile de test se sterg definitiv sambata, comenzile reale vin cu numerele originale, iar secventa site-ului nou se pune peste cel mai mare numar importat. Fara renumerotare.
 - **Context si argumentele deciziei (intrarea 81):** Doru a decis ca numerele reale se pastreaza si magazinul continua dupa ele. HPOS e OPRIT pe ambele site-uri, deci numarul comenzii e ID-ul postului; staging e la max ID 8042. Recomandarea mea: comenzile de test SE STERG, iar secventa se pune peste cel mai mare numar importat - renumerotarea lor ar fi chirurgie pe 6-8 tabele in dimineata lansarii, iar pastrate ar adauga ~£1.545 de vanzari inexistente in rapoartele primei luni.
