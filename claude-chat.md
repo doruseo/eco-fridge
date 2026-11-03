@@ -1588,6 +1588,41 @@ Doru a trimis din hPanel: „nu apare nicio inregistrare in DNS records", dar la
 
 **Si un detaliu care ne ajuta, desi Doru credea ca nu:** serverul e in Marea Britanie (`uk-fast-h5g-node15.hstgr.io`). Pentru un magazin britanic e exact unde trebuie, iar la masurarea Core Web Vitals de dupa lansare conteaza: comparatia cu scorurile de pe staging e corecta, fiindca staging-ul e pe acelasi nod.
 
+## 79. Clona site-ului vechi: inchisa, ingheţata — si trei descoperiri care schimba planul (2026-11-03)
+
+Doru: migrarea din site-ul vechi catre `eco-fridge-backup.o2dev.de` s-a terminat cu succes, clona arata exact ca site-ul vechi, site-ul de test al noului site a fost sters, iar TTL-urile le coboara el. Cererea: „pune tu noindex si orice e nevoie la eco-fridge-backup.o2dev.de ca sa nu apara online si sa nu poata fi gasit."
+
+### Ce am facut, si cum am ajuns acolo
+
+Am lucrat cu scripturi urcate pe server, nu cu comenzi inline, si am avut nevoie de patru treceri, fiindca serverul are trei limite pe care nu le stiam:
+
+1. **Folderul site-ului si `$HOME` nu sunt scriibile** (sunt ale lui `root`), deci fisierul de parole nu putea sta langa docroot, ca pe un server obisnuit.
+2. **`awk` nu exista**, iar **`sed -i` nu poate redenumi peste `wp-config.php`** („Device or resource busy") — fisierele de nucleu vin prin stratul h5g al Hostinger-ului. Soluția: se scrie in loc cu `cat fisier-nou > fisier`.
+3. **Autentificarea Basic din `.htaccess` e ignorata** de serverul lor: site-ul raspundea in continuare 200 fara parola, desi `Require all denied` **functioneaza** (fisierul `.htpasswd` dadea 403). Deci parola pe directoare se poate pune doar din hPanel, nu din `.htaccess`.
+
+**Lacatul final, la nivel de PHP, in `wp-config.php`:** orice cerere HTTP catre WordPress primeste **403** si `X-Robots-Tag: noindex, nofollow, noarchive`, in afara de cea care aduce tokenul; tokenul pune un cookie valabil sapte zile si dupa aceea copia se navigheaza normal. Tokenul si adresa de deblocare sunt in chat, **nu in git**. Verificat din exterior: `/`, `/wp-login.php`, `/wp-admin/`, `/feed/`, `/wp-json/wp/v2/posts` si `/sitemap_index.xml` dau toate 403 cu textul „Not available.", iar cu cookie-ul pus pagina principala revine cu titlul corect.
+
+**Si restul masurilor:**
+
+- `blog_public` pe **0**.
+- `robots.txt` fizic in radacina, cu `User-agent: *` / `Disallow: /`.
+- `.ht*` refuzate prin `.htaccess` (singura directiva de acces care chiar e respectata aici).
+- In `wp-config.php`: `AUTOMATIC_UPDATER_DISABLED`, `DISALLOW_FILE_MODS` si `DISABLE_WP_CRON`, toate pe `true` — nimic nu se mai actualizeaza si **nimic programat nu mai ruleaza** pe copie, deci Action Scheduler-ul lui WooCommerce nu poate atinge datele pe care venim sa le citim. `php -l` curat, copii `.bak-pre-*` pastrate pentru fiecare fisier atins.
+- **Nu am putut** muta pluginurile must-use ale Hostinger-ului (`hostinger-h5g-plugin.php`, `hostinger-preview-domain.php`): folderul `mu-plugins` e al lui `root`. Rămân pe loc; nu deranjeaza extragerea de date, dar pasul 4.3 din intrarea 72 e de corectat — pe clona nu se poate face.
+- Nucleul clonei a rămas **WordPress 7.1.4** peste baza de date a site-ului vechi, exact capcana prevazuta. Site-ul se incarca, dar **wp-admin nu se deschide** pana nu decidem: ori nucleu 6.0.x, ori extragere doar prin SQL. Cu cronul oprit si update-urile blocate, riscul e ținut in loc.
+
+### Trei descoperiri din datele clonei, care schimba planul
+
+**Starea clonei:** prefix de tabele `43lz2ypq8_`, 281 de tabele, `siteurl`/`home` pe `https://eco-fridge-backup.o2dev.de`, 131 de produse publicate.
+
+1. **Regula „tot ce are ID peste 7261 e comanda noua" e GREȘITA.** Pe site-ul vechi, comenzile merg de la **#2741 (26 martie 2019)** pana la **#14632 (31 octombrie 2026)**. Dupa ID, 5.168 de comenzi ar parea „noi"; in realitate, **comenzi plasate de la 10 iulie 2026 incoace sunt 85**, cu ID-uri intre **#14514 si #14632**, iar inainte de 10 iulie sunt 5.929. Deci #7261 e un numar din **numerotarea site-ului nou**, nu din cea a site-ului vechi: migrarea din iulie a reimportat comenzile ca posturi noi, cu ID-uri noi. **Delta se selecteaza dupa data (`post_date >= 2026-07-10`), niciodata dupa ID.** Cele 85 de comenzi se potrivesc exact cu estimarea de ~20 pe luna.
+2. **Numerotarea viitoare trebuie decisa.** Nu exista meta `_order_number` pe site-ul vechi (zero randuri), deci **numarul comenzii ESTE ID-ul postului**. Clientii au primit prin email numere de forma #14xxx, in timp ce site-ul nou e la #8037. Dacă importam cele 85 de comenzi cu numerele lor originale, urmatorul numar pe site-ul nou trebuie sa fie **peste 14632**, nu peste 8037 — altfel doua comenzi diferite pot primi acelasi numar. Alternativa e sa le renumerotam si sa acceptam ca numarul din emailul clientului nu mai corespunde. **Decizia e a lui Doru si a lui Mads**, dar trebuie luata inainte de import.
+3. **„Clienti noi" e aproape o lista goala, si asta e o veste bună.** Tabela de utilizatori are **5 conturi**, toate de personal (`ECO-Fridge` si `manager` administratori, `Eco-fridge-shop` shop manager, plus `Distinctly` si `Lockouts`). Din comenzi, **6.008 sunt plasate ca oaspete** si doar **6** au cont atasat. Exista 3.565 de adrese de facturare distincte, dar ele trăiesc in meta comenzilor, nu ca utilizatori. Prin urmare punctul 3 din planul de backup — conturi, adrese, parole — nu are practic ce migra; datele clientilor vin odata cu comenzile.
+
+### Ce rămâne de facut pe clona
+
+Dump-ul de lucru cu `mariadb-dump`, descarcat local, din care extragem cele 85 de comenzi, diferentele de produse si pagini, media noua, redirecturile si metadatele SEO. Il fac la cerere; de preferat dupa ce Doru confirma decizia de numerotare, fiindca de ea depinde forma importului.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
@@ -1603,6 +1638,7 @@ Doru a trimis din hPanel: „nu apare nicio inregistrare in DNS records", dar la
 - **Lansare:** sambata 7 noiembrie 2026, 05:00–09:00. Repetitia migrarii: joi 5 noiembrie. DNS: o singura inregistrare, din contul IONOS.
 - **Site vechi:** PHP 7.2.34, WordPress 6.0.x, WooCommerce 3.5.10, Migrate Guru actualizat la 6.72 (era 5.65).
 - **Clona:** `eco-fridge-backup.o2dev.de`, WordPress 7.1.4, SSH `ef-backup` merge. **De facut in hPanel, de Doru:** PHP pe 7.4, CDN off, auto-update pe „Don't update".
+- **Clona site-ului vechi: GATA si INCHISA** (intrarea 79). Migrarea a reusit, copia e identica cu site-ul vechi, iar acum orice cerere HTTP da 403 in afara de cea cu token; blog_public 0, robots.txt Disallow, update-uri si cron oprite. **Descoperiri care schimba planul:** comenzile noi se selecteaza DUPA DATA (85 de la 10 iulie incoace, #14514-#14632), nu dupa ID; numarul comenzii pe site-ul vechi e ID-ul postului, deci numerotarea viitoare trebuie decisa (peste 14632 sau renumerotare); clientii sunt aproape toti oaspeti, deci nu avem conturi de migrat.
 - **DNS lamurit (intrarea 78):** sambata se schimba O SINGURA inregistrare, A de la apex, 185.230.220.98 -> 148.230.121.74; www e CNAME spre apex si urmeaza singur; nu exista AAAA si nici CAA; MX si TXT nu se ating. **De facut azi:** TTL-ul inregistrarii A coborat la 300 la IONOS, cu valoarea neschimbata.
 - **Site-ul de test se sterge** la finalul repetitiei, cu acordul cerut si dat; procedura se reia de la zero sambata, din staging-ul actualizat. Ce a dovedit repetitia: intrarea 77, punctele 1-6.
 - **Domeniu:** pe site-ul nou, eco-fridge.co.uk apare la Parked domains si nu merge inca, fiindca DNS-ul e la Ambrit. De urmarit: domeniu PRINCIPAL, nu parcat, plus varianta www acoperita de certificat (intrarea 76).
