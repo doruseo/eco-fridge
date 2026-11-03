@@ -13,17 +13,27 @@
  * Carried over exactly as they were, including the required flag, the
  * YES/NO choice, the free-text answer and the order in which they appear:
  *
- *   check_doors  select, required  "We recomend you to check the height of
+ *   check_doors  select, required  "We recommend you to check the height of
  *                                   your doors through the final fridge
  *                                   position. Have you checked the size of
  *                                   your doors? (T&C apply)"
- *   stairs       text, required    "How many door steps? Curb side delivery
+ *   stairs       select, required  "How many door steps? Curb side delivery
  *                                   will be at the drivers discretion
  *                                   (T&C apply)"
  *
- * The wording keeps the original's spelling of "recomend", so the checkout
- * reads the way the client knows it; `efb_checkout_doors_label` and
- * `efb_checkout_steps_label` are there to change it without touching code.
+ * Two deliberate departures from the old shop, both asked for on 3 November:
+ *
+ *  - the old label misspelled "recommend" with one m, and the typo is fixed
+ *    here;
+ *  - the question about steps was a free-text field, which produced 396
+ *    different answers to one question ("No", "1", "none", "no steps", "N/A",
+ *    "one"): readable one order at a time, useless to filter or count. It is a
+ *    choice of 0, 1, 2, 3 or 4+ now. Imported orders keep whatever they were
+ *    answered with, and the screens below print that text as it stands.
+ *
+ * `efb_checkout_doors_label`, `efb_checkout_steps_label` and
+ * `efb_checkout_steps_options` change the wording and the choices without
+ * touching code.
  *
  * Our checkout is the WooCommerce checkout block, so the fields are registered
  * through the Additional Checkout Fields API rather than the classic
@@ -51,8 +61,37 @@ const EFB_STEPS_META_KEY = 'stairs';
 function efb_checkout_doors_label() {
 	return (string) apply_filters(
 		'efb_checkout_doors_label',
-		'We recomend you to check the height of your doors through the final fridge position. Have you checked the size of your doors? (T&C apply)'
+		'We recommend you to check the height of your doors through the final fridge position. Have you checked the size of your doors? (T&C apply)'
 	);
+}
+
+/**
+ * The answers the customer can give about steps, as stored value => shown label.
+ *
+ * Kept short on purpose: anything past four steps is the same decision for the
+ * driver, so "4+" is as much detail as the question needs.
+ *
+ * The customer picks 0, 1, 2, 3 or 4+, but what is stored reads as "0 steps"
+ * rather than "0". Two reasons: WooCommerce treats a bare "0" as an unanswered
+ * required field and refuses the order — measured, not assumed — and the stored
+ * text is what the delivery team reads in the email and on the order screen,
+ * where "0 steps" says more than a lone digit.
+ *
+ * @return array<string,string> Stored value => label at checkout.
+ */
+function efb_checkout_steps_options() {
+	$options = apply_filters(
+		'efb_checkout_steps_options',
+		array(
+			'0 steps'  => '0',
+			'1 step'   => '1',
+			'2 steps'  => '2',
+			'3 steps'  => '3',
+			'4+ steps' => '4+',
+		)
+	);
+
+	return is_array( $options ) ? $options : array();
 }
 
 /**
@@ -104,20 +143,29 @@ add_action(
 			)
 		);
 
+		$steps_options = array();
+		foreach ( efb_checkout_steps_options() as $steps_value => $steps_label ) {
+			$steps_options[] = array(
+				'value' => (string) $steps_value,
+				'label' => (string) $steps_label,
+			);
+		}
+
 		woocommerce_register_additional_checkout_field(
 			array(
 				'id'       => EFB_STEPS_FIELD_ID,
 				'label'    => efb_checkout_steps_label(),
 				'location' => 'order',
-				'type'     => 'text',
+				'type'     => 'select',
 				'required' => true,
+				'options'  => $steps_options,
 			)
 		);
 	}
 );
 
 /* ---------------------------------------------------------------------------
- * Hold the YES/NO answer to its two values.
+ * Hold both answers to the choices they were offered.
  *
  * WooCommerce enforces "required" on the server, so an order cannot be placed
  * with either question unanswered — checked, and it is refused. It does not,
@@ -129,16 +177,25 @@ add_action(
 add_action(
 	'woocommerce_validate_additional_field',
 	static function ( $errors, $field_key, $field_value ) {
-		if ( EFB_DOORS_FIELD_ID !== $field_key ) {
+		$allowed = array(
+			EFB_DOORS_FIELD_ID => array( 'YES', 'NO' ),
+			EFB_STEPS_FIELD_ID => array_keys( efb_checkout_steps_options() ),
+		);
+
+		if ( ! isset( $allowed[ $field_key ] ) ) {
 			return;
 		}
 
-		if ( ! in_array( (string) $field_value, array( 'YES', 'NO' ), true ) ) {
-			$errors->add(
-				'efb_doors_checked_invalid',
-				'Please answer YES or NO to the question about the size of your doors.'
-			);
+		if ( in_array( (string) $field_value, $allowed[ $field_key ], true ) ) {
+			return;
 		}
+
+		$errors->add(
+			'efb_delivery_answer_invalid',
+			EFB_DOORS_FIELD_ID === $field_key
+				? 'Please answer YES or NO to the question about the size of your doors.'
+				: 'Please choose how many steps there are at the delivery address.'
+		);
 	},
 	10,
 	3
