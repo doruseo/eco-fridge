@@ -4,6 +4,9 @@ source-dump/db/
 *.sql
 *.sql.gz
 
+# ...but the F15 tooling is code, not data, and has to be tracked
+!migration/*.sql
+
 # Artefacte generate de scripturile de migrare (hărți ID, scripturi rulate temporar)
 source-dump/_*
 
