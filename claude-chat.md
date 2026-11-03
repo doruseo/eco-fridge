@@ -1362,6 +1362,90 @@ Doru, dupa ce a actualizat pluginul si a introdus cheia de migrare a backupului:
 
 **Daca tot refuza:** fie OpenSSL de pe serverul vechi e prea batran ca sa construiasca lanțul, fie portul 443 spre exterior e filtrat. Atunci: ori ceream gazdei lui Ambrit sa reinnoiasca pachetul `ca-certificates`, ceea ce e reparatia corecta pentru tot site-ul, ori trecem pe varianta fara conexiuni spre exterior — export cu WPvivid sau All-in-One, descarcat prin browser, iar eu il asez pe backup prin SSH si il restaurez de acolo, ocolind si limita de upload a destinatiei.
 
+## 72. CLONA SITE-ULUI VECHI — PROCEDURA COMPLETA, DE CITIT SAMBATA (scrisa 2026-11-03)
+
+Doru: „noteaza absolut tot in fisierul claude-chat.md sa stim sambata ce avem de facut". Mai jos e totul, in ordinea in care se executa, cu motivul fiecarui pas si cu variantele de rezerva. Repetitia e **joi 5 noiembrie**, treaba pe viu **sambata 7 noiembrie, 05:00–09:00**. Lista datelor de preluat din clona rămâne cea din planul de backup (randurile F15-01…F15-11); aici e **cum** obtinem clona si ce facem cu ea imediat dupa.
+
+### 0. Coordonate si stare
+
+| Ce | Valoare |
+|---|---|
+| Site vechi (sursa) | `https://www.eco-fridge.co.uk` — Apache, **PHP 7.2.34**, **WordPress 6.0.x**, WooCommerce 3.5.10 |
+| Clona (destinatie) | `eco-fridge-backup.o2dev.de` — WordPress 7.1.4, Migrate Guru 6.72 |
+| SSH clona | alias `ef-backup` → 148.230.121.74, port 65002, user `u510186744_biqFdbY8d` |
+| Docroot clona | `/home/u510186744/websites/biqFdbY8d/public_html` |
+| Ultima comanda reala preluata in iulie | **#7261, 10 iulie 2026** — tot ce e dupa ea trebuie sa vina acum |
+| Comenzi de test, de sters INAINTE de import | #8007, #8029, #8030, #8036, #8037 si produsul ascuns #8035 |
+| Regula SSH | **o singura conexiune la Hostinger in acelasi timp**, niciodata doua in paralel |
+
+### 1. Pe clona, in hPanel, inainte de orice (DORU)
+
+1. **PHP → 7.4.** Websites → eco-fridge-backup.o2dev.de → Advanced → PHP Configuration → 7.4. Motiv: WooCommerce 3.5.10 si tema veche mor pe PHP 8 (functia `like_escape()` scoasa din WordPress, ghilimele „smart" in cod); 7.4 e cea mai mare versiune care le duce, iar copia din iulie a mers pe 7.4.33. Se poate pune de acum: WP 7.1.4 cere minim 7.4, deci Migrate Guru nu se strica intre timp.
+2. **CDN → off** (sau „Development mode"). Websites → Dashboard → Performance → CDN. Verificat pe 3 noiembrie: CDN-ul **era pornit** — antetul clonei dadea `Server: hcdn`, in timp ce staging-ul da `hws`; Hostinger il porneste automat la site-urile eligibile. Motiv: clonarea schimba tot site-ul sub cache-ul de la margine, deci am verifica pagini vechi si am obtine diff-uri false la conținut si la URL-uri.
+3. **Auto-update → „Don't update".** Websites → Dashboard → WordPress → Security, sectiunea de update-uri; din „Customize" se trec si pluginurile si temele pe manual. Astea sunt „smart auto-updates"-urile Hostinger, care ruleaza din afara WordPress-ului, deci setarea din hPanel e cea care conteaza. In `wp-config.php` exista deja `WP_AUTO_UPDATE_CORE` pe `false`, dar in baza de date `auto_update_core_dev`, `auto_update_core_minor` si `auto_update_core_major` sunt toate `enabled`. Motivul greu: daca WooCommerce s-ar actualiza singur pe clona, updaterul lui ar putea rescrie schema comenzilor (HPOS) — exact datele pe care vrem sa le copiem 1:1.
+4. **Limite PHP**, pentru o baza de 756 MB (162 MB gzip): `memory_limit` 512M, `max_execution_time` 300, `upload_max_filesize` si `post_max_size` 256M.
+
+### 2. Pe site-ul vechi, inainte de clonare (DORU)
+
+1. **Migrate Guru la zi.** Pe live era instalat **5.65** (citit din `wp-content/plugins/migrate-guru/readme.txt`), iar serverele lor refuza versiunile vechi cu „Your installed plugin is outdated". Versiunea curenta e **6.72**, cere PHP 7.0+ si WP 4.0+, deci merge pe serverul vechi. Plugins → Update now; daca serverul nu ajunge la wordpress.org, se urca `https://downloads.wordpress.org/plugin/migrate-guru.zip` din Plugins → Add New → Upload Plugin, cu „Replace current with uploaded".
+2. **Pluginul de reparat certificatele.** Fara el, „Initiate migration" cade cu `cURL error 60: unable to get local issuer certificate (20)`. Arhiva e in repo: **`tools/ecofridge-tls-fix.zip`**, sursa in `tools/ecofridge-tls-fix/` cu README. Plugins → Add New → Upload Plugin → Install → Activate, apoi se citeste notificarea de pe pagina Plugins: verde = API-ul raspunde cu verificarea certificatului pornita. Motivul: Migrate Guru suna `https://mg.blogvault.net` (din `info.php`, prin `appUrl()`), al carui certificat `*.blogvault.net` urca spre radacina GlobalSign Root R46, iar lista de radacini pe care WordPress 6.0 o da lui cURL, `wp-includes/certificates/ca-bundle.crt`, e mai veche decat acea radacina. Dovada, facuta pe 3 noiembrie: lanțul verificat cu lista luata chiar de pe live da `verify error:num=20`, iar cu lista Mozilla actuala da `Verify return code: 0 (ok)`.
+3. Nimic altceva nu se atinge pe magazinul viu. Pluginul de TLS **se dezactiveaza si se sterge** dupa migrare.
+
+### 3. Clonarea (DORU la butoane, CLAUDE verifica)
+
+1. Pe clona: Migrate Guru → se copiaza **migration key**.
+2. Pe site-ul vechi: Migrate Guru → se lipeste cheia si emailul → **Initiate migration**.
+3. Migrate Guru trimite in bucati catre serverele lor, deci **nu construieste arhiva pe serverul lui Ambrit** — de-aia rămâne prima varianta pentru un magazin viu.
+4. Cat ruleaza, nu se atinge nimic pe niciunul din cele doua site-uri.
+
+### 4. Imediat dupa clonare, prin SSH (CLAUDE) — o singura conexiune
+
+Ordinea conteaza: mai intai inchidem site-ul, apoi verificam, abia apoi citim date.
+
+1. **Lacat si noindex.** Verificat pe 3 noiembrie: clona e acum **publica si indexabila** — raspunde 200 fara parola, `blog_public` e `1`, nu are meta robots, iar `robots.txt` da 404. Dupa clonare devine copie 1:1 a magazinului, cu zile inainte de lansare, adica exact ce nu trebuie sa intre in index. Deci: bloc `AuthType Basic` in `.htaccess`, cu `AuthUserFile /home/u510186744/websites/biqFdbY8d/.htpasswd` si `Require valid-user`, parola generata cu `openssl passwd -apr1`, plus `UPDATE <prefix>_options SET option_value='0' WHERE option_name='blog_public';`.
+2. **Oprit orice update.** In `wp-config.php` al clonei: `AUTOMATIC_UPDATER_DISABLED` si `DISALLOW_FILE_MODS` pe `true` — a doua blocheaza si instalarea de pluginuri, de-aia **numai acum**, nu inainte de clonare. Se verifica si ca `wp-config.php` a rămas cu datele de conectare ale clonei, nu ale sursei.
+3. **Scos ce e al gazduirii, nu al site-ului vechi:** `wp-content/mu-plugins/hostinger-h5g-plugin.php`, `wp-content/mu-plugins/hostinger-preview-domain.php` si, daca apar, `wp-content/object-cache.php` si `advanced-cache.php` (LiteSpeed).
+4. **Potrivirea nucleului cu baza de date.** Se citeste `wp-includes/version.php`. Daca scrie tot **7.1.4** peste o baza venita de la WordPress 6.0 cu Woo 3.5.10, **nu se deschide wp-admin**: fie punem nucleul 6.0.x de pe wordpress.org, fie lucram doar la nivel de SQL. Capcana e dovedita — copia din iulie a ajuns pe WP 7.0 desi live era pe 6.0, semn ca in fluxul asta nucleul destinatiei rămâne. Daca se deschide adminul cu nucleu nepotrivit, WordPress si WooCommerce isi pornesc rutinele de upgrade pe baza de date, adica strica exact ce am venit sa copiem.
+5. **Verificari de integritate**, de comparat cu site-ul vechi: numarul de tabele, numarul de comenzi (`SELECT COUNT(*) FROM <prefix>_posts WHERE post_type='shop_order';`), cel mai mare ID (`SELECT MAX(ID) FROM <prefix>_posts;`) si `siteurl` plus `home` din `<prefix>_options`, ca sa vedem ca inlocuirea de URL-uri s-a facut.
+6. **Dump-ul de lucru**, din care extragem datele: `mariadb-dump` — pe serverul asta **nu** exista `mysqldump` — comprimat si descarcat local. Din clipa aia datele nu se mai mișca si putem repeta extragerea de cate ori vrem.
+
+### 5. Variante de rezerva, in ordinea in care le incercam
+
+1. **Pluginul de TLS nu ajuta** (OpenSSL prea batran pe serverul vechi, sau 443 spre exterior filtrat) → cerem gazdei lui Ambrit sa reinnoiasca pachetul `ca-certificates`. E reparatia corecta pentru tot site-ul vechi, nu doar pentru migrare, dar depinde de altcineva, deci se cere **joi**, nu sambata.
+2. **Fara nicio conexiune spre exterior:** export cu **WPvivid** (cere PHP 5.6+, sparge arhiva in bucati, bun pe server vechi) sau cu **All-in-One WP Migration** (PHP 5.3+), descarcat prin browser; eu asez fisierul pe clona prin SSH, direct in folderul de backupuri al pluginului, si il restaurez de acolo — asa ocolim si limita de upload a destinatiei, fara extensie platita. **Duplicator nu merge**: cere PHP 7.4+ si WP 6.2+.
+3. **Fara niciun plugin pe magazinul viu:** FTP/SFTP plus dump de baza de date de la Ambrit, exact metoda din iulie, cu zero scrieri pe live. Accesul e deja pe lista de cerut de la Mads.
+4. **Doar media noua**, daca restul vine altfel: fisierele din `uploads` sunt publice, deci le pot descarca direct prin HTTP de pe site-ul vechi, pe baza diferentei fata de ce avem din iulie.
+
+### 6. Ce nu facem
+
+- Nu deschidem wp-admin pe clona cu nucleu nepotrivit (vezi 4.4).
+- Nu lasam WooCommerce sa se actualizeze pe clona.
+- Nu pornim migrarea cu CDN-ul activ pe destinatie.
+- Nu lasam clona fara parola nicio ora dupa ce e plina.
+- Nu stergem WebToffee PDF Invoices de pe site-ul nou; rămâne inactiv, nesters.
+- Nu punem date de plata in `claude-chat.md` sau in git.
+
+
+## 73. „We are unable to connect to your destination site" — cheia de migrare expirase (2026-11-03)
+
+Doru, dupa ce a urcat pluginul de TLS pe site-ul vechi: **initierea migrarii a functionat**. Apoi, in panoul Migrate Guru: „We are unable to connect to your destination site `https://eco-fridge-backup.o2dev.de`", cu propunerea de a introduce totul manual, prin date de FTP. Intrebarea lui: „pot face ceva sa mearga automat?"
+
+**Da, si nu e nevoie de niciun FTP.** Am verificat pe rand fiecare motiv posibil:
+
+- **Accesibilitatea clonei din exterior:** merge. Cererea pe care o face serviciul lor — adresa site-ului cu parametrul `blogvaultkey` — raspunde 200 atat pe `http`, cat si pe `https`; nu exista parola de acces, nu exista redirect ciudat, iar certificatul `eco-fridge-backup.o2dev.de` e valid (Let's Encrypt, `Verify return code: 0 (ok)`).
+- **CDN-ul:** deja oprit de Doru — antetul clonei da acum `Server: hws`, nu `hcdn`. Deci nu mai e in cale.
+- **Cauza reala, gasita in baza de date a clonei:** pluginul tine cheia in opțiunea `bv_default_secret_key`, cu un `expires_at` alaturi. Pe clona scria **expires_at = 2026-11-03 03:56:36 UTC**, iar verificarea am facut-o la **04:07 UTC** — adica **cheia expirase cu zece minute inainte**. Fusese generata la activarea pluginului, pe 28 octombrie la 06:41 UTC. In codul pluginului, `getDefaultSecret()` returneaza `null` cand cheia a expirat, deci `connectionTag()` nu mai poate fi calculat si `verifyTag()` da fals: serviciul lor nu se mai poate autentifica la destinatie. De aici mesajul, care sugereaza greșit o problema de reța.
+
+**Ce e de facut, si e simplu:** cheia se regenereaza singura. `defaultSecret()` vede cheia lipsa sau expirata si apeleaza `refreshDefaultSecret()`, deci **e de ajuns sa deschizi pagina Migrate Guru pe clona**, care afiseaza o cheie noua. Se copiaza, se lipeste pe site-ul vechi si se porneste migrarea. Daca pagina nu arata una noua, dezactivare plus reactivare a pluginului pe clona o forteaza.
+
+**Atentie la fereastra de timp.** In versiunea 6.72 din repo, `MGRecover::SECRET_TTL` e **1800 de secunde, adica 30 de minute** (cheia veche de pe clona avea aproape 6 zile, deci fusese generata de o versiune mai veche). Asta inseamna: **se genereaza cheia, se copiaza si se porneste migrarea imediat**, in aceeasi sesiune de lucru. Nu se pregateste cheia seara ca sa fie folosita dimineata — exact capcana in care am intrat acum.
+
+**Si o reparatie de igiena, facuta de mine prin SSH:** `siteurl` si `home` ale clonei erau pe `http://`, in timp ce panoul lor vorbea despre `https://`. Le-am trecut pe `https://eco-fridge-backup.o2dev.de`, fiindca certificatul e valid si oricum asa trebuie sa fie; nepotrivirea de schema e un al doilea motiv tipic pentru care verificarea destinatiei cade.
+
+**Pentru sambata, de pus langa pasii din intrarea 72:** cheia de migrare se ia de pe clona **in momentul** in care pornim migrarea, nu inainte; daca mesajul reapare, nu e nevoie de FTP, se regenereaza cheia si se reia. Varianta manuala cu date de FTP rămâne ultima, fiindca inseamna sa dam datele de acces ale gazduirii unui serviciu din afara.
+
+**Despre folderul pluginului de TLS:** prima versiune a arhivei a ieșit in folderul temporar al sesiunii, ceea ce a fost o alegere proasta — un fisier de care avem nevoie sambata nu are ce caută acolo. Sursa si arhiva sunt acum in proiect, la `tools/ecofridge-tls-fix/` si `tools/ecofridge-tls-fix.zip`, cu README care explica de ce exista si cum se reconstruieste arhiva.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
@@ -1370,3 +1454,14 @@ Doru, dupa ce a actualizat pluginul si a introdus cheia de migrare a backupului:
 - **Audit:** cele patru rapoarte O2X citite și verificate; trei probleme reale găsite și reparate.
 - **De verificat pe live, imediat după mutare:** robots.txt răspunde 200, scorul SEO din Lighthouse revine la ~100, canonical-urile apar, paginile cu LCP mare se re-măsoară fără parola de staging.
 - **Urmează până joi 5 noiembrie:** repetiția migrării pe site-ul de backup, cross-browser, Rich Results Test, deciziile de produs ale lui Mads.
+
+## Stare la 2026-11-03 (dimineata)
+
+- **Git:** `main` cu PR #16–#55 unite. **PR #56 e deschis si neunit** — conține intrarile 69–72 din jurnal si pluginul `tools/ecofridge-tls-fix/`; merge-ul mi-a fost blocat de modul auto, deci il face Doru.
+- **Lansare:** sambata 7 noiembrie 2026, 05:00–09:00. Repetitia migrarii: joi 5 noiembrie. DNS: o singura inregistrare, din contul IONOS.
+- **Site vechi:** PHP 7.2.34, WordPress 6.0.x, WooCommerce 3.5.10, Migrate Guru actualizat la 6.72 (era 5.65).
+- **Clona:** `eco-fridge-backup.o2dev.de`, WordPress 7.1.4, SSH `ef-backup` merge. **De facut in hPanel, de Doru:** PHP pe 7.4, CDN off, auto-update pe „Don't update".
+- **Blocajul de azi:** „Initiate migration" cadea cu cURL error 60. Cauza gasita si dovedita: lista de radacini a WordPress-ului 6.0 de pe live nu cunoaste radacina GlobalSign Root R46 folosita de `mg.blogvault.net`. Reparatia e `tools/ecofridge-tls-fix.zip`, de urcat pe site-ul vechi; **inca netestata pe viu** — asta e primul lucru de incercat.
+- **Daca reparatia nu merge:** variantele din intrarea 72, secțiunea 5, in ordinea de acolo.
+- **Procedura completa pentru sambata:** intrarea 72, de citit de la cap la coada inainte de orice clic.
+- **Rămâne de cerut de la Ambrit/Mads:** acces FTP/SFTP plus dump de baza de date (varianta curata, fara nimic instalat pe magazinul viu) si, daca e nevoie, reinnoirea pachetului `ca-certificates` pe serverul vechi.
