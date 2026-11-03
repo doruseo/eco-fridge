@@ -32,6 +32,7 @@ require_once EFB_DIR . 'includes/markets.php';
 require_once EFB_DIR . 'includes/blog.php';
 require_once EFB_DIR . 'includes/sitemaps.php';
 require_once EFB_DIR . 'includes/woocommerce.php';
+require_once EFB_DIR . 'includes/checkout-delivery-questions.php';
 require_once EFB_DIR . 'includes/abandoned-carts.php';
 require_once EFB_DIR . 'includes/reviews.php';
 require_once EFB_DIR . 'includes/no-accounts.php';

@@ -1817,6 +1817,59 @@ Despre categorii, o nota ca sa nu „repare" nimeni nimic: 25 de categorii au la
 
 **Starea bazei locale:** conține acum comenzile importate, ca sa pot verifica si in wp-admin. Dump-ul de dinainte e in `source-dump/db/local-before-f15-import-2026-11-03.sql.gz`, deci revenirea e un singur import.
 
+## 87. Cele doua intrebari de livrare, preluate si implementate in checkout (2026-11-03)
+
+Doru: „este necesar sa intrebam la checkout la adresa de livrare cate trepte sunt, echipa de livrare are nevoie sa stie si sa informeze clientul daca poate sa introduca produsul (frigider sau congelator sau ce este) in incinta sau il vor lasa la poarta. (…) Preia setarile din vechiul site pentru acest camp si verifici din vechiul site si alte campuri (…) Implementeaza in noul site la checkout si aceste campuri. Vreau sa le preluam, stiu despre ele de la Mads."
+
+### Ce era pe site-ul vechi, exact
+
+Definitiile stăteau in optiunea **`wc_fields_additional`**, adica in pluginul **WooCommerce Checkout Manager**. Am citit-o intreaga; nu existau alte campuri personalizate in afara acestora doua, iar la facturare singurele abateri erau `billing_address_3` si `billing_state`, **dezactivate** (`enabled = 0`).
+
+| | `check_doors` | `stairs` |
+|---|---|---|
+| tip | select | text liber |
+| eticheta | „We recomend you to check the height of your doors through the final fridge position. Have you checked the size of your doors? (T&C apply)" | „How many door steps? Curb side delivery will be at the drivers discretion (T&C apply)" |
+| optiuni | YES / NO | — |
+| obligatoriu | **da** | **da** |
+| in comanda / in email | da / da | da / da |
+| ordine | 10 | 20, apoi notele de comanda la 30 |
+| cate comenzi il au | 4.436 | 3.877 |
+
+**Alta regula nu exista:** campul `validate` era gol la amandoua, deci singura constrangere e ca nu poti plasa comanda fara raspuns. Restul e informativ, scris in eticheta: clientul e sfatuit sa masoare, iar livrarea la bordura rămâne la latitudinea soferului, cu T&C.
+
+### Ce am implementat, si de ce asa
+
+**In pluginul nostru, nu cu un plugin nou:** `ecofridge-blocks/includes/checkout-delivery-questions.php`.
+
+**Detaliul decisiv:** coșul nostru e clasic, dar **checkout-ul e pe blocuri**, deci filtrul clasic `woocommerce_checkout_fields` ar fi fost ignorat — o capcana in care intrasem dacă nu verificam pagina. Campurile sunt inregistrate prin **Additional Checkout Fields API** (WooCommerce 11.2.1), in grupul comenzii, cu aceleasi etichete, acelasi tip, aceeasi ordine si acelasi caracter obligatoriu.
+
+API-ul isi salveaza raspunsurile sub chei proprii (`_wc_other/ecofridge/doors-checked`), asa ca fiecare raspuns e **oglindit si in cheile vechi `check_doors` si `stairs`**. Motivul: cele 83 de comenzi importate poarta cheile vechi, iar asa ecranul de comanda, emailurile si orice export citesc la fel comenzile vechi si pe cele noi. Oglindirea nu ghiceste prefixul API-ului, ci caută cheia care se termina cu id-ul campului — deci supravieţuieste dacă WooCommerce isi schimba convenția.
+
+**Unde se citesc raspunsurile:** pe ecranul comenzii, sub adrese, intr-un bloc „Delivery access"; in emailurile de comanda, inclusiv cel pe care il primește magazinul; si pe pagina de confirmare a clientului. Toate trei citesc din cheile vechi, deci **si comenzile importate se afiseaza**.
+
+### Verificat local, nu presupus
+
+- Ambele campuri sunt inregistrate: select YES/NO obligatoriu si text obligatoriu, in grupul comenzii.
+- **Ajung in pagina de checkout**: datele blocului conțin id-urile si etichetele complete (codificate URL in sursa paginii).
+- Drumul complet al unei comenzi: am creat o comanda de proba, am scris raspunsurile prin API, oglindirea a umplut `check_doors = YES` si `stairs = 3 steps and a kerb`, emailul le-a purtat pe amandoua, panoul din admin le-a afisat, iar comanda de proba a fost stearsa.
+- **Comanda importata #14517**, care are doar cheile vechi, se afiseaza corect in acelasi loc: „Doorways measured: YES", „Steps at the delivery address: 1".
+- Validare, masurata pe drumul real: gol → refuzat la amandoua; YES si NO → acceptate; **MAYBE → refuzat**.
+
+**O gaura pe care am gasit-o si am inchis-o:** WooCommerce aplica „obligatoriu", dar **nu verifica dacă raspunsul unui select e dintre optiunile lui**, deci o cerere facuta pe langa pagina de checkout putea salva orice text. Am adaugat regula care accepta doar YES sau NO. Pe site-ul vechi aceeasi gaura exista si nu era acoperita.
+
+**Si o corectura a unei afirmatii proprii:** primul meu test al validarii folosea `is_wp_error()`, care e adevarat si pentru un WP_Error gol, deci citise „refuzat" unde nu era. Rezultatele de mai sus sunt masurate cu `has_errors()`, pe metoda pe care checkout-ul o apelează chiar el.
+
+### Pentru echipa ECO-Fridge, de trimis lui Mads
+
+Ce inseamna cele doua raspunsuri, pe scurt: **„Doorways measured"** spune dacă clientul a confirmat ca a masurat ușile pe traseul pana la locul final al cabinetului — un NO e un semnal sa fie sunat inainte de livrare. **„Steps at the delivery address"** spune cate trepte sunt la intrare; de aici se decide dacă se duce in incinta sau se lasa la bordura, iar decizia rămâne a soferului, conform T&C. Se citesc in comanda din admin, sub adrese, si in emailul de comanda nouă.
+
+**Doua lucruri de decis de client, nu de noi:**
+
+1. **Eticheta conține o greseala de tipar din site-ul vechi:** „We **recomend** you" — un singur „m". Am pastrat textul exact asa cum il stie clientul; se repara intr-o linie, dacă vrea. Exista si filtrele `efb_checkout_doors_label` si `efb_checkout_steps_label`, deci textul se poate schimba fara cod.
+2. **`stairs` e text liber, si asta se vede in date:** pe site-ul vechi au ieșit **396 de raspunsuri distincte** la aceeasi intrebare — „No", „1", „none", „no steps", „N/A", „one", „1 step". Echipa le poate citi, dar nu se pot filtra sau numara. Dacă Mads vrea date folosibile, un select (0 / 1 / 2 / 3+ / nu sunt sigur) ar rezolva; pentru moment am pastrat textul liber, fiindca asa functiona magazinul.
+
+**De verificat la comanda reala de sambata, 08:30:** campurile apar la checkout, refuza trimiterea fara raspuns, iar raspunsurile ajung in emailul magazinului. A intrat in checklist ca F10-17.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
@@ -1834,6 +1887,7 @@ Despre categorii, o nota ca sa nu „repare" nimeni nimic: 25 de categorii au la
 - **Clona:** `eco-fridge-backup.o2dev.de`, WordPress 7.1.4, SSH `ef-backup` merge. **De facut in hPanel, de Doru:** PHP pe 7.4, CDN off, auto-update pe „Don't update".
 - **Aprobare permanenta de la Doru, 3 nov (intrarea 82):** jurnal, git pana la merge, si Sheet-ul - toate trei se actualizeaza fara sa mai cer.
 - **Sheet adus la zi (intrarea 80):** calendarul si checklistul au randurile de azi, regula corectata de selectie a comenzilor, valorile DNS verificate, plus trei defecte reparate (textul despre SSL copiat peste pasul de comanda reala, randul de GTM dispărut, regula de canonic mutata inaintea DNS-ului).
+- **Cele doua intrebari de livrare sunt in checkout (intrarea 87, F10-17).** Preluate 1:1 de pe site-ul vechi (check_doors YES/NO si stairs, amandoua obligatorii), implementate in pluginul nostru prin Additional Checkout Fields API, fiindca checkout-ul e pe BLOCURI; raspunsurile sunt oglindite in cheile vechi, deci si comenzile importate se afiseaza. De decis de client: greseala de tipar „recomend" din eticheta si dacă `stairs` rămâne text liber (396 de raspunsuri distincte pe site-ul vechi).
 - **Importul scris, rulat si dovedit (intrarea 86).** Unelte in repo: migration/f15-run.sh, f15-compare.sql, f15-import-orders.sql. Pe o copie locala: stergerea cu WP-CLI curata si wp_wc_order_stats, importul a trecut toate verificările, reconcilierea e 6.014 = 6.014, WooCommerce citeste corect comanda importata, rapoartele se reconstruiesc, secventa a ajuns la 14652. **De reverificat sambata pe clona proaspata** (cerere Doru): produse noi, sterse, modificate, categorii si pagini - cu f15-compare.sql. Si: `stairs` e un camp real de livrare pe care site-ul nou nu-l mai intreaba, de discutat cu Mads.
 - **Extragerea rulata pe date reale (intrarea 85, raport: migration/f15-delta-2026-11-03.md).** Comenzi de importat: **83**, nu 85 - selectia se face dupa `_order_key`, fiindca regula cu data includea doua comenzi pe care le avem deja. Reconcilierea e deja zero (5.931 = 5.931). Zero produse noi, zero categorii noi, zero cupoane, zero conturi, zero recenzii. Rămân: o schimbare de stoc, doua fisiere media, 25 de redirecturi lipsa, meta SEO pentru continutul nou. Si 18 din 19 diferente de pret sunt false pozitive - comparatia se face pe pretul efectiv.
 - **Dump de proba luat (intrarea 84):** source-dump/db/backup-clone-2026-11-03.sql.gz, 9,1 MB, 127 de tabele, verificat; fara tabelele Lloyds, Matomo si jurnale. Delta de media: DOUA fisiere, aflate din baza de date, fiindca datele fisierelor au fost rescrise de migrare. Copiile .bak din docroot au fost mutate afara si extensiile riscante refuzate.
