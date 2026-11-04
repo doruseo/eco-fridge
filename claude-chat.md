@@ -1982,6 +1982,26 @@ Deci ingheţul nu mai e o cerere separata, ci un fapt: pe site-ul vechi nu lucre
 
 Cererile de acces FTP/SFTP, de dump de baza de date si de reinnoire a `ca-certificates` au ieșit definitiv: prima si a doua erau rezerve pentru Migrate Guru, care a functionat, iar a treia a fost rezolvata de pluginul nostru de TLS.
 
+## 93. Fraza prin care Mads afla ca e liber sa plece de la Ambrit (2026-11-04)
+
+Doru: „cum sa formulez fraza in care ii spun ca este liber sa rezilieze contractul cu Ambrit? Scrie la cerinte ca ii cerem o fereastra (preaviz) de 30 de zile…deci nu mai este nevoie sa mentionam si in aceasta fraza."
+
+**Varianta recomandata**, de pus imediat dupa cele trei cereri:
+
+> **Once those three things are in hand, nothing further is needed from Ambrit.** The website will be running in your own hosting account and the domain is already in your own IONOS account, so whether you continue with them afterwards is entirely your decision — ending the arrangement will not affect the new website in any way.
+
+**Varianta scurta**, dacă vrea un ton mai sec:
+
+> **After that, nothing we do depends on Ambrit.** The website and the domain are both in your own accounts, so continuing with them, or not, is entirely your call.
+
+**De ce asa:**
+
+- **„Once those three things are in hand"** face treaba preavizului fara sa-l repete: spune implicit ordinea corecta — backupul de luni primit, perioada de siguranta servita — si abia apoi e liber. Exact ce a cerut Doru, fara a doua mentiune a celor 30 de zile.
+- **„in your own hosting account… your own IONOS account"** e motivul real pentru care e liber, si e verificabil: site-ul nou sta in contul lui de Hostinger, domeniul in contul lui de IONOS. Dupa mutare, nimic nu mai rămâne la Ambrit.
+- **„entirely your decision"** lasa decizia la el, fara sa impinga intr-o direcție; dacă rămâne cu ei pentru altceva, nu e treaba noastra.
+
+**Ce nu scriem:** nicaieri „you can cancel the hosting now". Rezilierea inainte ca backupul de luni sa fie efectiv primit ne-ar lasa fara plasa de siguranta exact in saptamana in care conteaza. Formularea de sus inchide asta din construcție, fara sa facă din ea un avertisment.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
