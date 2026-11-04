@@ -1956,6 +1956,32 @@ Verificat pe 3 noiembrie la nameserverele autoritative: zona e servita de `ns103
 
 **Doua corecturi in propriile mele note:** scrisesem de doua ori, pe 3 noiembrie, „DNS-ul e la Ambrit". E greșit si tocmai aici conteaza: Ambrit tine gazduirea, zona e la IONOS, in contul clientului. Ambele randuri sunt corectate in jurnal.
 
+## 92. Textul final al celor trei cereri catre Ambrit (2026-11-04)
+
+Doru: „nu lucreaza nimeni dupa vineri seara, iar noi oricum luam o copie completa a site-ului sambata dimineata. Deci [cele trei cereri] devine cum? Scrie in engleza clar si concis, ca sa-i trimit lui Mads sa-i ceara lui Ambrit."
+
+Deci ingheţul nu mai e o cerere separata, ci un fapt: pe site-ul vechi nu lucreaza nimeni dupa vineri seara, iar copia completa de sambata dimineata acopera restul. Rămân trei cereri, nu patru.
+
+**Textul trimis, in engleza:**
+
+> **Ask Ambrit, your current hosting company, for three things:**
+>
+> **1. One complete backup of the website — files and database — taken on Monday 9 November,** after the switch, and sent to us. We check it order by order against the new site, so nothing can have been missed, and it stays as the archive of the old shop. We also take our own full copy on the Saturday morning, before the switch, so this is a cross-check rather than the only copy.
+>
+> **2. The hosting account left running, exactly as it is, for at least 30 days after the switch.** Not only active — unchanged: no plugin or PHP updates, no clean-up, nothing removed. This is our safety net: if anything serious went wrong, we could point the web address back to it within five minutes.
+>
+> **3. Confirmation that they will not change any web address (DNS) settings themselves.** We make that change in your IONOS account, and only for the website: a single record, the `A` record for eco-fridge.co.uk. The `www` address follows it automatically. Nothing to do with email is touched — the MX, DKIM, DMARC and SPF records all stay exactly as they are, so email keeps working throughout.
+>
+> Nothing else is needed from them. Work on the current website stops on Friday evening and nobody touches it after that, so the copy we take on Saturday morning is complete.
+
+**Trei diferente fata de varianta de dinainte, si de ce:**
+
+1. La punctul 2, **„exactly as it is"** cu exemple. O gazduire „activa" dar actualizata intre timp nu mai e plasa de siguranta: un update de plugin sau o schimbare de PHP pe serverul vechi ne-ar putea lasa cu o revenire care nu mai functioneaza. „Activ" nu acoperă asta, „neschimbat" da.
+2. La punctul 3, **exact ce se schimba si ce nu**: o singura inregistrare, A pentru eco-fridge.co.uk, `www` urmeaza singura, iar MX, DKIM, DMARC si SPF rămân neatinse. E verificabil, si taie din start temerea ca se mișca emailul — care e, de obicei, singurul lucru care sperie o gazduire veche.
+3. **„within five minutes"** in loc de „within minutes" — acum e o cifra adevarata, fiindca TTL-ul de pe A e 300 de secunde de pe 3 noiembrie.
+
+Cererile de acces FTP/SFTP, de dump de baza de date si de reinnoire a `ca-certificates` au ieșit definitiv: prima si a doua erau rezerve pentru Migrate Guru, care a functionat, iar a treia a fost rezolvata de pluginul nostru de TLS.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
@@ -1990,4 +2016,5 @@ Verificat pe 3 noiembrie la nameserverele autoritative: zona e servita de `ns103
 - **Blocajul de azi, rezolvat:** „Initiate migration" cadea cu cURL error 60. Cauza gasita si dovedita: lista de radacini a WordPress-ului 6.0 de pe live nu cunoaste radacina GlobalSign Root R46 folosita de `mg.blogvault.net`. Reparatia e `tools/ecofridge-tls-fix.zip`, de urcat pe site-ul vechi; **inca netestata pe viu** — asta e primul lucru de incercat.
 - **Daca reparatia nu merge:** variantele din intrarea 72, secțiunea 5, in ordinea de acolo.
 - **Procedura completa pentru sambata:** intrarea 72, de citit de la cap la coada inainte de orice clic.
-- **De la Ambrit/Mads (actualizat 4 nov, intrarea 91):** confirmarea ca nu umbla la zona DNS RAMANE valabila (zona e la IONOS, in contul clientului, dar ei pot avea credentiale vechi); mai importante acum: sa nu opreasca gazduirea veche inainte de 30 de zile si ingheţ pe site-ul vechi de vineri seara. Cererile de acces FTP/dump si de `ca-certificates` NU mai sunt necesare.
+- **De la Ambrit/Mads: textul final al celor trei cereri e in intrarea 92**, gata de trimis. Context si ce a ieșit din lista: intrarea 91.
+- **Context (intrarea 91):** confirmarea ca nu umbla la zona DNS RAMANE valabila (zona e la IONOS, in contul clientului, dar ei pot avea credentiale vechi); mai importante acum: sa nu opreasca gazduirea veche inainte de 30 de zile si ingheţ pe site-ul vechi de vineri seara. Cererile de acces FTP/dump si de `ca-certificates` NU mai sunt necesare.
