@@ -1510,7 +1510,7 @@ Doru: „la noul site (ce va deveni live site) la parked domains vad doar eco-fr
 
 **Raspuns scurt:** da, se poate adauga, nu strica nimic, dar nu e asta lucrul important. Important e ca `eco-fridge.co.uk` sa ajunga **domeniul principal** al site-ului, nu un domeniu parcat, fiindca domeniul principal e cel care primeste gazda virtuala si certificatul — iar certificatul trebuie sa acopere **si** `www`, de vreme ce canonicul nostru e `https://www.eco-fridge.co.uk`.
 
-**Ce spune documentatia Hostinger:** un domeniu parcat „afiseaza acelasi conținut ca domeniul principal", adica e un alias peste acelasi docroot, si **trebuie sa indice deja spre serverele lor** (nameservere sau inregistrare A) ca sa poata fi adaugat; altfel adaugarea da eroare. De-aia `eco-fridge.co.uk` apare acum acolo fara sa functioneze: DNS-ul e inca la Ambrit. Daca varianta `www` e adaugata automat la un domeniu parcat, documentatia **nu spune**, si exact de aia nu ne bazam pe presupunere: dacă `www` nu intra in certificat, vizitatorii care ajung pe canonicul nostru vad avertisment de securitate in browser. Deci: se adauga explicit dacă panoul o accepta, iar **inainte de a scoate parola** se verifica in pagina de SSL ca certificatul conține amandoua numele.
+**Ce spune documentatia Hostinger:** un domeniu parcat „afiseaza acelasi conținut ca domeniul principal", adica e un alias peste acelasi docroot, si **trebuie sa indice deja spre serverele lor** (nameservere sau inregistrare A) ca sa poata fi adaugat; altfel adaugarea da eroare. De-aia `eco-fridge.co.uk` apare acum acolo fara sa functioneze: zona e la IONOS, in contul clientului, si inregistrarea A arata inca spre serverul lui Ambrit. (Corectat pe 4 noiembrie: scrisesem „DNS-ul e la Ambrit", ceea ce e greșit - Ambrit tine gazduirea, nu zona.) Daca varianta `www` e adaugata automat la un domeniu parcat, documentatia **nu spune**, si exact de aia nu ne bazam pe presupunere: dacă `www` nu intra in certificat, vizitatorii care ajung pe canonicul nostru vad avertisment de securitate in browser. Deci: se adauga explicit dacă panoul o accepta, iar **inainte de a scoate parola** se verifica in pagina de SSL ca certificatul conține amandoua numele.
 
 **Verificarea pe care am incercat-o si de ce nu a mers:** am vrut sa intreb serverul direct, cu `curl --resolve`, dacă raspunde pentru `eco-fridge.co.uk` si `www.eco-fridge.co.uk` inainte de mutarea DNS-ului. Nu se poate deocamdata: adresa de preview a site-ului nou e un CNAME catre **`free.cdn.hstgr.net`**, adica spre marginea CDN-ului Hostinger, deci din afara nu exista un IP de origine pe care sa-l interoghez. Doua concluzii practice din asta:
 
@@ -1932,6 +1932,30 @@ Doru: „Scad TTL pe IONOS doar la A @ sau si la A ftp? Minim ca timp am chiar s
 
 Dupa o saptamana linistita de la lansare, TTL-ul se pune inapoi la 3600. Randul de TTL din calendar e acum bifat si rescris cu aceasta corectura, iar memoria de lansare la fel.
 
+## 91. Cererea catre Ambrit despre DNS: inca valabila, dar din alt motiv decat pare (2026-11-04)
+
+Doru: „mai este valabila cerinta catre Ambrit de «confirmation that they will not change any web address (DNS) settings themselves. We make that change in your IONOS account, and only for the website»?"
+
+**Da, rămâne — dar motivul e mai ingust decat suna, si merita spus precis.**
+
+Verificat pe 3 noiembrie la nameserverele autoritative: zona e servita de `ns1030.ui-dns.*`, adica **IONOS, contul clientului**. Ambrit tine **gazduirea** de la 185.230.220.98, nu inregistrarile. **Din panoul lor nu pot schimba DNS-ul.** Riscul rămas e unul singur: dacă mai detin credentiale de login in contul IONOS al clientului — plauzibil, ei au construit site-ul, iar `ftp.eco-fridge.co.uk` plus SPF-ul cu `+a` si `ip4:83.223.113.98` arata o istorie lunga. **Deci confirmarea e despre oameni cu parole vechi, nu despre panoul lor** — si exact asa merita formulata.
+
+**A doua jumatate a frazei e acum demonstrabila**, ceea ce o face mai buna decat inainte. In loc de o promisiune vaga, se poate scrie exact ce se schimba: o singura inregistrare, `A` pentru eco-fridge.co.uk; `www` o urmeaza singura, fiind CNAME; iar nimic legat de email nu e atins — MX (mx00/mx01.ionos.co.uk), DKIM (s1/s2/s42582890._domainkey), `_dmarc`, SPF si TXT-ul de verificare Google rămân neschimbate.
+
+**Doua cereri din emailul vechi pot fi scoase:**
+
+- **acces FTP/SFTP plus dump de baza de date** — era varianta de rezerva dacă Migrate Guru nu merge; merge, probat ieri. Rămâne cel mult „nice to have";
+- **reinnoirea `ca-certificates` pe serverul vechi** — nu mai e nevoie, pluginul nostru de TLS a rezolvat-o, si se sterge dupa migrare.
+
+**Doua devin mai importante decat cea de DNS:**
+
+1. **Sa nu opreasca si sa nu modifice gazduirea veche inainte de cele 30 de zile.** Ne trebuie pentru revenire, iar `ftp.eco-fridge.co.uk` inca arata acolo. Asta e acum riscul mare, nu DNS-ul.
+2. **Ingheţ pe site-ul vechi de vineri seara.** Delta noastra se calculeaza fata de el: comenzile noi nu sunt o problema, le prinde clona de sambata la 05:10, dar un produs, o pagina, o categorie nouă sau un update de plugin intre clona si go-live s-ar pierde in liniste.
+
+**Si un pas ieftin de siguranta, adaugat in calendar la 07:30:** verific zona din nou sambata dimineata, chiar inainte de schimbare. Dacă cineva a umblat la ea, aflam atunci, nu dupa.
+
+**Doua corecturi in propriile mele note:** scrisesem de doua ori, pe 3 noiembrie, „DNS-ul e la Ambrit". E greșit si tocmai aici conteaza: Ambrit tine gazduirea, zona e la IONOS, in contul clientului. Ambele randuri sunt corectate in jurnal.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
@@ -1960,10 +1984,10 @@ Dupa o saptamana linistita de la lansare, TTL-ul se pune inapoi la 3600. Randul 
 - **TTL coborat si verificat (intrarea 90):** apex A e pe 300, valoarea neschimbata; www si ftp rămân la 3600, fiindca nu se schimba. Dupa o saptamana de la lansare, inapoi la 3600.
 - **DNS lamurit (intrarea 78):** sambata se schimba O SINGURA inregistrare, A de la apex, 185.230.220.98 -> 148.230.121.74; www e CNAME spre apex si urmeaza singur; nu exista AAAA si nici CAA; MX si TXT nu se ating. **De facut azi:** TTL-ul inregistrarii A coborat la 300 la IONOS, cu valoarea neschimbata.
 - **Site-ul de test se sterge** la finalul repetitiei, cu acordul cerut si dat; procedura se reia de la zero sambata, din staging-ul actualizat. Ce a dovedit repetitia: intrarea 77, punctele 1-6.
-- **Domeniu:** pe site-ul nou, eco-fridge.co.uk apare la Parked domains si nu merge inca, fiindca DNS-ul e la Ambrit. De urmarit: domeniu PRINCIPAL, nu parcat, plus varianta www acoperita de certificat (intrarea 76).
+- **Domeniu:** pe site-ul nou, eco-fridge.co.uk apare la Parked domains si nu merge inca, fiindca inregistrarea A arata inca spre serverul lui Ambrit (zona e la IONOS, in contul clientului). De urmarit: domeniu PRINCIPAL, nu parcat, plus varianta www acoperita de certificat (intrarea 76).
 - **Repetitia de azi, clonarea staging:** reusita, pe `https://eco-fridge-o2dev-de-857081.hostingersite.com/`; unealta Hostinger inlocuieste singura URL-urile, noindex vine cu copia, dar parola NU vine, deci copia e deschisa oricui — de inchis sau de sters. Detalii si ordinea corecta de sambata: intrarea 75.
 - **Azi, in lucru:** migrarea de test site vechi → `eco-fridge-backup.o2dev.de` ruleaza prin Migrate Guru; in paralel, clonarea staging → site nou cu unealta Hostinger (lista de verificari de dupa: intrarea 74).
 - **Blocajul de azi, rezolvat:** „Initiate migration" cadea cu cURL error 60. Cauza gasita si dovedita: lista de radacini a WordPress-ului 6.0 de pe live nu cunoaste radacina GlobalSign Root R46 folosita de `mg.blogvault.net`. Reparatia e `tools/ecofridge-tls-fix.zip`, de urcat pe site-ul vechi; **inca netestata pe viu** — asta e primul lucru de incercat.
 - **Daca reparatia nu merge:** variantele din intrarea 72, secțiunea 5, in ordinea de acolo.
 - **Procedura completa pentru sambata:** intrarea 72, de citit de la cap la coada inainte de orice clic.
-- **Rămâne de cerut de la Ambrit/Mads:** acces FTP/SFTP plus dump de baza de date (varianta curata, fara nimic instalat pe magazinul viu) si, daca e nevoie, reinnoirea pachetului `ca-certificates` pe serverul vechi.
+- **De la Ambrit/Mads (actualizat 4 nov, intrarea 91):** confirmarea ca nu umbla la zona DNS RAMANE valabila (zona e la IONOS, in contul clientului, dar ei pot avea credentiale vechi); mai importante acum: sa nu opreasca gazduirea veche inainte de 30 de zile si ingheţ pe site-ul vechi de vineri seara. Cererile de acces FTP/dump si de `ca-certificates` NU mai sunt necesare.
