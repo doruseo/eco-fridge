@@ -1915,6 +1915,23 @@ Doru: „salveaza tot si in memoria proiectului acestui folder si retine sa o fa
 
 Indexul `MEMORY.md` are cele doua intrari noi.
 
+## 90. TTL: doar pe A de la apex, si de ce 5 minute, nu 1 (2026-11-04)
+
+Doru: „Scad TTL pe IONOS doar la A @ sau si la A ftp? Minim ca timp am chiar si 1 minut, setez 5 minute, cum ai recomandat?"
+
+**Verificat direct la nameserverele IONOS, nu din cache:** `eco-fridge.co.uk A` are deja **TTL 300**, cu valoarea neschimbata (185.230.220.98). `www` e CNAME cu TTL 3600, `ftp` e A cu TTL 3600, amandoua neatinse.
+
+**Raspuns: doar `A @`.**
+
+- **`A ftp` nu se atinge** nici acum, nici sambata. Rămâne spre serverul vechi cat timp gazduirea aceea e tinuta in viata, si se actualizeaza sau se sterge dupa cele 30 de zile. Un TTL mic pe o inregistrare pe care nu o schimbi nu aduce nimic.
+- **`CNAME www` nu are nevoie, si aici imi corectez propria nota** din calendar, scrisa pe 30 octombrie: „si, dacă panoul permite, pe CNAME www". Motivul tehnic: CNAME-ul nu se schimba, tinta lui rămâne `eco-fridge.co.uk`, iar cat de repede ajunge lumea pe IP-ul nou e decis de **TTL-ul inregistrarii A de la apex**. Un resolver care tine CNAME-ul in cache o ora tot rezolva apexul respectand TTL-ul de 300 de secunde. Inofensiv dacă il cobori, dar fara castig.
+
+**Si da, 5 minute, nu 1.** 300 e pragul pe care il respecta toate resolverele; unele ISP-uri impun oricum un minim propriu si pot **ridica** valorile foarte mici, deci 60 de secunde nu garanteaza 60 de secunde. Pentru o mutare unica, castigul practic sub cinci minute e zero, iar costul e mai multe interogari zile la rand. Castigul care conteaza nu e viteza cu care apare site-ul nou, ci **viteza de revenire**: cu 300 ne intoarcem pe serverul vechi in 5 minute, nu intr-o ora.
+
+**Un detaliu care l-a ajutat fara sa stie:** coborarea TTL-ului e ea insasi supusa TTL-ului vechi de o ora, deci resolverele care aveau raspunsul in cache inainte de modificare pot servi inca pana la o ora valoarea veche. Facuta cu trei zile inainte, se absoarbe complet.
+
+Dupa o saptamana linistita de la lansare, TTL-ul se pune inapoi la 3600. Randul de TTL din calendar e acum bifat si rescris cu aceasta corectura, iar memoria de lansare la fel.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
@@ -1940,6 +1957,7 @@ Indexul `MEMORY.md` are cele doua intrari noi.
 - **Numerotare comenzi: DECIS (intrarile 81 si 83).** Comenzile de test se sterg definitiv sambata, comenzile reale vin cu numerele originale, iar secventa site-ului nou se pune peste cel mai mare numar importat. Fara renumerotare.
 - **Context si argumentele deciziei (intrarea 81):** Doru a decis ca numerele reale se pastreaza si magazinul continua dupa ele. HPOS e OPRIT pe ambele site-uri, deci numarul comenzii e ID-ul postului; staging e la max ID 8042. Recomandarea mea: comenzile de test SE STERG, iar secventa se pune peste cel mai mare numar importat - renumerotarea lor ar fi chirurgie pe 6-8 tabele in dimineata lansarii, iar pastrate ar adauga ~£1.545 de vanzari inexistente in rapoartele primei luni.
 - **Clona site-ului vechi: GATA si INCHISA** (intrarea 79). Migrarea a reusit, copia e identica cu site-ul vechi, iar acum orice cerere HTTP da 403 in afara de cea cu token; blog_public 0, robots.txt Disallow, update-uri si cron oprite. **Descoperiri care schimba planul:** comenzile noi se selecteaza DUPA DATA (85 de la 10 iulie incoace, #14514-#14632), nu dupa ID; numarul comenzii pe site-ul vechi e ID-ul postului, deci numerotarea viitoare trebuie decisa (peste 14632 sau renumerotare); clientii sunt aproape toti oaspeti, deci nu avem conturi de migrat.
+- **TTL coborat si verificat (intrarea 90):** apex A e pe 300, valoarea neschimbata; www si ftp rămân la 3600, fiindca nu se schimba. Dupa o saptamana de la lansare, inapoi la 3600.
 - **DNS lamurit (intrarea 78):** sambata se schimba O SINGURA inregistrare, A de la apex, 185.230.220.98 -> 148.230.121.74; www e CNAME spre apex si urmeaza singur; nu exista AAAA si nici CAA; MX si TXT nu se ating. **De facut azi:** TTL-ul inregistrarii A coborat la 300 la IONOS, cu valoarea neschimbata.
 - **Site-ul de test se sterge** la finalul repetitiei, cu acordul cerut si dat; procedura se reia de la zero sambata, din staging-ul actualizat. Ce a dovedit repetitia: intrarea 77, punctele 1-6.
 - **Domeniu:** pe site-ul nou, eco-fridge.co.uk apare la Parked domains si nu merge inca, fiindca DNS-ul e la Ambrit. De urmarit: domeniu PRINCIPAL, nu parcat, plus varianta www acoperita de certificat (intrarea 76).
