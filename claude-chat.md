@@ -2026,6 +2026,34 @@ Doru: „vreau la inceput sa scriu: Feel free to cancel (sau cum se zice la a re
 
 Varianta anterioara, cu permisiunea dupa cele trei cereri, e in intrarea 93; a rămas acolo pentru comparatie, dar cea trimisa e aceasta.
 
+## 95. Cand activam HPOS: nu inainte de lansare, si nu e grabă (2026-11-04)
+
+Doru: „cand fac asta: Comenzile stau inca in posts; HPOS se activeaza din WooCommerce → Advanced → Features?"
+
+**Nu inainte de lansare, si pentru magazinul asta HPOS e un „bine de avut", nu o nevoie.**
+
+**De ce nu joi sau vineri:** scriptul de import, scris si dovedit ieri, scrie in `wp_posts` si `wp_postmeta`, iar continuarea numerotarii trece prin `AUTO_INCREMENT` pe `wp_posts`. Dacă HPOS devine depozitul principal inainte de import, ID-urile de comanda vin din `wc_orders` si ambele piese ar trebui rescrise si re-dovedite in doua zile, fara niciun castig pentru client.
+
+**De ce nu sambata:** ar fi o migrare de schema a 6.014 comenzi exact in fereastra in care singurul lucru care conteaza e sa putem reveni in cinci minute. Risc gratuit langa DNS, SSL, licente si import.
+
+**De ce nu e grabă:** HPOS se plateste la zeci de mii de comenzi si la interogari grele in admin. Aici sunt 6.014 comenzi si ~20 pe luna; nimic nu e lent din cauza stocarii in posts.
+
+**Ce am verificat azi, ca sa stim ca e posibil cand vrem:**
+
+- Starea: HPOS `no`, sincronizare `no`, tabela `wc_orders` nici nu exista.
+- **Niciun plugin instalat nu declara incompatibilitate.** Declara compatibilitate: AG Lloyds Cardnet, GTM4WP, SMS Alert, Astra Addon, Woo Analytics. WebToffee PDF Invoices nu apare fiindca e inactiv; dacă e activat vreodata, se reverifica atunci.
+- **Pluginul nostru e curat:** nu citeste nicaieri comenzi din `wp_posts`. Singura referinta la `shop_order` e o verificare de capabilitate, iar accesul la comenzi trece prin `wc_get_order()` si `wc_get_orders()`; SQL-ul din coșurile abandonate e pe propria tabela. Deci HPOS rămâne transparent pentru noi. Nu declara nimic despre compatibilitate, ceea ce se adauga in trei linii cand facem trecerea.
+
+**Momentul potrivit: 2–3 saptamani dupa lansare**, cu pasii:
+
+1. backup complet (UpdraftPlus), ca la orice migrare de schema;
+2. WooCommerce → Settings → Advanced → Features → **High-performance order storage**, cu **modul de compatibilitate (sincronizare) pornit**;
+3. Action Scheduler migreaza cele ~6.100 de comenzi in fundal; se verifica numarul de comenzi si se deschid cateva, inclusiv una din cele 83 importate;
+4. o saptamana cu sincronizarea pornita — ea e plasa de siguranta, fiindca `wp_posts` rămâne scris in paralel;
+5. abia apoi se opreste sincronizarea si se adauga declaratia de compatibilitate in pluginul nostru.
+
+**Un lucru care sperie de obicei si nu e cazul:** numerele de comanda **nu se reseteaza**. Comenzile existente isi pastreaza ID-urile, iar noile ID-uri vin din `wc_orders` cu secventa pornita peste maximul existent, deci continuitatea construita sambata rămâne.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
@@ -2048,6 +2076,7 @@ Varianta anterioara, cu permisiunea dupa cele trei cereri, e in intrarea 93; a r
 - **Importul scris, rulat si dovedit (intrarea 86).** Unelte in repo: migration/f15-run.sh, f15-compare.sql, f15-import-orders.sql. Pe o copie locala: stergerea cu WP-CLI curata si wp_wc_order_stats, importul a trecut toate verificările, reconcilierea e 6.014 = 6.014, WooCommerce citeste corect comanda importata, rapoartele se reconstruiesc, secventa a ajuns la 14652. **De reverificat sambata pe clona proaspata** (cerere Doru): produse noi, sterse, modificate, categorii si pagini - cu f15-compare.sql. Si: `stairs` e un camp real de livrare pe care site-ul nou nu-l mai intreaba, de discutat cu Mads.
 - **Extragerea rulata pe date reale (intrarea 85, raport: migration/f15-delta-2026-11-03.md).** Comenzi de importat: **83**, nu 85 - selectia se face dupa `_order_key`, fiindca regula cu data includea doua comenzi pe care le avem deja. Reconcilierea e deja zero (5.931 = 5.931). Zero produse noi, zero categorii noi, zero cupoane, zero conturi, zero recenzii. Rămân: o schimbare de stoc, doua fisiere media, 25 de redirecturi lipsa, meta SEO pentru continutul nou. Si 18 din 19 diferente de pret sunt false pozitive - comparatia se face pe pretul efectiv.
 - **Dump de proba luat (intrarea 84):** source-dump/db/backup-clone-2026-11-03.sql.gz, 9,1 MB, 127 de tabele, verificat; fara tabelele Lloyds, Matomo si jurnale. Delta de media: DOUA fisiere, aflate din baza de date, fiindca datele fisierelor au fost rescrise de migrare. Copiile .bak din docroot au fost mutate afara si extensiile riscante refuzate.
+- **HPOS: NU inainte de lansare (intrarea 95).** Nu joi/vineri, fiindca importul dovedit scrie in wp_posts; nu sambata, fiindca e o migrare de schema in fereastra de revenire. Momentul: 2-3 saptamani dupa lansare, cu sincronizarea pornita prima. Verificat ca niciun plugin nu declara incompatibilitate si ca pluginul nostru nu citeste comenzi din posts.
 - **Numerotare comenzi: DECIS (intrarile 81 si 83).** Comenzile de test se sterg definitiv sambata, comenzile reale vin cu numerele originale, iar secventa site-ului nou se pune peste cel mai mare numar importat. Fara renumerotare.
 - **Context si argumentele deciziei (intrarea 81):** Doru a decis ca numerele reale se pastreaza si magazinul continua dupa ele. HPOS e OPRIT pe ambele site-uri, deci numarul comenzii e ID-ul postului; staging e la max ID 8042. Recomandarea mea: comenzile de test SE STERG, iar secventa se pune peste cel mai mare numar importat - renumerotarea lor ar fi chirurgie pe 6-8 tabele in dimineata lansarii, iar pastrate ar adauga ~£1.545 de vanzari inexistente in rapoartele primei luni.
 - **Clona site-ului vechi: GATA si INCHISA** (intrarea 79). Migrarea a reusit, copia e identica cu site-ul vechi, iar acum orice cerere HTTP da 403 in afara de cea cu token; blog_public 0, robots.txt Disallow, update-uri si cron oprite. **Descoperiri care schimba planul:** comenzile noi se selecteaza DUPA DATA (85 de la 10 iulie incoace, #14514-#14632), nu dupa ID; numarul comenzii pe site-ul vechi e ID-ul postului, deci numerotarea viitoare trebuie decisa (peste 14632 sau renumerotare); clientii sunt aproape toti oaspeti, deci nu avem conturi de migrat.
