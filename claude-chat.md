@@ -2054,6 +2054,20 @@ Doru: „cand fac asta: Comenzile stau inca in posts; HPOS se activeaza din WooC
 
 **Un lucru care sperie de obicei si nu e cazul:** numerele de comanda **nu se reseteaza**. Comenzile existente isi pastreaza ID-urile, iar noile ID-uri vin din `wc_orders` cu secventa pornita peste maximul existent, deci continuitatea construita sambata rămâne.
 
+## 96. Fara conturi de client, ca cerinta a clientului (2026-11-04)
+
+Doru: „retine ca Mads si Kass doresc ca toti clientii vechi si viitori sa fie guests, fara cont."
+
+**Notat ca cerinta a clientului, nu ca preferinta tehnica**, deci nu se redeschide. Salvat in memoria proiectului, in nota `ecofridge-guest-only`, si in checklist la randul nou **F10-18**.
+
+**E deja fortat in cod**, in `ecofridge-blocks/includes/no-accounts.php`, si asta conteaza: nu depinde de o setare pe care un plugin sau un clic o poate reporni. Creare de cont pe My Account, la checkout si dupa checkout — oprite; reminderul de login la checkout — oprit; `users_can_register` — oprit; inregistrarea prin wp-login.php si prin API-urile WooCommerce, REST si Store — refuzata pe server; guest checkout mereu pornit; My Account trimite vizitatorul pe prima pagina; conturile de personal se fac doar din Users → Add New.
+
+**Si se potriveste cu ce am masurat ieri pe site-ul vechi**, ceea ce explica de ce importul a fost simplu: din 6.014 comenzi, **6.008 au fost plasate ca oaspete** si doar 6 aveau cont atasat, iar toata tabela de utilizatori avea 5 conturi, toate de personal. Niciuna din cele 83 de comenzi care se importa sambata nu e legata de un utilizator. Deci cerinta lui Mads si a lui Kass nu schimba nimic pentru datele vechi — le confirma.
+
+**Cum se aplica de acum, ca sa fie clar si pentru o sesiune viitoare:** orice plugin sau functionalitate care cere conturi — urmarirea comenzii „pentru clienti logati", un plugin de recenzii care cere login, abonamente, loialitate, promptile proprii ale WooCommerce — primeste nu, iar alternativa e ruta de oaspete: detaliile comenzii prin linkul de order-received, si emailul clientului ca fir de discuție. Datele clientului trăiesc in meta comenzii, nu intr-un profil de utilizator, deci exporturile si echipa de livrare citesc comenzi, niciodata conturi.
+
+**O precizare despre nume, ca sa nu se piarda:** Kass e partea clientului alaturi de Mads; directorul inregistrat la Companies House e Kaseem Traboulsi.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
