@@ -2002,6 +2002,30 @@ Doru: „cum sa formulez fraza in care ii spun ca este liber sa rezilieze contra
 
 **Ce nu scriem:** nicaieri „you can cancel the hosting now". Rezilierea inainte ca backupul de luni sa fie efectiv primit ne-ar lasa fara plasa de siguranta exact in saptamana in care conteaza. Formularea de sus inchide asta din construcție, fara sa facă din ea un avertisment.
 
+## 94. Permisiunea de reziliere trece la inceput, si cuvantul care tine ordinea (2026-11-04)
+
+Doru: „vreau la inceput sa scriu: Feel free to cancel (sau cum se zice la a rezilia) the contract with Ambrit."
+
+**Despre termen:** „cancel the contract" e perfect idiomatic pentru o gazduire; „end your contract with" e varianta mai calda, „terminate" suna juridic. Oricare merge, nu e nevoie de altceva.
+
+**Textul final, cu fraza lui pe primul loc:**
+
+> **Feel free to cancel the contract with Ambrit.** The website will be running in your own hosting account and the domain is already in your own IONOS account, so nothing stays with them after the move. There are just **three things to get from them first:**
+>
+> **1.** One complete backup of the website — files and database — taken on **Monday 9 November**, after the switch, and sent to us. We check it order by order against the new site, so nothing can have been missed, and it stays as the archive of the old shop. We also take our own full copy on the Saturday morning, before the switch, so this is a cross-check rather than the only copy.
+>
+> **2.** The hosting account left running, **exactly as it is**, for at least 30 days after the switch. Not only active — unchanged: no plugin or PHP updates, no clean-up, nothing removed. This is our safety net: if anything serious went wrong, we could point the web address back to it within five minutes.
+>
+> **3.** Confirmation that they will not change any web address (DNS) settings themselves. We make that change in your IONOS account, and only for the website: a single record, the `A` record for eco-fridge.co.uk. The `www` address follows it automatically. Nothing to do with email is touched — the MX, DKIM, DMARC and SPF records all stay exactly as they are, so email keeps working throughout.
+>
+> Nothing else is needed from them. Work on the current website stops on Friday evening and nobody touches it after that, so the copy we take on Saturday morning is complete.
+
+**Cuvantul care face toata treaba e „first".** Fraza lui rămâne intacta si pe primul loc, dar „three things to get from them **first**" asaza ordinea corecta fara sa para o conditie pusa clientului: ia backupul de luni si fereastra de siguranta, abia apoi reziliaza. Fara el, cineva ar putea rezilia marti si am pierde exact plasa de siguranta din saptamana in care conteaza — iar punctul 2, cu cele 30 de zile, ar deveni imposibil de onorat.
+
+**Al doilea motiv pentru care merge bine la inceput:** propozitia a doua, „in your own accounts", explica imediat **de ce** e liber, deci permisiunea nu atarna in aer, iar cele trei cereri devin ultimele lucruri de luat de la un furnizor pe care il paraseste, nu o lista de favoruri.
+
+Varianta anterioara, cu permisiunea dupa cele trei cereri, e in intrarea 93; a rămas acolo pentru comparatie, dar cea trimisa e aceasta.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
