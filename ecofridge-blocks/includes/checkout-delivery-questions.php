@@ -165,6 +165,70 @@ add_action(
 );
 
 /* ---------------------------------------------------------------------------
+ * Make the questions readable.
+ *
+ * The checkout block draws a select with a floating label: the label sits over
+ * the control on one line and is cut off where it runs out of room. That is
+ * fine for "Country" and useless for a question of 137 characters, which is
+ * what the client saw — the question was there but unreadable.
+ *
+ * So, for this section only, the label goes back to being an ordinary block
+ * above the control, free to wrap over as many lines as it needs, with the
+ * answer underneath. `!important` is deliberate and kept inside this one
+ * container: the rules it overrides come from WooCommerce's own stylesheet,
+ * which loads after ours and is rewritten on every update, so specificity
+ * alone would not survive. The order-notes field in the same section gets the
+ * same treatment, which reads better there too.
+ * ------------------------------------------------------------------------- */
+
+add_action(
+	'wp_head',
+	static function () {
+		if ( ! function_exists( 'is_checkout' ) || ! is_checkout() ) {
+			return;
+		}
+		?>
+<style id="efb-delivery-questions">
+.wc-block-checkout__additional-information-fields .wc-block-components-select-input,
+.wc-block-checkout__additional-information-fields .wc-block-components-text-input,
+.wc-block-checkout__order-fields .wc-block-components-select-input,
+.wc-block-checkout__order-fields .wc-block-components-text-input {
+	display: block !important;
+	width: 100% !important;
+	flex: 1 1 100% !important;
+	margin-top: 1.25em;
+}
+.wc-block-checkout__additional-information-fields label,
+.wc-block-checkout__order-fields label {
+	position: static !important;
+	transform: none !important;
+	display: block !important;
+	max-width: 100% !important;
+	white-space: normal !important;
+	overflow: visible !important;
+	text-overflow: clip !important;
+	margin: 0 0 0.4em !important;
+	padding: 0 !important;
+	line-height: 1.35 !important;
+	font-size: 0.95em;
+	opacity: 1 !important;
+}
+.wc-block-checkout__additional-information-fields select,
+.wc-block-checkout__additional-information-fields textarea,
+.wc-block-checkout__order-fields select,
+.wc-block-checkout__order-fields textarea {
+	width: 100% !important;
+	height: auto !important;
+	padding: 0.7em 0.8em !important;
+	line-height: 1.4 !important;
+}
+</style>
+		<?php
+	},
+	20
+);
+
+/* ---------------------------------------------------------------------------
  * Hold both answers to the choices they were offered.
  *
  * WooCommerce enforces "required" on the server, so an order cannot be placed
