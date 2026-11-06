@@ -122,15 +122,19 @@ add_action(
 		// billing and shipping differ.
 		woocommerce_register_additional_checkout_field(
 			array(
-				'id'         => EFB_DOORS_FIELD_ID,
-				'label'      => efb_checkout_doors_label(),
-				'location'   => 'order',
-				'type'       => 'select',
-				'required'   => true,
-				'attributes' => array(
+				'id'          => EFB_DOORS_FIELD_ID,
+				'label'       => efb_checkout_doors_label(),
+				'location'    => 'order',
+				'type'        => 'select',
+				'required'    => true,
+				// Without this, WooCommerce builds the empty option out of the
+				// label — "Select a we recommend you to check the height of your
+				// doors…" — which is both wrong and too long to read.
+				'placeholder' => 'Choose YES or NO',
+				'attributes'  => array(
 					'title' => 'The delivery team needs this to tell you whether the cabinet can come inside.',
 				),
-				'options'    => array(
+				'options'     => array(
 					array(
 						'value' => 'YES',
 						'label' => 'YES',
@@ -153,12 +157,13 @@ add_action(
 
 		woocommerce_register_additional_checkout_field(
 			array(
-				'id'       => EFB_STEPS_FIELD_ID,
-				'label'    => efb_checkout_steps_label(),
-				'location' => 'order',
-				'type'     => 'select',
-				'required' => true,
-				'options'  => $steps_options,
+				'id'          => EFB_STEPS_FIELD_ID,
+				'label'       => efb_checkout_steps_label(),
+				'location'    => 'order',
+				'type'        => 'select',
+				'required'    => true,
+				'placeholder' => 'Choose the number of steps',
+				'options'     => $steps_options,
 			)
 		);
 	}
@@ -209,8 +214,10 @@ add_action(
 	text-overflow: clip !important;
 	margin: 0 0 0.4em !important;
 	padding: 0 !important;
-	line-height: 1.35 !important;
-	font-size: 0.95em;
+	line-height: 1.4 !important;
+	font-size: 1em !important;
+	font-weight: 600 !important;
+	color: inherit !important;
 	opacity: 1 !important;
 }
 .wc-block-checkout__additional-information-fields select,
@@ -221,6 +228,32 @@ add_action(
 	height: auto !important;
 	padding: 0.7em 0.8em !important;
 	line-height: 1.4 !important;
+}
+/* The block's own chevron is positioned against the whole field, label
+   included, so once the question wraps above the control the arrow floats up
+   by the height of the label and sits on the border. Rather than chase that
+   offset, the arrow is drawn on the select itself, where it stays centred
+   however many lines the question needs. */
+.wc-block-checkout__additional-information-fields .wc-block-components-select-input svg,
+.wc-block-checkout__additional-information-fields .wc-block-components-select svg,
+.wc-block-checkout__order-fields .wc-block-components-select-input svg,
+.wc-block-checkout__order-fields .wc-block-components-select svg {
+	display: none !important;
+}
+.wc-block-checkout__additional-information-fields .wc-block-components-select-input::after,
+.wc-block-checkout__order-fields .wc-block-components-select-input::after {
+	display: none !important;
+}
+.wc-block-checkout__additional-information-fields select,
+.wc-block-checkout__order-fields select {
+	-webkit-appearance: none !important;
+	-moz-appearance: none !important;
+	appearance: none !important;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") !important;
+	background-repeat: no-repeat !important;
+	background-position: right 0.9em center !important;
+	background-size: 0.85em !important;
+	padding-right: 2.6em !important;
 }
 </style>
 		<?php
