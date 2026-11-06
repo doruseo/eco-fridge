@@ -2068,6 +2068,70 @@ Doru: „retine ca Mads si Kass doresc ca toti clientii vechi si viitori sa fie 
 
 **O precizare despre nume, ca sa nu se piarda:** Kass e partea clientului alaturi de Mads; directorul inregistrat la Companies House e Kaseem Traboulsi.
 
+## 97. Vineri seara: curatenia, verificarile, si un lucru care ar fi stricat lansarea (2026-11-06)
+
+Doru: „este vineri. Te rog sa faci: Curățenie pe staging (…) Verificări finale (…) Plus ce crezi ca mai este de facut inainte de migrarea de sambata."
+
+### Lucrul care ar fi stricat lansarea
+
+**Staging nu avea codul de miercuri.** `checkout-delivery-questions.php` lipsea, deci cele doua intrebari de livrare **nu ar fi existat pe site-ul lansat** — iar staging e exact ce devine site-ul live mâine. Nu exista git pe server, deploy-ul e manual, si fisierul nu fusese urcat.
+
+Ca sa nu rămână alte surprize de acelasi fel, am comparat **tot codul nostru** — `ecofridge-blocks`, `ef-cookie-consent`, `o2-image-optimizer` si tema copil `astra-child` — fisier cu fisier, cu md5 pe conținut normalizat (local are CRLF, serverul LF, deci o comparatie naiva ar fi arătat 133 de diferente false). Rezultat: **133 de fisiere locale, 132 pe staging, exact doua nepotriviri** — modulul nou si fisierul principal al pluginului, care il incarca. Restul identic. Le-am urcat cu terminatii LF, cu o copie de siguranta a fisierului inlocuit, si am verificat: md5 identice, `php -l` curat, iar cele doua intrebari **se inregistreaza pe staging**, cu etichetele corecte, alegerile 0/1/2/3/4+ si YES/NO, amandoua obligatorii.
+
+### Curatenia
+
+| Ce | Inainte | Dupa |
+|---|---|---|
+| Comenzi de test (#8007, #8029, #8030, #8036, #8037, #8038, #8039) | 7 | **0 comenzi peste #7261** |
+| Produsul ascuns de test #8035 | exista | sters |
+| Randurile lor din `wp_wc_order_stats` | — | **0**, sterse singure de WP-CLI |
+| Coșuri abandonate de test | 8 | 0 |
+| Jurnalul de consimtamant (test) | 12 | 0 |
+| Loguri de email si de formulare | 32 | 0 |
+| Action Scheduler: actiuni terminate | 4.746 | 0 (cele **16 in asteptare** pastrate) |
+| Action Scheduler: randuri de log | 14.254 | 16 |
+| Fisiere de log WooCommerce | 38, 396 KB | 1, 4 KB |
+| Tabelele vechi `43lz2ypq8_` | **263 de tabele, 723 MB** | **0** |
+| Folderul `.ef-backup-2026-10-14` | **2,4 GB** | sters |
+| Postmeta orfan | 2 | 0 |
+| **Baza de date** | ~840 MB | **114 MB in 73 de tabele** |
+| **Docroot** | ~3,6 GB | **1,2 GB** |
+
+Asta nu e doar igiena: copierea de mâine la 06:45 muta o baza de 114 MB in loc de 840 si un docroot de 1,2 GB in loc de 3,6 — adica mult mai putin timp si mult mai putine motive sa cada la mijloc.
+
+### Verificarile
+
+- **SMTP si emailuri:** mailer `smtp` prin `smtp.ionos.co.uk:587`, TLS, autentificat ca `noreply@eco-fridge.co.uk`, parola setata, „from" fortat. `wp_mail()` a returnat **true** si am trimis un email real de test — **Doru confirma ca a ajuns**. Emailul „New order" merge la `mads@` plus `orders@`; emailurile de Processing, Completed si On hold sunt active.
+- **Feed Merchant**, generat intern, fara HTTP: **129 de produse**, 184 KB, cu `g:id`, `g:price`, `g:availability` si `g:brand`. Cele doua care lipsesc din 131 sunt **excluderi corecte**: serviciul `removal-disposal`, ascuns din catalog, si singurul produs fara preț (£POA) — Google cere preț.
+- **Sitemap:** indexul plus **11 sitemapuri copil**; cel de produse are **131 de URL-uri**. `robots.txt` e fisier real, scris deja pentru domeniul live, cu `Sitemap: https://www.eco-fridge.co.uk/sitemap_index.xml` si **fara Disallow general** — deci pasul de mâine „robots.txt fizic a ajuns in radacina" e deja acoperit.
+- **Zero erori:** `debug.log` nu exista, `WP_DEBUG` oprit. Am parcurs nouă adrese pe oglinda locala (prima pagina, categorie, produs, coș, checkout, sitemap, feed, robots, un 404) — **zero apariții de „Fatal error", „Warning", „Notice" sau „Deprecated" in HTML**. Redirecturile verificate ajung unde trebuie: `/commercial-fridge/` → `/commercial-fridge-buying-guide/`, iar `/checkout/` cu coșul gol → `/cart/`.
+- **Nimic orfan** dupa stergeri: zero linii de comanda fara comanda, zero meta fara linie, zero randuri de statistici sau de lookup fara comanda.
+- **Lacatul de staging** e autentificare Basic facuta in PHP, din `.h5g/ef-staging-lock.php`, in afara docrootului, si **parola e doar hash bcrypt** — deci nu pot cere paginile prin HTTP de pe staging; de aia randarea am verificat-o pe oglinda locala, exact ca la auditul din octombrie.
+
+### Ce am mai facut, din proprie initiativa
+
+- **Punct de revenire pentru mâine:** dump al bazei de staging **de dupa curatenie**, adus local, verificat: `source-dump/db/staging-before-launch-2026-11-06.sql.gz`, 7,0 MB, 73 de tabele. Importul de mâine atinge doar baza, deci asta e exact ce trebuie ca sa ne intoarcem. UpdraftPlus nu are backup in istoric si nu are comanda CLI; dump-ul acoperă nevoia.
+- **Uneltele de mâine sunt deja pe server**, in `~/f15`, si **testate pe MariaDB 11.8.9 al staging-ului**: comparand staging cu el insusi, scriptul read-only ruleaza fara nicio eroare SQL si da exact zerourile asteptate (0 comenzi de importat, 5.931 chei potrivite din 5.931). Deci mâine nu aflu pe viu dacă SQL-ul merge pe versiunea serverului.
+- Am verificat ca spatiul pe disc si clientul `mariadb` sunt pregatite pentru incarcarea tabelelor clonei, iar prefixul `43lz2ypq8_` e acum liber — tocmai l-am eliberat.
+
+### Ce am semnalat si NU am schimbat, deliberat
+
+- **Politica de cookies spune mai mult decat trebuie.** Scanerul a reținut 32 de cookie-uri, dintre care unele sunt **doar de administrator**: `wp-settings-4`, `wp-settings-time-1/4`, `WP_DATA_USER_4`, `WP_PREFERENCES_USER_4`, `customizerVisitCount`, `spectra_onboarding_state`, plus cookie-ul de „notificare respinsa" din wc-blocks. Un client nu primeste niciunul. E **supra-declarare, nu o lipsa**, deci nu e o problema de conformitate si nu umblu la date stocate in seara de dinaintea lansarii; intra pe lista de dupa lansare.
+- **Cele 255 de revizii rămân.** Sunt singurul istoric al muncii noastre de conținut, ocupa foarte putin dupa ce baza a scazut la 114 MB, iar stergerea lor nu cumpara nimic acum.
+
+### Ce rămâne de la Doru
+
+1. **Confirma ca emailul de test a ajuns** (trimis la `doru.hanganu@gmail.com`).
+2. **Verificarea in browser a checkout-ului** — singurul lucru pe care nu l-am putut proba: extensia de Chrome nu are permisiune pe `localhost`, deci navigarea a fost blocata. Ce am probat pe staging, fara browser: blocul primeste exact cele doua campuri pentru secțiunea de comanda, ca select-uri obligatorii, cu alegerile corecte, iar validarea refuza gol, „MAYBE", „0" si „none" si accepta „YES", „NO", „0 steps", „4+ steps". Ce rămâne de vazut cu ochii: **se randeaza amandoua la checkout si trimiterea fara raspuns e refuzata** — adauga un produs in coș si deschide checkout-ul.
+3. Pasii de mâine din hPanel si singura inregistrare DNS.
+4. Containerul GTM de la Mads.
+
+### De ce nu a mers browserul
+
+Doru, intre timp: „de ce nu poti accesa browser-ul prin extensia Claude, ca o am instalata."
+
+Extensia **e instalata si a raspuns** — a creat grupul de taburi, a returnat ID-ul, a inchis tabul la final. Ce a lipsit e **permisiunea pe site**: extensia cere aprobare per-site inainte sa acționeze intr-o pagina, iar `localhost` nu e in lista permisa. Simptomul se potriveste: `navigate` a raportat succes, dar tabul a rămas pe `chrome://newtab/`, iar screenshot-ul si căutarea au refuzat cu „Can't interact with browser-internal URLs", adica tabul nu plecase de pe pagina interna. Se rezolva o singura data, din setarile de permisiuni ale extensiei, adaugand `localhost`.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
