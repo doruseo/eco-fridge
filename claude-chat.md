@@ -2132,6 +2132,22 @@ Doru, intre timp: „de ce nu poti accesa browser-ul prin extensia Claude, ca o 
 
 Extensia **e instalata si a raspuns** — a creat grupul de taburi, a returnat ID-ul, a inchis tabul la final. Ce a lipsit e **permisiunea pe site**: extensia cere aprobare per-site inainte sa acționeze intr-o pagina, iar `localhost` nu e in lista permisa. Simptomul se potriveste: `navigate` a raportat succes, dar tabul a rămas pe `chrome://newtab/`, iar screenshot-ul si căutarea au refuzat cu „Can't interact with browser-internal URLs", adica tabul nu plecase de pe pagina interna. Se rezolva o singura data, din setarile de permisiuni ale extensiei, adaugand `localhost`.
 
+## 98. Intrebarile de livrare, facute citibile — si confirmarea ca sunt obligatorii (2026-11-06)
+
+Dupa ce Doru le-a vazut pe staging: „apar cele 2 intrebari, insa nu se vede clar. Vreau ca fiecare intrebare sa fie toata vizibila iar dedesubt sa fie raspunsul cu drop-down". Apoi, dupa reparatii: „perfect", si intrebarea „sunt aceste intrebari obligatorii, pentru ca vreau ca clientii sa nu le ignore ci sa fie obligati sa le citeasca si sa raspunda la ele".
+
+**Trei probleme, toate vazute in capturile lui, nu ghicite.** Capturile erau in folderul proiectului, nu atasate in conversație, asa ca le-am citit de pe disc.
+
+1. **Eticheta era taiata.** Blocul de checkout deseneaza select-ul cu eticheta plutitoare: un singur rand, peste control, taiata unde se termina locul. Pentru „Country" e in regula, pentru o intrebare de 137 de caractere e inutila. Acum, doar in secțiunea asta, eticheta e un bloc obisnuit deasupra controlului, libera sa curga pe cate randuri are nevoie, ingroșata si in culoarea normala a textului. `!important` e deliberat si tinut in acel container: regulile peste care scriem vin din foaia WooCommerce, care se incarca dupa a noastra si se regenereaza la fiecare actualizare, deci specificitatea singura nu ar rezista.
+2. **Textul din dropdown era absurd.** WooCommerce construieste optiunea goala din eticheta, deci scria „Select a we recommend you to check the height of your doors through the final fridge position. have yo…" — taiat in campul inchis si ocupand tot randul in lista deschisa. Doru a propus sa scurtam intrebarea si sa mutam restul intr-o descriere, dacă nu se poate altfel. **Se poate altfel:** `SelectFieldType` accepta un `placeholder` propriu, pe care il sanitizeaza si il foloseste ca prima optiune. Deci intrebarea rămâne exact cum o stie Mads, iar dropdown-urile spun acum **„Choose YES or NO"** si **„Choose the number of steps"**. (Camp de descriere nu exista in API-ul acela — verificat — deci varianta cu descrierea ar fi insemnat sa randez eu textul separat; nu a mai fost nevoie.)
+3. **Sageata statea pe chenar.** Blocul isi pozitioneaza sageata fata de tot campul, eticheta inclusa; dupa ce intrebarea a inceput sa se aseze deasupra, sageata a urcat cu inaltimea etichetei. In loc sa alerg dupa acel decalaj, care s-ar strica la orice schimbare de text, am ascuns sageata lor si am desenat-o pe select ca imagine de fundal, unde rămâne centrata oricate randuri ar avea intrebarea.
+
+**Sunt obligatorii, verificat pe trei niveluri:** inregistrate cu `required = true`, deci blocul nu lasa comanda sa plece; Store API verifica singur campurile obligatorii pe server, deci nici o cerere trimisa pe langa pagina nu trece; iar masurat, gol → refuzat la amandoua, „MAYBE" la prima si „0" sau „none" la a doua → refuzate, acceptate doar YES/NO si 0/1/2/3/4+. Niciunul nu are raspuns preselectat: clientul trebuie sa aleaga activ.
+
+**Un loc unde nu se aplica, spus ca sa nu surprinda:** comenzile care nu trec prin checkout — create manual in wp-admin sau prin API — rămân cu campurile goale, fiindca nimeni nu e intrebat. Pe ecranul comenzii cele doua raspunsuri se **afiseaza**, dar nu se pot completa. Dacă echipa chiar introduce comenzi la telefon, se face si asta; am intrebat inainte sa construiesc ceva ce poate nu e folosit.
+
+**Si o lectie pentru deploy**, legata de intrarea 97: toate cele trei retusari au fost urcate pe staging imediat si verificate cu md5 fata de repo. Staging e ce devine live mâine, deci „e in git" nu inseamna nimic pana nu e si acolo.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
