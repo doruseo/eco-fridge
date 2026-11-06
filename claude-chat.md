@@ -2148,6 +2148,67 @@ Dupa ce Doru le-a vazut pe staging: „apar cele 2 intrebari, insa nu se vede cl
 
 **Si o lectie pentru deploy**, legata de intrarea 97: toate cele trei retusari au fost urcate pe staging imediat si verificate cu md5 fata de repo. Staging e ce devine live mâine, deci „e in git" nu inseamna nimic pana nu e si acolo.
 
+## 99. PLANUL DE SAMBATA, pas cu pas — varianta finala (2026-11-06, seara)
+
+Doru: „primul lucru este sa instalez ef-close-shop.zip in vechiul site, corect? (…) Scrie planul aici pas cu pas, pentru ca in calendar nu este clar si bine facut pas cu pas." Apoi, o corectura importanta: „eu nu pot sa creez site gol, eu dau comanda de clone/copy site iar Hostinger cloneaza site-ul de staging pe un nou site temporar al Hostinger pe care ulterior il conectez cu domeniul eco-fridge.co.uk."
+
+**Ordinea lui era corecta.** Prima mea varianta incepea cu „creeaza un site gol", ceea ce nu se poate in contul lui: **clonarea ESTE actul de creare**, iar site-ul nou se naste pe un domeniu temporar `*.hostingersite.com`. Asta schimba doua lucruri reale, nu doar numerotarea: URL-urile vor fi rescrise de unealta catre domeniul **temporar**, deci search-replace-ul meu e din el in `www.eco-fridge.co.uk`; si copia vine **fara parola**, dovedit marti, deci exista o fereastra in care un magazin cu date reale de clienti sta deschis pe o adresa publica. Prima actiune dupa clonare e inchiderea lui.
+
+**Trei lucruri din calendar nu mai sunt necesare:** TTL-ul e coborat (marti), comenzile de test sunt deja sterse (aseara), iar dansul „creez → testez copierea → sterg → recreez" dispare, fiindca unealta de clonare e dovedita si rescrie singura URL-urile.
+
+### Faza 1 — inchiderea magazinului vechi (05:00, DORU)
+1.1 Site-ul vechi → Plugins → Add New → Upload Plugin → `ef-close-shop.zip` → Install → Activate.
+1.2 WooCommerce → Settings → Payments → toate metodele oprite; cuponul de 100% dezactivat.
+Verific: nu se mai adauga in coș, checkout-ul refuza pe server, site-ul rămâne vizibil si indexabil — catalog, nu mentenanta, fiindca ore bune dupa DNS unii vizitatori tot acolo ajung.
+
+### Faza 2 — copia finala a magazinului vechi (05:15, DORU + eu)
+2.1 Pe backup site: Migrate Guru → cheie noua → **se porneste imediat**, traieste 30 de minute.
+2.2 Pe site-ul vechi: cheia lipita → Initiate migration.
+Dacă `cURL error 60` → `tools/ecofridge-tls-fix.zip`. Dacă „unable to connect to destination" → cheia a expirat.
+
+### Faza 3 — datele la zi in staging (05:45, eu)
+Incarc tabelele clonei langa cele de staging (prefixul `43lz2ypq8_` e liber de aseara) → `f15-compare.sql` → `f15-import-orders.sql` → `AUTO_INCREMENT` peste ultimul numar → reconstruiesc rapoartele → tratez diferentele → sterg tabelele clonei.
+Verificare: chei potrivite = total comenzi pe site-ul vechi, diferenta zero.
+
+### Faza 4 — verificari pe staging (06:30, eu)
+Comenzi, produse, ultima comanda importata se deschide, feed, sitemap, zero erori. **Protectiile rămân pe staging**, ca sa poata fi recopiat dacă e nevoie.
+
+### Faza 5 — clonarea, care creeaza site-ul nou (06:45, DORU)
+5.1 hPanel → Websites → `eco-fridge.o2dev.de` → Clone/Copy site. Hostinger creeaza site-ul pe un domeniu temporar; ~15 minute, pagina de progres se poate inchide.
+5.2 **IMEDIAT: parola pe site-ul nou.** Copia vine fara lacat.
+5.3 PHP 8.3, CDN off, auto-update „Don't update".
+5.4 Connect domain: `eco-fridge.co.uk`, **fara www**; la nameservere → refuza. Va sta la „Parked domains" pana vine DNS-ul.
+5.5 Cheia mea SSH, plus domeniul temporar si numele folderului.
+
+### Faza 6 — pregatirea site-ului nou, inainte de DNS (07:10, eu)
+6.1 `siteurl`/`home` pe `https://www.eco-fridge.co.uk`; search-replace din domeniul temporar in cel final, pe toate tabelele.
+6.2 `wp rewrite flush --hard`, `wp cache flush`.
+6.3 Regula de canonic in `.htaccess`, la inceputul fisierului.
+6.4 `DISABLE_WP_CRON` plus sarcina cron reala in hPanel, la 5 minute.
+6.5 Verific ca lacatul de staging nu s-a activat pe site-ul nou.
+6.6 **Pasul care ne scapa de surprize:** testez site-ul nou **ca si cum DNS-ul ar fi mutat deja**, fortand rezolvarea lui `www.eco-fridge.co.uk` catre `148.230.121.74`. Vad prima pagina, un produs si coșul de pe serverul nou, pe domeniul real, **inainte** sa trimitem clientii acolo.
+De reținut: din momentul 6.1 domeniul temporar nu mai e folosibil pentru verificari, fiindca site-ul trimite catre domeniul real — de aia verificarea se face prin 6.6.
+
+### Faza 7 — DNS (07:30, DORU)
+Verific intai zona. La IONOS: o singura inregistrare, `A @` de la `185.230.220.98` la **`148.230.121.74`**. `www` urmeaza singur. MX, DKIM, DMARC, SPF, TXT neatinse. 5–15 minute, verific propagarea.
+
+### Faza 8 — SSL (07:45, DORU)
+Doar dupa ce DNS-ul arata IP-ul nou: Security → SSL → Install SSL → „Active" → Force HTTPS.
+Verific: ambele nume 200, certificat pe amandoua, apex → 301 spre www, http → https.
+
+### Faza 9 — deschiderea (08:00–08:30)
+9.1 Licente: AG Lloyds pe domeniul live, Astra Pro, parola WP Mail SMTP retastata (DORU).
+9.2 GTM cu containerul de la Mads plus Consent Mode v2.
+9.3 Scot noindex (`blog_public = 1`); `robots.txt` e deja corect.
+9.4 Scot parola de pe site-ul nou — **ultimul pas**, dupa 9.3.
+9.5 Comanda reala cu cardul plus un formular: cele doua intrebari apar si refuza trimiterea goala, emailul ajunge la `mads@` si `orders@`, numarul comenzii vine dupa ultimul importat.
+
+### Faza 10 — dupa (08:45–09:15)
+Paritate URL-uri si indexare, sitemap in Search Console, Merchant Center pe domeniul live, email catre client, plan de revenire notat.
+
+### Revenire
+`A @` inapoi la `185.230.220.98`, vizibila in ~5 minute cu TTL 300, plus dezactivarea `ef-close-shop` pe site-ul vechi. De aia cerem gazduirea veche **neschimbata** 30 de zile.
+
 ## Stare la 2026-10-30 (seara)
 
 - **Git:** `main` cu PR #16–#46 unite. Migrări: 01–81.
@@ -2163,6 +2224,8 @@ Dupa ce Doru le-a vazut pe staging: „apar cele 2 intrebari, insa nu se vede cl
 - **Lansare:** sambata 7 noiembrie 2026, 05:00–09:00. Repetitia migrarii: joi 5 noiembrie. DNS: o singura inregistrare, din contul IONOS.
 - **Site vechi:** PHP 7.2.34, WordPress 6.0.x, WooCommerce 3.5.10, Migrate Guru actualizat la 6.72 (era 5.65).
 - **Clona:** `eco-fridge-backup.o2dev.de`, WordPress 7.1.4, SSH `ef-backup` merge. **De facut in hPanel, de Doru:** PHP pe 7.4, CDN off, auto-update pe „Don't update".
+- **PLANUL DE SAMBATA, pas cu pas: intrarea 99.** E varianta finala, dupa corectura lui Doru ca nu se poate crea un site gol - clonarea ESTE actul de creare, pe un domeniu temporar. Prima actiune dupa clonare: parola pe site-ul nou.
+- **Cum lucram maine (Doru, 6 nov):** „anunta-ma doar cand ai nevoie de ceva de la mine, in rest lucreaza". Deci il caut doar la pasii lui, nu la fiecare verificare.
 - **Aprobare permanenta de la Doru, 3 nov (intrarile 82 si 89):** jurnal, git pana la merge, Sheet-ul SI memoria proiectului - toate PATRU se actualizeaza fara sa mai cer.
 - **Sheet adus la zi (intrarea 80):** calendarul si checklistul au randurile de azi, regula corectata de selectie a comenzilor, valorile DNS verificate, plus trei defecte reparate (textul despre SSL copiat peste pasul de comanda reala, randul de GTM dispărut, regula de canonic mutata inaintea DNS-ului).
 - **Intrebarile de livrare, finalizate (intrarile 87 si 88, F10-17).** Greseala de tipar reparata, iar treptele sunt acum o alegere 0/1/2/3/4+. Clientul vede cifrele, dar se salveaza „0 steps" … „4+ steps", fiindca WooCommerce trateaza un „0" curat ca raspuns lipsa la un camp obligatoriu. Comenzile importate nu se convertesc.
