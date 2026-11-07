@@ -2543,6 +2543,25 @@ Doru: „este in regula sa-mi creezi un produs de test de 1 GBP ca sa dau o coma
 
 **De stiut pentru comanda:** e o plata reala de £1,20 cu cardul (ca #8036/#8037 din octombrie); emailul „New order" ajunge la mads@ si orders@, iar SMS-ul de comanda pleaca si el; numarul comenzii va fi **#14660** (dupa ultima comanda importata, #14638, si dupa produsul de test). Dupa verificare: comanda si produsul se sterg definitiv, ca la curatenia din 6 noiembrie, iar copia locala se actualizeaza. Cele £1,20 raman in GA4 si nu se pot sterge de acolo; sunt neglijabile.
 
+## 117. Comanda reala de test pe live: plata, emailuri, SMS, intrebarile de livrare — toate merg (2026-11-07, ~07:45 UTC)
+
+Doru a plasat comanda de test pe produsul ascuns #14659. Referintele platii raman doar in memoria proiectului, nu aici.
+
+**Comanda #14660 — totul in regula:**
+- **Status Processing**, platita cu cardul prin Lloyds Cardnet la 07:42; tranzactia **aprobata** si confirmata prin webhook (nota „Lloyds Cardnet transaction has been confirmed").
+- **Totaluri corecte:** £1,00 + TVA £0,20 = **£1,20**, livrare „Free shipping".
+- **Intrebarile de livrare** salvate in cheile vechi: `check_doors = YES`, `stairs = 0 steps`.
+- **Numarul comenzii #14660** — continua dupa importul de azi (#14638), cum s-a decis.
+- **Emailuri, confirmate in jurnalul de email:** „New order #14660" catre mads@ + orders@ si „Processing order" catre client, amandoua trimise cu succes la 07:42:01. **SMS catre client** trimis („SMS Send to buyer Successfully").
+- Sursa comenzii inregistrata de WooCommerce: direct / typein.
+
+**Trei lucruri gasite pe drum:**
+1. **`purchase` nu a ajuns in GA4 — si e corect asa.** Doru era logat ca administrator (contul „doru", user #4), iar containerul exclude intentionat echipa logata (`visitorType`). GTM4WP a pregatit evenimentul (meta `_gtm4wp_purchase_basis` pe comanda), triggerul l-a oprit. Pentru o proba de GA4 trebuie o comanda dintr-o fereastra incognito, nelogat — cu transfer bancar, fara bani.
+2. **A doua comanda, #14658 (£1.002,00, Patisserie Slimline 1200mm, Pending payment)**, plasata de acelasi cont la 07:27, neplatita — o incercare anterioara a lui Doru. **Regula din PR #78 nu o protejeaza** (e din 7 noiembrie), deci actiunea `woocommerce_cancel_unpaid_orders` programata la **08:36 UTC** o va anula si va trimite emailul „Cancelled order" la mads@ si orders@. Trebuie stearsa inainte, odata cu #14660 si produsul de test — cer acordul lui Doru.
+3. **Comanda nu apare inca in WooCommerce Analytics** (`wc_order_stats` se opreste la #14638): magazinul e pe importul programat (`woocommerce_analytics_scheduled_import = yes`), care proceseaza comenzile noi in loturi la 12 ore — urmatorul la 17:57 UTC. Comportament asteptat, nu eroare.
+
+**Si un semn bun:** in jurnalul de email apar doua emailuri „You left something in your cart" trimise azi — unul catre o adresa reala de client (06:47), deci site-ul nou are deja vizitatori care adauga in cos.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
