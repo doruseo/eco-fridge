@@ -94,37 +94,71 @@ ORDER_PARAMS = [
 ]
 purchase_params = [(ga4, dlv("DLV - od." + field, "order_details." + field)) for ga4, field in ORDER_PARAMS]
 
+# Contact form: the only form the site's own code tracks (formId "contact" on
+# /contact-us/). Its events also need this ID, so nothing else can match.
+CONTACT_FORM_ID = "contact"
+
+
+def cjs(name, body):
+    v = base("variableId")
+    v.update({"name": name, "type": "jsm", "parameter": [t("javascript", body)], "formatValue": {}})
+    variables.append(v)
+    return "{{" + name + "}}"
+
+
+phone_number = cjs("CJS - phone number", "function() {\n  return ({{Click URL}} || '').replace(/^tel:/i, '').replace(/[^0-9+]/g, '');\n}")
+email_address = cjs("CJS - email address", "function() {\n  return ({{Click URL}} || '').replace(/^mailto:/i, '').split('?')[0];\n}")
+form_id_var = dict(form_params)["form_id"]
+
 # ----------------------------------------------------------------- triggers
 triggers = []
 
+LIVE_ONLY = [
+    {"type": "EQUALS", "parameter": [t("arg0", "{{Page Hostname}}"), t("arg1", HOST)]},
+    {"type": "MATCH_REGEX", "parameter": [t("arg0", visitor_type), t("arg1", "administrator|shop_manager"), b("negate", True)]},
+]
 
-def custom_event(name, event, regex=False):
+
+def custom_event(name, event, extra=None):
     tr = base("triggerId")
     tr.update({
         "name": name,
         "type": "CUSTOM_EVENT",
-        "customEventFilter": [{
-            "type": "MATCH_REGEX" if regex else "EQUALS",
-            "parameter": [t("arg0", "{{_event}}"), t("arg1", event)],
-        }],
+        "customEventFilter": [{"type": "EQUALS", "parameter": [t("arg0", "{{_event}}"), t("arg1", event)]}],
         # Live site only, and never the logged-in team.
-        "filter": [
-            {"type": "EQUALS", "parameter": [t("arg0", "{{Page Hostname}}"), t("arg1", HOST)]},
-            {"type": "MATCH_REGEX", "parameter": [t("arg0", visitor_type), t("arg1", "administrator|shop_manager"), b("negate", True)]},
-        ],
+        "filter": LIVE_ONLY + (extra or []),
     })
     triggers.append(tr)
     return tr["triggerId"]
 
 
-trg_ecommerce = custom_event(
-    "CE - ecommerce",
-    "^(view_item_list|select_item|view_item|add_to_cart|remove_from_cart|view_cart|begin_checkout|add_shipping_info|add_payment_info)$",
-    regex=True,
-)
+def link_click(name, prefix):
+    tr = base("triggerId")
+    tr.update({
+        "name": name,
+        "type": "LINK_CLICK",
+        "filter": LIVE_ONLY + [{"type": "STARTS_WITH", "parameter": [t("arg0", "{{Click URL}}"), t("arg1", prefix)]}],
+        "waitForTags": {"type": "BOOLEAN", "value": "false"},
+        "checkValidation": {"type": "BOOLEAN", "value": "false"},
+        "waitForTagsTimeout": {"type": "TEMPLATE", "value": "2000"},
+        "uniqueTriggerId": {"type": "TEMPLATE"},
+    })
+    triggers.append(tr)
+    return tr["triggerId"]
+
+
+ECOMMERCE_EVENTS = [
+    "view_item_list", "select_item", "view_item", "add_to_cart", "remove_from_cart",
+    "view_cart", "begin_checkout", "add_shipping_info", "add_payment_info",
+]
+ecommerce_triggers = {e: custom_event("CE - " + e, e) for e in ECOMMERCE_EVENTS}
 trg_purchase = custom_event("CE - purchase", "purchase")
-trg_lead = custom_event("CE - generate_lead", "generate_lead")
-trg_forms = custom_event("CE - form events", "^(form_start|form_submit)$", regex=True)
+only_contact_form = [{"type": "EQUALS", "parameter": [t("arg0", form_id_var), t("arg1", CONTACT_FORM_ID)]}]
+trg_form_start = custom_event("CE - form_start (contact form)", "form_start", only_contact_form)
+trg_form_submit = custom_event("CE - form_submit (contact form)", "form_submit", only_contact_form)
+trg_lead = custom_event("CE - generate_lead (contact form)", "generate_lead", only_contact_form)
+trg_phone = link_click("Click - phone (tel:)", "tel:")
+trg_email = link_click("Click - email (mailto:)", "mailto:")
 
 INITIALIZATION_ALL_PAGES = "2147479573"  # GTM built-in trigger
 
@@ -162,15 +196,22 @@ def ga4_event(name, event_name, trigger, rows=None, ecommerce=True):
 
 
 add_tag(
-    "Google tag - GA4",
+    "GA4 - Google tag",
     "googtag",
     [t("tagId", CONST), param_table("configSettingsTable", [("send_page_view", "true"), ("content_group", page_type)])],
     INITIALIZATION_ALL_PAGES,
 )
-ga4_event("GA4 Event - ecommerce", "{{Event}}", trg_ecommerce)
-ga4_event("GA4 Event - purchase", "purchase", trg_purchase, purchase_params)
-ga4_event("GA4 Event - generate_lead", "generate_lead", trg_lead, form_params, ecommerce=False)
-ga4_event("GA4 Event - form start and submit", "{{Event}}", trg_forms, form_params, ecommerce=False)
+# One tag per ecommerce event, so each one shows by name in GTM and Tag Assistant.
+for e in ECOMMERCE_EVENTS:
+    ga4_event("GA4 - " + e, e, ecommerce_triggers[e])
+ga4_event("GA4 - purchase", "purchase", trg_purchase, purchase_params)
+ga4_event("GA4 - form_start (contact form)", "form_start", trg_form_start, form_params, ecommerce=False)
+ga4_event("GA4 - form_submit (contact form)", "form_submit", trg_form_submit, form_params, ecommerce=False)
+ga4_event("GA4 - generate_lead (contact form)", "generate_lead", trg_lead, form_params, ecommerce=False)
+ga4_event("GA4 - phone_click", "phone_click", trg_phone,
+          [("phone_number", phone_number), ("link_text", "{{Click Text}}"), ("page_path", "{{Page Path}}")], ecommerce=False)
+ga4_event("GA4 - email_click", "email_click", trg_email,
+          [("email_address", email_address), ("link_text", "{{Click Text}}"), ("page_path", "{{Page Path}}")], ecommerce=False)
 
 # --------------------------------------------------------- built-in variables
 built_in = [
@@ -181,6 +222,9 @@ built_in = [
         ("PAGE_PATH", "Page Path"),
         ("REFERRER", "Referrer"),
         ("EVENT", "Event"),
+        ("CLICK_URL", "Click URL"),
+        ("CLICK_TEXT", "Click Text"),
+        ("CLICK_ELEMENT", "Click Element"),
     )
 ]
 
@@ -192,7 +236,7 @@ container = {
         "accountId": ACC,
         "containerId": CON,
         "containerVersionId": "0",
-        "name": "New website - GA4 ecommerce + consent",
+        "name": "New website - GA4 ecommerce, contact form, phone and email clicks",
         "container": {
             "path": f"accounts/{ACC}/containers/{CON}",
             "accountId": ACC,
