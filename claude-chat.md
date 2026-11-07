@@ -2345,6 +2345,23 @@ Doru a adaugat cheia SSH; aliasul `ef-live` merge. Backup inainte de orice: `/tm
 
 **Ramas, deliberat, pana la Faza 9:** `blog_public = 0` (pagina are inca noindex), cache-ul LiteSpeed oprit.
 
+## 105. Verificarea finala inainte de A @, si o regula noua: copia locala tinuta mereu la zi (2026-11-07, ~06:15)
+
+Doru: „asigura-te ca SSL este neinstalat (…) apoi verifica tot site-ul sa fie totul in regula, actualizat si pregatit pentru lansarea live. Retine in memoria proiectului si in claude-chat.md ca vreau sa-mi actualizezi mereu si copia mea locala din laptop cu site-ul live la zi al eco-fridge.co.uk." Si: pe domeniul temporar unele imagini sunt stricate — „se rezolva pe live?"
+
+**REGULA NOUA, permanenta:** dupa fiecare schimbare pe site-ul live (si regulat dupa lansare), copia locala din laptop se actualizeaza — baza de date si fisierele — in `source-dump/` (gitignored). Salvata si in memorie (`ecofridge-keep-local-copy-current`). Facut deja acum: `source-dump/db/live-2026-11-07-after-faza6.sql.gz` (7,5 MB, starea de dupa Faza 6) plus `wp-config.php`, `.htaccess` si `robots.txt` ale site-ului live, langa arhiva de fisiere de la intrarea 103.
+
+**SSL — confirmat neinstalat:** serverul nou raspunde pentru `eco-fridge.co.uk` si `www` doar cu certificatul generic `*.hstgr.io`, exact cum spune hPanel („No SSL installed"). Site-ul vechi are inca propriul certificat Let's Encrypt. **Nu exista CAA** (verificat prin DNS-over-HTTPS) si nici AAAA, deci nimic nu blocheaza emiterea dupa DNS, iar `/.well-known/` nu e redirectat.
+
+**Imaginile stricate de pe domeniul temporar:** nu sunt o problema a site-ului nou. Dupa Faza 6, toate adresele imaginilor sunt `https://www.eco-fridge.co.uk/wp-content/uploads/…`, iar `www.eco-fridge.co.uk` arata inca spre serverul vechi, care nu are fisierele noi (variantele AVIF/WebP, marimile noi). Masurat pe serverul nou: **457 din 457** de imagini folosite pe prima pagina, shop si o pagina de produs raspund **200**. Se rezolva singur la mutarea DNS.
+
+**Tot site-ul, pe serverul nou, cu DNS simulat:**
+- **Sitemap-ul nostru:** 11 sitemapuri, **428 de URL-uri, toate 200**, toate pe `https://www`, zero urme de staging/domeniu temporar/apex, zero erori PHP. Singurele `http://` sunt linkuri externe spre legislation.gov.uk.
+- **Paritatea cu site-ul vechi:** toate cele 1.040 de URL-uri din sitemap-ul live al site-ului vechi, verificate pe serverul nou: **417 → 200 direct, 343 → 301 spre o pagina 200, 1 → 301 + 302 (tot spre o pagina buna)**. Restul de **279 sunt toate pagini de atasament de forma `/?attachment_id=N`** si dau 404 — **zero alte 404-uri**.
+- De ce cele 279: la noi paginile de atasament trimit catre fisier (intrarea din octombrie), dar ID-urile media s-au schimbat la migrarea din iulie, deci `?attachment_id=<ID vechi>` nu mai gaseste nimic. Harta ID vechi → ID nou exista (`source-dump/_attachment-id-map.json`, migrarea 04). **Nu blocheaza lansarea** — sunt URL-uri de imagini, fara valoare de cautare — si se repara imediat dupa A @, cu o redirectionare din harta.
+
+**Verdict: site-ul nou e gata pentru A @.**
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
@@ -2352,6 +2369,8 @@ Doru a adaugat cheia SSH; aliasul `ef-live` merge. Backup inainte de orice: `/tm
 - **Faza 3 GATA (intrarea 101):** 86 de comenzi importate, #14517–#14638, reconciliere 6.017 = 6.017, urmatorul numar #14658; rapoarte reconstruite; stocul preluat; nimic nou la produse, categorii, pagini, media, redirecturi sau SEO; regula care pastreaza cele 5 comenzi pending (PR #78); tabelele clonei sterse din staging. Punct de revenire: `source-dump/db/staging-before-f15-2026-11-07.sql.gz`.
 - **Produsele verificate si pe continut (intrarea 102):** la zi pe preturi (18), stoc (10), SKU, manual PDF si poza noua; zero modificari de text. **Staging e GATA de clonare.**
 - **Faza 6, in plus:** `WP_ENVIRONMENT_TYPE` → `production` (altfel nu pleaca emailurile de recenzii si nu se aplica protectia HTTPS), blocul no-cache scos, LiteSpeed pornit dupa verificari.
+- **REGULA (Doru, 7 nov): copia locala din laptop a site-ului live se actualizeaza MEREU** — baza si fisierele, in `source-dump/` (intrarea 105).
+- **Verificare finala (intrarea 105):** 428/428 URL-uri 200, paritate cu site-ul vechi fara 404 in afara de 279 de `?attachment_id=` (de reparat dupa A @), SSL neinstalat confirmat, nicio CAA. GO pentru A @.
 - **Faza 6 GATA (intrarea 104):** site-ul nou pe www, production, canonic, testat pe domeniul real. **Doru poate schimba A @.**
 - **Faza 5 GATA (intrarea 103):** site nou pe `ghostwhite-horse-401012.hostingersite.com`, folder `PNxOJBHKQ`, alias `ef-live`. Urmeaza Faza 6 (eu), apoi A @ (Doru) — NU inainte de confirmarea mea.
 - **Urmeaza Faza 5 (DORU):** Clone/Copy site din staging → parola imediat → PHP 8.3, CDN off, auto-update off → Connect domain `eco-fridge.co.uk` fara www → cheia SSH + domeniul temporar si folderul.
