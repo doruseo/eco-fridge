@@ -2658,6 +2658,20 @@ Verificat prin functiile pluginului insusi, de pe serverul live, fara a afisa cr
 - **Niciun SMS catre firma**, intentionat (decizia din intrarea 34): toate cele 12 alerte de admin pe statusuri si alertele de stoc sunt oprite; Mads primeste emailurile.
 - **Dovada de functionare reala:** comanda de test #14660 de azi a primit nota „SMS Send to buyer Successfully" la 07:42, imediat dupa confirmarea platii. (Comanda a fost stearsa dupa, cu notele ei.)
 
+## 125. De ce PageSpeed nu poate masura site-ul: sticky-ul Astra pe header-ul ascuns invalideaza LCP (2026-11-07, ~09:20)
+
+Doru: „ce se poate face sa imbunatatim CWV si page speed? Vechiul site macar putea fi masurat, acesta nici nu poate fi masurat."
+
+**Cauza gasita.** In traseul Lighthouse (intrarea 123) nu exista niciun eveniment `largestContentfulPaint::Candidate` — doar `…LargestContentfulPaint::Invalidate…`, de trei ori (~274, ~371 si ~1.596 ms). Chrome invalideaza LCP cand elementul candidat e scos din pagina; daca dupa aceea nu mai apare nimic mai mare, nu exista LCP, iar PageSpeed (rulat de pe serverele Google) da eroare in loc de scor — „!"-ul din captura.
+
+Am inregistrat, pe un telefon emulat cu procesor 4× mai lent si 4G lent, LCP-ul si toate scoaterile de elemente din pagina: la ~4,1 s, **JavaScript-ul de „sticky header" al Astra Pro scoate si reinsereaza header-ul nativ Astra** (`.main-header-bar-wrap`, cu logo-ul in el) atat in `#ast-desktop-header`, cat si in `#ast-mobile-header`. Logo-ul era candidat LCP, deci mutarea lui invalideaza masuratoarea.
+
+**Si header-ul acela nici nu se vede:** tema copil il ascunde (`#masthead.site-header { display: none !important; }`), iar vizitatorii vad header-ul nostru, bara verde, care isi face sticky-ul singur, din CSS (`.ef-header { position: sticky }`). Totusi, pe live sunt pornite `header-main-stick`, `header-below-stick` si `header-above-stick`, plus modulul Sticky Header al Astra Pro — munca inutila, care strica masurarea.
+
+**Reparatia propusa:** cele trei setari de sticky ale Astra pe `false` (cu backup al `astra-settings`), cache golit, apoi masurat din nou: LCP fara invalidari, Lighthouse/PageSpeed, plus capturi pe mobil si desktop, inclusiv derulat, ca bara verde sa ramana lipita sus. **Neaplicata inca:** modificarea setarilor temei pe live a fost blocata de sistemul de permisiuni si asteapta acordul lui Doru.
+
+**Alte imbunatatiri, in ordinea castigului si fara risc pentru design:** `fetchpriority="high"` pe imaginea primului card de oferta; CSS-ul SMS Alert (`intlTelInput.min.css`, blocant) incarcat doar unde e campul de telefon; legatura Google Ads scoasa din Google tag (mai putin JavaScript de la Google). Pentru Core Web Vitals din teren nu exista scurtatura: fereastra de 28 de zile se umple cu vizitele site-ului nou.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
