@@ -2645,6 +2645,19 @@ Doru a pus doua capturi: Core Web Vitals „Failed" (LCP 4 s, INP 84 ms, CLS 0,0
 
 **Ce se poate imbunatati fara risc pentru design (propus, neaplicat):** `fetchpriority="high"` pe imaginea primului card de pe prima pagina (azi doar logo-ul il are); CSS-ul campului de telefon al SMS Alert incarcat doar unde e formularul (acum pe toate paginile, blocheaza randarea); greutatea GTM (327 KB transfer; legatura Google Ads ramasa pe Google tag adauga incarcari). Minificarea/combinarea si „unused CSS" din LiteSpeed raman oprite — castig estimat ~0,2–0,35 s, risc real pe design.
 
+## 124. SMS Alert pe live: conectat, cu credite, si a trimis deja un SMS real (2026-11-07, ~09:05)
+
+Doru: „poti verifica daca functioneaza SMSAlert - WooCommerce pe noul site si este conectat la serverul https://www.smsalert.co.in/?"
+
+Verificat prin functiile pluginului insusi, de pe serverul live, fara a afisa credentialele:
+- **Plugin activ**, SMS Alert 4.0.3.
+- **Contul conectat:** utilizator si parola setate; apelul `creditstatus.json` catre `smsalert.co.in` raspunde in **0,23 s cu `status=success`**.
+- **Credite: 4.725** pe ruta globala.
+- **Expeditor `ECOFRIDGE` — aprobat** pe cont si setat in plugin.
+- **SMS-uri catre client** pe statusurile: Processing, Preparing, Processed, On hold, Refunded, Partially refunded; oprite pe Pending, Shipped, Completed, Cancelled, Failed, Returned — exact configuratia din octombrie (intrarea 34). Textele sunt cele scrise atunci (de ex. Processing: „Eco-Fridge: payment for order #… (£…) is confirmed…").
+- **Niciun SMS catre firma**, intentionat (decizia din intrarea 34): toate cele 12 alerte de admin pe statusuri si alertele de stoc sunt oprite; Mads primeste emailurile.
+- **Dovada de functionare reala:** comanda de test #14660 de azi a primit nota „SMS Send to buyer Successfully" la 07:42, imediat dupa confirmarea platii. (Comanda a fost stearsa dupa, cu notele ei.)
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
