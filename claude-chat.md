@@ -2492,6 +2492,18 @@ Doru: sa-i scriu tot containerul intr-un fisier pentru Admin → Import Containe
 
 **De stiut:** legatura spre Google Ads `AW-1015171724` vazuta la intrarea 111 nu e in container, ci in setarile Google tag, deci importul nu o scoate.
 
+## 113. Containerul importat si publicat (v20), verificat in browser real (2026-11-07, ~08:55)
+
+Doru: a importat containerul; „verifica din nou". Si: cum sterge vechiul workspace, fiindca nu gaseste de unde se schimba workspace-ul.
+
+**Versiunea publicata e 20 si e exact containerul din `gtm/`:** Google tag pe `gtm.init`, patru tag-uri GA4 Event (purchase, ecommerce cu regex, generate_lead, form start/submit), fiecare trigger cu `Page Hostname = www.eco-fridge.co.uk` si `unless visitorType ~ administrator|shop_manager`. Amplitude nu mai exista.
+
+**Proba in Chrome real**, cu decodarea corpului cererilor (GA4 trimite mai multe evenimente intr-o singura cerere): pe produs `page_view`, `view_item`, `view_item_list` (inainte de acord, fara cookie-uri); dupa „Accept all" `user_engagement`; apoi `add_to_cart`, iar la checkout `begin_checkout` si `add_payment_info` — toate cu acord complet. **Evenimentele adaugate de container, care lipseau inainte, ajung acum in GA4.**
+
+**O problema de date, de rezolvat in GA4, nu in cod:** la „Add to basket" pleaca si `form_start` + `form_submit`. Nu vin de la noi — `form.js` urmareste doar formularul de contact (`.efb-form`), pagina de produs nu are unul, iar in dataLayer nu apare niciun `form_*`. Le genereaza **GA4 Enhanced measurement → Form interactions**, care trateaza formularul de cos ca pe un formular de lead. De oprit, exact cum spune ghidul la 6.1; altfel fiecare adaugare in cos apare in rapoarte ca formular trimis.
+
+**Workspace-ul vechi:** backup-ul real nu e workspace-ul, ci **Versions** — versiunile 17 si 18, cu Amplitude, raman pentru totdeauna si se pot republica oricand. Workspace-urile se schimba si se sterg din panoul „Current Workspace", din coloana stanga a tab-ului Workspace.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
