@@ -1,18 +1,20 @@
 """Builds the general O2 Digital edition of the cookie consent plugin.
 
 Source: ef-cookie-consent/ (the copy that runs on eco-fridge.co.uk).
-Output: ../WP Plugins/ef-cookie-consent.zip (outside the repo), a version any
+Output: ../WP Plugins/o2-cookie-consent.zip (outside the repo), a version any
 O2 Digital site can install:
 
   - name "O2 Cookie Consent", author O2 Digital with a link to seo2agency.com;
+  - folder, main file, text domain and admin page slug renamed to
+    o2-cookie-consent;
   - no Eco-Fridge leftovers: the efb_* cookie entry of the ECO-Fridge Blocks
     plugin is removed from the cookie library, and the default main colour is
     a neutral blue instead of the Eco-Fridge green;
-  - without the temporary ?efcc_test diagnostic of 2026-11-07.
+  - without the temporary ?efcc_test diagnostic of 2026-11-07 (if present).
 
-The folder, text domain, option names and PHP prefixes stay ef-cookie-consent /
-efcc, so installing this zip over the Eco-Fridge copy updates it in place and
-saved settings are kept.
+Option names, database table and PHP prefixes stay efcc, so a site moving from
+the old ef-cookie-consent folder keeps its settings and consent log: deactivate
+and delete the old plugin, then install and activate this one.
 
 Run from the repo root: python tools/build-generic-cookie-consent.py
 """
@@ -23,7 +25,8 @@ import zipfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, 'ef-cookie-consent')
-OUT = os.path.join(os.path.dirname(ROOT), 'WP Plugins', 'ef-cookie-consent.zip')
+SLUG = 'o2-cookie-consent'
+OUT = os.path.join(os.path.dirname(ROOT), 'WP Plugins', SLUG + '.zip')
 AUTHOR_URI = 'https://seo2agency.com/'
 NEUTRAL = '#2563eb'
 
@@ -35,8 +38,7 @@ def must_replace(text, old, new, name, count=1):
     return text.replace(old, new)
 
 
-def transform(rel, text):
-    name = rel.replace(os.sep, '/')
+def transform(name, text):
     if name == 'ef-cookie-consent.php':
         text = must_replace(text, ' * Plugin Name:       EF Cookie Consent\n',
                             ' * Plugin Name:       O2 Cookie Consent\n'
@@ -44,8 +46,11 @@ def transform(rel, text):
         text = must_replace(text, ' * Author:            O2 Digital\n',
                             ' * Author:            O2 Digital\n'
                             f' * Author URI:        {AUTHOR_URI}\n', name)
+        text = must_replace(text, ' * Text Domain:       ef-cookie-consent\n',
+                            f' * Text Domain:       {SLUG}\n', name)
     if name == 'includes/class-efcc-admin.php':
         text = must_replace(text, '<h1>EF Cookie Consent</h1>', '<h1>O2 Cookie Consent</h1>', name)
+        text = must_replace(text, "const SLUG = 'ef-cookie-consent';", f"const SLUG = '{SLUG}';", name)
     if name == 'includes/class-efcc-settings.php':
         text = must_replace(text, "'primary'      => '#1f821f',", f"'primary'      => '{NEUTRAL}',", name)
     if name == 'includes/class-efcc-library.php':
@@ -62,9 +67,10 @@ def transform(rel, text):
     if name in ('assets/efcc.css', 'assets/admin.css'):
         text = text.replace('#1f821f', NEUTRAL)
     text = text.replace('EF Cookie Consent', 'O2 Cookie Consent')
-    leftovers = re.findall(r'eco-?fridge|efcc_test|1f821f', text, re.I)
+    text = text.replace('@package EF_Cookie_Consent', '@package O2_Cookie_Consent')
+    leftovers = re.findall(r'eco-?fridge|efcc_test|1f821f|ef-cookie-consent|EF_Cookie_Consent', text, re.I)
     if leftovers:
-        sys.exit(f'{name}: Eco-Fridge leftovers {sorted(set(leftovers))}')
+        sys.exit(f'{name}: leftovers {sorted(set(leftovers))}')
     return text
 
 
@@ -74,11 +80,13 @@ def main():
         for root, _, files in os.walk(SRC):
             for f in sorted(files):
                 path = os.path.join(root, f)
-                rel = os.path.relpath(path, SRC)
+                name = os.path.relpath(path, SRC).replace(os.sep, '/')
                 with open(path, encoding='utf-8', newline='') as fh:
                     text = fh.read().replace('\r\n', '\n')
-                text = transform(rel, text)
-                z.writestr('ef-cookie-consent/' + rel.replace(os.sep, '/'), text.encode('utf-8'))
+                text = transform(name, text)
+                if name == 'ef-cookie-consent.php':
+                    name = SLUG + '.php'
+                z.writestr(SLUG + '/' + name, text.encode('utf-8'))
                 count += 1
     print(OUT, os.path.getsize(OUT), 'bytes,', count, 'files')
 
