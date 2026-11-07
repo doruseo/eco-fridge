@@ -2771,6 +2771,12 @@ Doru a scris suportului Hostinger despre `WRONGPASS`; ei au propus reactivarea O
 - Doru: in DebugView au ajuns cateva evenimente, dar nu add_to_cart / checkout. Testat ca vizitator tot funnelul pe live: view_item, view_item_list, add_to_cart, view_cart (/cart/), begin_checkout, add_payment_info — toate ajung in GA4 cu `gcs=G111`. Simptomul (page_view da, evenimentele de ecommerce nu) se potriveste exact cu exceptia administrator|shop_manager din GTM → testul trebuie facut delogat (incognito). Minor: add_payment_info porneste imediat la incarcarea checkout-ului (metoda de plata e preselectata).
 - Observat: tagul de Google Ads AW-1015171724 inca trimite (conversion linker / ccm) — e legat de Google tag; ramane intrebarea deschisa despre scoaterea lui.
 
+## 136. Feed-ul Merchant Center scos din cache-ul LiteSpeed (2026-11-07, ~15:00 UK)
+
+- Intrebarea lui Doru: la Merchant Center sursa se adauga „From a file" → „Enter a link to your file" cu `https://www.eco-fridge.co.uk/feed/google-merchant/` (fetch zilnic), NU „Connect WooCommerce" (pluginul Google for WooCommerce pune ID-uri proprii → duplicate, pierderea istoricului, nepotrivire cu ID-urile `woocommerce_gpf_…` din dataLayer). Daca exista sursa veche, i se schimba link-ul. Adresele vechi (`/?woocommerce_gpf=google`) nu mai dau feed.
+- Feed-ul se genereaza la fiecare cerere (129 produse), dar LiteSpeed il tinea in cache pana la 7 zile (`cache-ttl_feed` = 604800) → risc de pret/stoc vechi la Google. Cu acordul lui Doru: `wp litespeed-option set cache-exc "/feed/google-merchant/"` (inainte: gol) + purge pe URL. Verificat: feed-ul raspunde `no-cache`, 129 produse, ~1,3 s; home, shop, produs si /feed/ raman hit.
+- Copia locala: `source-dump/final-2026-11-07/live-db-1500-feedexc.sql.gz`.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
