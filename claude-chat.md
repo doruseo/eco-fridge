@@ -2378,6 +2378,33 @@ Doru: „asigura-te ca SSL este neinstalat (…) apoi verifica tot site-ul sa fi
 
 **Copia locala actualizata** (regula din intrarea 105): `source-dump/final-2026-11-07/live-files-after-ssl-0645.tar.gz` cu `wp-config.php`, `.htaccess` si fisierele de plugin schimbate azi; baza nu s-a schimbat de la dump-ul de dupa Faza 6.
 
+## 107. Zero `http://` pe live, licenta AG lasata pe live, GTM verificat, noindex scos (2026-11-07, ~07:00)
+
+Doru: „verifica si asigura-te ca nu exista niciun fisier si nicio adresa url cu http in site-ul live; vad ca ai instalat tu licenta de Astra Pro; sterge te rog pluginul AG Lloyds Cardnet din site-ul de staging ca sa pot muta licenta AG pe noul site live; GTM e acelasi GTM-NFMC9Z3."
+
+### `http://`
+- **Baza de date:** singurele `http://` servite erau 4 linkuri externe spre `legislation.gov.uk` in articole de blog (plus copiile lor de siguranta din meta) — trecute pe `https` (15 inlocuiri; site-ul raspunde 200 pe https). `www.w3.org` din setarile LiteSpeed e un namespace SVG, nu o adresa incarcata, si ramane. Zero `http://` in redirecturi, termeni, comentarii si comenzi.
+- **Fisiere:** singurele fisiere servite cu `http://` erau in `wp-content/uploads/hummingbird-assets/` — 83 de fisiere (2 MB), cache-ul minificat al pluginului Hummingbird de pe **site-ul vechi**, care nu exista pe site-ul nou si nu e referit nicaieri (zero randuri in baza, zero aparitii in pagini). Salvat local (`source-dump/final-2026-11-07/hummingbird-assets-old-site-cache.tar.gz`) si sters de pe live. Codul nostru, tema copil si `robots.txt`: curate.
+
+### Astra Pro
+**Nu am instalat-o eu:** licenta a venit cu clona — era inregistrata pe staging, iar cheia sta in baza de date (`brainstrom_products`). Pe live: `astra-addon` „registered", licenta activa.
+
+### AG Lloyds Cardnet: ce vedea Doru in portal si de ce NU trebuie mutat nimic
+Am citit, fara sa schimb nimic, starea Freemius pe ambele site-uri: **live si staging aveau aceeasi instalare, #20827125**, cu licenta #2080988 ocupand singurul loc (1/1) — clona a copiat si inregistrarea Freemius. Deci randul `eco-fridge.o2dev.de` din portalul AG **era chiar activarea folosita de live**; stergerea sau dezactivarea lui din portal ar fi oprit plata cu cardul pe un site care primeste deja clienti reali.
+
+- **Pe staging, pluginul a fost sters „in tacere":** scos din lista de pluginuri active direct in optiune si folderul sters, **fara** hook-urile de dezactivare/dezinstalare, care ar fi anuntat Freemius ca instalarea comuna a devenit inactiva. Copie locala: `source-dump/final-2026-11-07/lloyds-cardnet-plugin-from-staging-5.1.1.tar.gz`. Staging are acum doar transfer bancar.
+- **Pe live, adresa instalarii actualizata cu actiunea oficiala a SDK-ului** pentru un site mutat: „new home" (`FS_Clone_Manager`, `OPTION_NEW_HOME` → `sync_install` cu `is_new_site`). Inainte: clona, URL-ul vechi al unei copii Hostinger. Dupa: **nu mai e clona, instalarea #20827125 pe `www.eco-fridge.co.uk`, licenta valida, 1/1**, iar plata cu cardul ramane activa. Portalul AG ar trebui sa arate acum adresa noua.
+
+### GTM
+Deja configurat cu `GTM-NFMC9Z3` in GTM4WP, cu urmarirea ecommerce WooCommerce. Containerul se incarca **o singura data** (pluginul nostru de consimtamant are propriul incarcator oprit: `gtm_load = external`) si **dupa** valorile implicite Consent Mode v2 (toate „denied", `security_storage` „granted", `wait_for_update` 500).
+
+### Faza 9.3: noindex scos
+`blog_public = 1`. Paginile au acum `index, follow` si canonical pe `https://www.eco-fridge.co.uk/…`; niciun `X-Robots-Tag`; sitemap 200.
+
+**Copia locala:** baza live dupa toate cele de mai sus, `source-dump/db/live-2026-11-07-*-indexable.sql.gz`.
+
+**Ramas:** comanda reala cu cardul si un formular (Doru); cache-ul LiteSpeed — Doru l-a oprit, nu l-am pornit; Search Console si Merchant Center.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
@@ -2385,6 +2412,7 @@ Doru: „asigura-te ca SSL este neinstalat (…) apoi verifica tot site-ul sa fi
 - **Faza 3 GATA (intrarea 101):** 86 de comenzi importate, #14517–#14638, reconciliere 6.017 = 6.017, urmatorul numar #14658; rapoarte reconstruite; stocul preluat; nimic nou la produse, categorii, pagini, media, redirecturi sau SEO; regula care pastreaza cele 5 comenzi pending (PR #78); tabelele clonei sterse din staging. Punct de revenire: `source-dump/db/staging-before-f15-2026-11-07.sql.gz`.
 - **Produsele verificate si pe continut (intrarea 102):** la zi pe preturi (18), stoc (10), SKU, manual PDF si poza noua; zero modificari de text. **Staging e GATA de clonare.**
 - **Faza 6, in plus:** `WP_ENVIRONMENT_TYPE` → `production` (altfel nu pleaca emailurile de recenzii si nu se aplica protectia HTTPS), blocul no-cache scos, LiteSpeed pornit dupa verificari.
+- **Faza 9 aproape gata (intrarea 107):** zero `http://`, licenta AG pe live (instalarea Freemius comuna mutata pe www), GTM `GTM-NFMC9Z3` o singura data dupa Consent Mode, **noindex scos**. Ramane: comanda reala + formular (Doru), Search Console, Merchant Center.
 - **LIVE pe serverul nou (intrarea 106):** DNS mutat, SSL Google Trust Services pe ambele nume, HTTPS + www fortate din `wp-config.php` (serverul ignora `.htaccess`), 298 de pagini vechi de atasament redirectate. **Urmeaza Faza 9:** licente, GTM, noindex scos, comanda reala.
 - **REGULA (Doru, 7 nov): copia locala din laptop a site-ului live se actualizeaza MEREU** — baza si fisierele, in `source-dump/` (intrarea 105).
 - **Verificare finala (intrarea 105):** 428/428 URL-uri 200, paritate cu site-ul vechi fara 404 in afara de 279 de `?attachment_id=` (de reparat dupa A @), SSL neinstalat confirmat, nicio CAA. GO pentru A @.
