@@ -1,10 +1,10 @@
 <?php
 /**
- * Pasul 12: setează thumbnail-uri (imagini) pe categoriile de produse care nu au,
- * folosind imaginea principală a primului produs din categorie. Necesar pentru
- * tile-urile de sub-categorii de pe homepage (Display/Storage) + paginile de
- * categorie. Editabil ulterior din Products → Categories. Idempotent (sare peste
- * cele care au deja thumbnail). Rulare: wp eval-file wp-content/source-dump/_run.php
+ * Step 12: sets thumbnails (images) on the product categories that have none,
+ * using the main image of the category's first product. Needed for
+ * the sub-category tiles on the homepage (Display/Storage) and the category
+ * pages. Editable later from Products → Categories. Idempotent (skips
+ * those that already have a thumbnail). Run: wp eval-file wp-content/source-dump/_run.php
  *
  * @package Eco-Fridge-Migration
  */
@@ -42,5 +42,5 @@ foreach ( $terms as $t ) {
 	}
 }
 
-WP_CLI::log( "Thumbnail categorii: setate=$set, deja aveau=$skip, fără produs cu imagine=$none" );
-WP_CLI::success( 'Thumbnail-uri categorii finalizate.' );
+WP_CLI::log( "Category thumbnails: set=$set, already had one=$skip, no product with an image=$none" );
+WP_CLI::success( 'Category thumbnails finished.' );

@@ -1,12 +1,12 @@
 <?php
 /**
- * Pasul 8: migrează paginile interne (conținut) în blocuri Spectra.
- * Rulare: wp eval-file wp-content/source-dump/_run.php
+ * Step 8: migrates the inner pages (content) into Spectra blocks.
+ * Run: wp eval-file wp-content/source-dump/_run.php
  *
- * Fiecare pagină legacy -> pagină nouă cu același slug/titlu, conținut
- * (post_content + wpcf-content-2 + youtube + brochure) învelit într-un
- * container Spectra. Ierarhia „markets" păstrată. Woo pages excluse.
- * Idempotent (după slug). URL-uri vechi -> relative; shortcode CF7 scoase.
+ * Each legacy page -> a new page with the same slug/title, its content
+ * (post_content + wpcf-content-2 + youtube + brochure) wrapped in a
+ * Spectra container. The "markets" hierarchy is kept. Woo pages are excluded.
+ * Idempotent (by slug). Old URLs -> relative; CF7 shortcodes removed.
  *
  * @package Eco-Fridge-Migration
  */
@@ -18,11 +18,11 @@ $db = @mysqli_connect( 'ef-legacy-db', 'root', 'root', 'legacy' );
 if ( ! $db ) { WP_CLI::error( 'Legacy DB: ' . mysqli_connect_error() ); }
 mysqli_set_charset( $db, 'utf8mb4' );
 
-// pagini de migrat: slug legacy (excludem shop/cart/checkout/my-account/gateway/homepage-7)
+// pages to migrate: legacy slug (shop/cart/checkout/my-account/gateway/homepage-7 excluded)
 $slugs = array(
 	'about-us', 'markets', 'support', 'contact-us', 'privacy-cookies-policy',
 	'graded-units', 'terms-conditions', 'cookie-policy-uk', 'we-are-open-for-business', 'returns',
-	// sub-pagini markets
+	// markets sub-pages
 	'coffee-shops', 'sports-clubs', 'restaurants', 'airports', 'forecourts',
 	'convenience-stores', 'delis-and-butchers', 'display-freezers',
 );
@@ -31,7 +31,7 @@ $bid = function () { return substr( str_shuffle( 'abcdefghijklmnopqrstuvwxyz0123
 
 $clean = function ( $html ) {
 	$html = str_replace( array( 'https://eco-fridge.co.uk', 'http://eco-fridge.co.uk', 'https://www.eco-fridge.co.uk' ), '', $html );
-	$html = preg_replace( '/\[contact-form-7[^\]]*\]/', '', $html ); // CF7 scos (form separat ulterior)
+	$html = preg_replace( '/\[contact-form-7[^\]]*\]/', '', $html ); // CF7 removed (a separate form comes later)
 	return $html;
 };
 
@@ -43,14 +43,14 @@ $wrap = function ( $inner ) use ( $bid ) {
 		. '</div></div><!-- /wp:uagb/container -->';
 };
 
-// map slug -> new page id (pt. parent markets)
+// map slug -> new page id (for the markets parent)
 $new_ids = array();
 $created = 0; $updated = 0;
 
 foreach ( $slugs as $slug ) {
 	$res = mysqli_query( $db, "SELECT ID, post_title, post_content, post_excerpt FROM {$LP}posts WHERE post_type='page' AND post_name='" . mysqli_real_escape_string( $db, $slug ) . "' AND post_status='publish' LIMIT 1" );
 	$row = $res ? mysqli_fetch_assoc( $res ) : null;
-	if ( ! $row ) { WP_CLI::warning( "pagina '$slug' negăsită în legacy" ); continue; }
+	if ( ! $row ) { WP_CLI::warning( "page '$slug' not found in the legacy DB" ); continue; }
 	$old_id = (int) $row['ID'];
 
 	// meta
@@ -58,7 +58,7 @@ foreach ( $slugs as $slug ) {
 	$mr = mysqli_query( $db, "SELECT meta_key, meta_value FROM {$LP}postmeta WHERE post_id=$old_id AND meta_key IN ('wpcf-content-2','wpcf-content-3','wpcf-youtube-id-number','wpcf-brochure-link')" );
 	while ( $m = mysqli_fetch_assoc( $mr ) ) { $meta[ $m['meta_key'] ] = $m['meta_value']; }
 
-	// compunere conținut
+	// assemble the content
 	$body = trim( $row['post_content'] );
 	if ( ! empty( $meta['wpcf-content-2'] ) ) { $body .= "\n\n" . $meta['wpcf-content-2']; }
 	if ( ! empty( $meta['wpcf-content-3'] ) ) { $body .= "\n\n" . $meta['wpcf-content-3']; }
@@ -70,7 +70,7 @@ foreach ( $slugs as $slug ) {
 		$body .= "\n\n" . '<p><a class="wp-block-button__link wp-element-button" href="' . esc_url( $meta['wpcf-brochure-link'] ) . '" target="_blank" rel="noopener">Download Brochure</a></p>';
 	}
 
-	// contact-us: adaugă bloc de contact dacă rămâne subțire (form CF7 scos)
+	// contact-us: add a contact block if it is left thin (CF7 form removed)
 	if ( 'contact-us' === $slug ) {
 		$c = ef_contact();
 		$body .= '<div class="ef-contact-details"><h3>Get in touch</h3><p><strong>' . esc_html( $c['company'] ) . '</strong><br>' . esc_html( $c['address'] ) . '</p>'
@@ -79,7 +79,7 @@ foreach ( $slugs as $slug ) {
 
 	$body = call_user_func( $clean, $body );
 
-	// markets landing (gol) — construiește hub către sub-pagini
+	// markets landing (empty): build a hub linking to the sub-pages
 	if ( 'markets' === $slug && '' === trim( $row['post_content'] ) ) {
 		$body = '<p>ECO-Fridge supplies commercial refrigeration across many sectors. Choose your market:</p><div class="ef-markets-grid">'
 			. '<a href="/coffee-shops/">Café / Coffee Shops</a><a href="/sports-clubs/">Sports Clubs</a><a href="/restaurants/">Restaurants &amp; Bars</a>'
@@ -89,7 +89,7 @@ foreach ( $slugs as $slug ) {
 
 	$content = $wrap( $body );
 
-	// creare / update
+	// create / update
 	$existing = get_page_by_path( $slug );
 	$postarr = array(
 		'post_type'    => 'page',
@@ -112,7 +112,7 @@ foreach ( $slugs as $slug ) {
 	update_post_meta( $id, 'site-content-layout', 'plain-container' );
 }
 
-// ierarhie markets: sub-paginile sub 'markets'
+// markets hierarchy: the sub-pages under 'markets'
 $market_parent = isset( $new_ids['markets'] ) ? $new_ids['markets'] : 0;
 if ( $market_parent ) {
 	foreach ( array( 'coffee-shops', 'sports-clubs', 'restaurants', 'airports', 'forecourts', 'convenience-stores', 'delis-and-butchers', 'display-freezers' ) as $sub ) {
@@ -120,5 +120,5 @@ if ( $market_parent ) {
 	}
 }
 
-WP_CLI::log( "Pagini: create=$created, actualizate=$updated (total " . count( $new_ids ) . ')' );
-WP_CLI::success( 'Migrare pagini interne (Spectra) finalizată.' );
+WP_CLI::log( "Pages: created=$created, updated=$updated (total " . count( $new_ids ) . ')' );
+WP_CLI::success( 'Inner page migration (Spectra) finished.' );

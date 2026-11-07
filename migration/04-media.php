@@ -1,14 +1,14 @@
 <?php
 /**
- * Pasul 4 migrare: media (attachments) legacy -> site nou + atașare la produse.
- * Rulare: wp eval-file wp-content/source-dump/_run.php
- * PRECONDIȚIE: fișierele fizice deja copiate în wp-content/uploads (docker cp din media-sync).
+ * Migration step 4: media (attachments) legacy -> new site, attached to products.
+ * Run: wp eval-file wp-content/source-dump/_run.php
+ * PRECONDITION: the files are already copied into wp-content/uploads (docker cp from media-sync).
  *
- * - Recreează posturile `attachment` din legacy pentru fișierele prezente pe disc.
- * - Copiază _wp_attached_file, _wp_attachment_metadata (verbatim), alt text, titlu/caption.
- * - Construiește harta old_attachment_id -> new_id (source-dump/_attachment-id-map.json).
- * - Setează pe produse imaginea principală (_ef_legacy_thumb) + galeria (_ef_legacy_gallery).
- * Idempotent prin meta _ef_legacy_id.
+ * - Recreates the legacy `attachment` posts for the files present on disk.
+ * - Copies _wp_attached_file, _wp_attachment_metadata (verbatim), alt text, title/caption.
+ * - Builds the old_attachment_id -> new_id map (source-dump/_attachment-id-map.json).
+ * - Sets each product's main image (_ef_legacy_thumb) and gallery (_ef_legacy_gallery).
+ * Idempotent through meta _ef_legacy_id.
  *
  * @package Eco-Fridge-Migration
  */
@@ -24,7 +24,7 @@ $db = @mysqli_connect( 'ef-legacy-db', 'root', 'root', 'legacy' );
 if ( ! $db ) { WP_CLI::error( 'Legacy DB: ' . mysqli_connect_error() ); }
 mysqli_set_charset( $db, 'utf8mb4' );
 
-/* ---- 1. migrare attachments pentru fișierele existente pe disc ---- */
+/* ---- 1. migrate attachments for the files that exist on disk ---- */
 $res = mysqli_query( $db, "SELECT ID, post_title, post_name, post_excerpt, post_content, post_mime_type, post_date, guid
                            FROM {$LP}posts WHERE post_type='attachment' ORDER BY ID" );
 $att_map = array();
@@ -33,14 +33,14 @@ $created = 0; $skipped = 0; $missing = 0;
 while ( $row = mysqli_fetch_assoc( $res ) ) {
 	$old_id = (int) $row['ID'];
 
-	// meta legacy
+	// legacy meta
 	$mr = mysqli_query( $db, "SELECT meta_key, meta_value FROM {$LP}postmeta WHERE post_id=$old_id AND meta_key IN ('_wp_attached_file','_wp_attachment_metadata','_wp_attachment_image_alt')" );
 	$lmeta = array();
 	while ( $m = mysqli_fetch_assoc( $mr ) ) { $lmeta[ $m['meta_key'] ] = $m['meta_value']; }
 
 	$file = isset( $lmeta['_wp_attached_file'] ) ? $lmeta['_wp_attached_file'] : '';
 	if ( '' === $file ) { $missing++; continue; }
-	if ( ! file_exists( $base_dir . $file ) ) { $missing++; continue; } // ex. matomo/woo_uploads/webp excluse
+	if ( ! file_exists( $base_dir . $file ) ) { $missing++; continue; } // e.g. matomo/woo_uploads/webp, excluded
 
 	// idempotency
 	$exist = get_posts( array( 'post_type' => 'attachment', 'post_status' => 'any', 'meta_key' => '_ef_legacy_id', 'meta_value' => $old_id, 'fields' => 'ids', 'posts_per_page' => 1 ) );
@@ -73,9 +73,9 @@ while ( $row = mysqli_fetch_assoc( $res ) ) {
 }
 
 file_put_contents( ABSPATH . 'wp-content/source-dump/_attachment-id-map.json', wp_json_encode( $att_map ) );
-WP_CLI::log( "Attachments: create=$created, sarite=$skipped, lipsa/exclus=$missing, total mapate=" . count( $att_map ) );
+WP_CLI::log( "Attachments: created=$created, skipped=$skipped, missing/excluded=$missing, total mapped=" . count( $att_map ) );
 
-/* ---- 2. atașare imagini la produse (featured + galerie) ---- */
+/* ---- 2. attach images to products (featured + gallery) ---- */
 $products = get_posts( array( 'post_type' => 'product', 'post_status' => 'any', 'posts_per_page' => -1, 'fields' => 'ids' ) );
 $with_thumb = 0; $with_gallery = 0;
 foreach ( $products as $pid ) {
@@ -100,5 +100,5 @@ foreach ( $products as $pid ) {
 	if ( $changed ) { $product->save(); }
 }
 
-WP_CLI::log( "Produse cu imagine principala: $with_thumb | cu galerie: $with_gallery" );
-WP_CLI::success( 'Migrare media (pasul 4) finalizată.' );
+WP_CLI::log( "Products with a main image: $with_thumb | with a gallery: $with_gallery" );
+WP_CLI::success( 'Media migration (step 4) finished.' );

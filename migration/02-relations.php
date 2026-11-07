@@ -1,8 +1,8 @@
 <?php
 /**
- * Pasul 2 migrare produse: remapează upsell/crosssell (ID-uri vechi -> noi).
- * Rulare: wp eval-file wp-content/source-dump/_run.php
- * Necesită harta creată de 01-products.php (source-dump/_product-id-map.json).
+ * Product migration step 2: remaps upsells/cross-sells (old IDs -> new).
+ * Run: wp eval-file wp-content/source-dump/_run.php
+ * Needs the map written by 01-products.php (source-dump/_product-id-map.json).
  *
  * @package Eco-Fridge-Migration
  */
@@ -10,9 +10,9 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 $map_file = ABSPATH . 'wp-content/source-dump/_product-id-map.json';
-if ( ! file_exists( $map_file ) ) { WP_CLI::error( 'Lipsește _product-id-map.json (rulează 01-products.php întâi).' ); }
+if ( ! file_exists( $map_file ) ) { WP_CLI::error( '_product-id-map.json is missing (run 01-products.php first).' ); }
 $id_map = json_decode( file_get_contents( $map_file ), true );
-if ( ! $id_map ) { WP_CLI::error( 'Harta de ID-uri e goală/invalidă.' ); }
+if ( ! $id_map ) { WP_CLI::error( 'The ID map is empty or invalid.' ); }
 
 $remap = function ( $csv ) use ( $id_map ) {
 	$out = array();
@@ -41,5 +41,5 @@ foreach ( $products as $pid ) {
 	if ( $changed ) { $product->save(); }
 }
 
-WP_CLI::log( "Upsell setate pe $up produse | Crosssell pe $cross produse." );
-WP_CLI::success( 'Pasul 2 (relații) finalizat.' );
+WP_CLI::log( "Upsells set on $up products | cross-sells on $cross products." );
+WP_CLI::success( 'Step 2 (relations) finished.' );

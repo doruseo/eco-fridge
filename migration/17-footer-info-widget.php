@@ -1,11 +1,11 @@
 <?php
 /**
- * Pasul 17: coloana „Information" din footer = WIDGET „Navigation Menu" (Astra Footer
- * Builder → Widget 1), condus de un meniu WP editabil din Appearance → Menus, iar
- * widget-ul din Customize → Footer Builder → Widget 1 (sau Appearance → Widgets).
- * Înlocuiește elementul HTML `footer-html-3`.
+ * Step 17: the footer "Information" column = a "Navigation Menu" WIDGET (Astra Footer
+ * Builder → Widget 1), driven by a WP menu editable from Appearance → Menus, and
+ * the widget from Customize → Footer Builder → Widget 1 (or Appearance → Widgets).
+ * Replaces the `footer-html-3` HTML element.
  *
- * Idempotent. Rulare: cp migration/17-footer-info-widget.php source-dump/_run.php &&
+ * Idempotent. Run: cp migration/17-footer-info-widget.php source-dump/_run.php &&
  *   npx wp-env run cli wp eval-file wp-content/source-dump/_run.php
  *
  * @package Eco-Fridge-Migration
@@ -13,7 +13,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-/* 1) Meniu „Footer Information" — referințe interne (pagini), nu custom links. */
+/* 1) "Footer Information" menu: internal references (pages), not custom links. */
 $menu_name = 'Footer Information';
 $m         = wp_get_nav_menu_object( $menu_name );
 $menu_id   = $m ? (int) $m->term_id : (int) wp_create_nav_menu( $menu_name );
@@ -29,7 +29,7 @@ $pages = array(
 $added = 0;
 foreach ( $pages as $pg ) {
 	$p = get_page_by_path( $pg[0] );
-	if ( ! $p ) { WP_CLI::warning( 'Pagină lipsă: ' . $pg[0] ); continue; }
+	if ( ! $p ) { WP_CLI::warning( 'Missing page: ' . $pg[0] ); continue; }
 	wp_update_nav_menu_item( $menu_id, 0, array(
 		'menu-item-title'     => $pg[1],
 		'menu-item-object'    => 'page',
@@ -40,8 +40,8 @@ foreach ( $pages as $pg ) {
 	$added++;
 }
 
-/* 2) Widget „Navigation Menu" → sidebar-ul footer-widget-1. Idempotent (reutilizează
- *    instanța marcată `ef_footer_info`). */
+/* 2) "Navigation Menu" widget → the footer-widget-1 sidebar. Idempotent (reuses
+ *    the instance marked `ef_footer_info`). */
 $inst = get_option( 'widget_nav_menu', array() );
 if ( ! is_array( $inst ) ) { $inst = array(); }
 
@@ -63,18 +63,18 @@ update_option( 'widget_nav_menu', $inst );
 
 $sw = get_option( 'sidebars_widgets', array() );
 if ( ! is_array( $sw ) ) { $sw = array(); }
-$sw['footer-widget-1'] = array( 'nav_menu-' . $widget_idx ); // înlocuiește conținutul zonei
+$sw['footer-widget-1'] = array( 'nav_menu-' . $widget_idx ); // replaces the area's content
 update_option( 'sidebars_widgets', $sw );
 
-/* 3) Footer Builder: coloana 3 = widget-1 (în loc de html-3). */
+/* 3) Footer Builder: column 3 = widget-1 (instead of html-3). */
 $s = get_option( 'astra-settings', array() );
 if ( ! is_array( $s ) ) { $s = array(); }
 if ( ! isset( $s['footer-desktop-items']['primary'] ) ) {
 	$s['footer-desktop-items']['primary'] = array();
 }
 $s['footer-desktop-items']['primary']['primary_3'] = array( 'widget-1' );
-$s['footer-html-3'] = ''; // nu mai e folosit
+$s['footer-html-3'] = ''; // no longer used
 update_option( 'astra-settings', $s );
 
-WP_CLI::log( 'Meniu „Footer Information" #' . $menu_id . ' (' . $added . ' iteme) → widget nav_menu-' . $widget_idx . ' în footer-widget-1; coloana 3 = widget-1.' );
-WP_CLI::success( 'Coloana Information = widget cu meniu (editabil din Customize).' );
+WP_CLI::log( 'Menu "Footer Information" #' . $menu_id . ' (' . $added . ' items) → widget nav_menu-' . $widget_idx . ' in footer-widget-1; column 3 = widget-1.' );
+WP_CLI::success( 'Information column = menu widget (editable from Customize).' );

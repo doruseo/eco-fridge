@@ -1,15 +1,15 @@
 <?php
 /**
- * Pasul 16: HEADER / FOOTER / BANNER 100% NATIVE Astra Pro (înlocuiesc codul custom
- * din tema copil, acum șters). Totul editabil din Customizer / Appearance.
+ * Step 16: HEADER / FOOTER / BANNER 100% NATIVE Astra Pro (replacing the custom code
+ * of the child theme, now deleted). All editable from the Customizer / Appearance.
  *
- *  - Header Builder (desktop + mobil): logo | meniu (Primary Menu, cu mega nativ) |
- *    FiboSearch (element HTML) | coș WooCommerce. Sticky pe rândul principal.
- *  - Footer Builder: 3 coloane HTML (adresă | contact | informații) + copyright.
- *  - Banner „Call us today": Astra Custom Layout (advanced-hooks) pe
- *    `astra_content_before`, afișat pe tot site-ul MAI PUȚIN homepage.
+ *  - Header Builder (desktop + mobile): logo | menu (Primary Menu, with the native mega) |
+ *    FiboSearch (HTML element) | WooCommerce cart. Sticky main row.
+ *  - Footer Builder: 3 HTML columns (address | contact | information) + copyright.
+ *  - "Call us today" banner: Astra Custom Layout (advanced-hooks) on
+ *    `astra_content_before`, shown on the whole site EXCEPT the homepage.
  *
- * Idempotent. Rulare: cp migration/16-header-footer-native.php source-dump/_run.php &&
+ * Idempotent. Run: cp migration/16-header-footer-native.php source-dump/_run.php &&
  *   npx wp-env run cli wp eval-file wp-content/source-dump/_run.php
  *
  * @package Eco-Fridge-Migration
@@ -22,7 +22,7 @@ if ( ! is_array( $s ) ) { $s = array(); }
 
 /* ------------------------------------------------------------------ HEADER */
 
-// FiboSearch într-un element HTML de header (Astra rulează do_shortcode pe conținut).
+// FiboSearch in a header HTML element (Astra runs do_shortcode on the content).
 $s['header-html-1'] = '[fibosearch]';
 
 $s['header-desktop-items'] = array(
@@ -55,13 +55,13 @@ $s['header-mobile-items'] = array(
 	'below'   => array( 'below_left' => array(), 'below_center' => array(), 'below_right' => array() ),
 );
 
-// Sticky nativ Astra DEZACTIVAT: header-ul e custom (bara verde) și sticky-ul lui
-// e controlat de theme_mod `ef_greenbar_sticky` (CSS position:sticky, fără shrink).
-// Modulul nativ Astra adăuga un efect de „shrink" la scroll — nedorit — deci off.
+// Native Astra sticky header OFF: the header is custom (the green bar) and its sticky
+// behaviour is set by theme_mod `ef_greenbar_sticky` (CSS position:sticky, no shrink).
+// The native Astra module added an unwanted "shrink" effect on scroll, so it is off.
 $s['header-main-stick']  = false;
 $s['header-below-stick'] = false;
 $s['header-above-stick'] = false;
-// Aliniere meniu inline (default), lățime header „content".
+// Inline menu alignment (default), "content" header width.
 $s['hb-header-main-menu-align'] = 'inline';
 
 /* ------------------------------------------------------------------ FOOTER */
@@ -85,7 +85,7 @@ $s['footer-desktop-items'] = array(
 	),
 	'below'   => array( 'below_1' => array( 'copyright' ), 'below_2' => array(), 'below_3' => array(), 'below_4' => array(), 'below_5' => array() ),
 );
-// 3 coloane pe rândul principal de footer.
+// 3 columns on the main footer row.
 $s['hb-footer-column']        = 3;
 $s['hbb-footer-column']       = 3;
 $s['footer-desktop-column']   = 3;
@@ -103,11 +103,11 @@ $s['footer-copyright-editor'] = '<p>&copy; [current_year] <a href="/">' . $c['co
 	. '<p class="ef-footer-credit">Designed by <a href="https://seo2agency.com/" rel="nofollow noopener" target="_blank">O2 Digital</a></p>';
 
 update_option( 'astra-settings', $s );
-WP_CLI::log( 'Astra Header/Footer Builder configurat (logo|menu|search|cart; footer 3 coloane + copyright).' );
+WP_CLI::log( 'Astra Header/Footer Builder configured (logo|menu|search|cart; 3-column footer + copyright).' );
 
-/* ------------------------------------------------------------------ BANNER — ȘTERS */
-// Banner-ul „Call us today" a fost eliminat de pe tot site-ul (la cererea userului).
-// Ștergem definitiv Custom Layout-ul dacă mai există (idempotent).
+/* ------------------------------------------------------------------ BANNER: DELETED */
+// The "Call us today" banner was removed from the whole site (at the user's request).
+// Delete the Custom Layout for good if it still exists (idempotent).
 $old_banners = get_posts( array(
 	'post_type'   => 'astra-advanced-hook',
 	'name'        => 'ef-call-banner',
@@ -116,7 +116,7 @@ $old_banners = get_posts( array(
 ) );
 foreach ( $old_banners as $b ) {
 	wp_delete_post( $b->ID, true );
-	WP_CLI::log( 'Banner „Call us today" (Custom Layout #' . $b->ID . ') șters.' );
+	WP_CLI::log( 'Banner "Call us today" (Custom Layout #' . $b->ID . ') deleted.' );
 }
 
-WP_CLI::success( 'Header / Footer native Astra finalizate (fără banner).' );
+WP_CLI::success( 'Native Astra header and footer finished (no banner).' );

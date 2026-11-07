@@ -1,14 +1,14 @@
 <?php
 /**
- * Pasul 6: construiește HOMEPAGE-ul în blocuri Spectra (uagb) — design 1:1 eco-fridge.co.uk.
- * Rulare: wp eval-file wp-content/source-dump/_run.php
+ * Step 6: builds the HOMEPAGE in Spectra (uagb) blocks, design 1:1 with eco-fridge.co.uk.
+ * Run: wp eval-file wp-content/source-dump/_run.php
  *
- * Structură (după original-site-live-audit.md):
+ * Structure (from original-site-live-audit.md):
  *   Hero → Brand intro → Product overview → Display Cabinets (grid) →
- *   Storage Cabinets (grid) → Graded Units → conținut SEO (pagina 7 legacy).
+ *   Storage Cabinets (grid) → Graded Units → SEO copy (legacy page 7).
  *
- * Spectra: uagb/container, uagb/advanced-heading, uagb/post-grid (produse).
- * Core (fiabile + stilizate din tema copil): heading/paragraph/buttons/html.
+ * Spectra: uagb/container, uagb/advanced-heading, uagb/post-grid (products).
+ * Core (reliable, styled by the child theme): heading/paragraph/buttons/html.
  *
  * @package Eco-Fridge-Migration
  */
@@ -23,14 +23,14 @@ if ( $db ) {
 	$r = mysqli_query( $db, "SELECT post_content FROM {$LP}posts WHERE ID=7" );
 	if ( $r && ( $row = mysqli_fetch_row( $r ) ) ) {
 		$seo_html = $row[0];
-		// re-scriere URL-uri absolute vechi -> relative (parametrizare domeniu)
+		// rewrite old absolute URLs to relative ones (domain independent)
 		$seo_html = str_replace( array( 'https://eco-fridge.co.uk', 'http://eco-fridge.co.uk' ), '', $seo_html );
 	}
 }
 
 $bid = function () { return substr( str_shuffle( 'abcdefghijklmnopqrstuvwxyz0123456789' ), 0, 8 ); };
 
-// —— helper: container Spectra cu conținut ——
+// —— helper: Spectra container with content ——
 $container = function ( $inner, $bg = '', $alt = false ) use ( $bid ) {
 	$id = $bid();
 	$bg_attr = $bg ? ',"backgroundType":"color","backgroundColor":"' . $bg . '"' : '';
@@ -40,7 +40,7 @@ $container = function ( $inner, $bg = '', $alt = false ) use ( $bid ) {
 		. '<!-- /wp:uagb/container -->';
 };
 
-// —— helper: Advanced Heading Spectra ——
+// —— helper: Spectra Advanced Heading ——
 $heading = function ( $text, $tag = 'h2', $center = true ) use ( $bid ) {
 	$id = $bid();
 	$align = $center ? ',"headingAlign":"center"' : '';
@@ -49,14 +49,14 @@ $heading = function ( $text, $tag = 'h2', $center = true ) use ( $bid ) {
 		. '<!-- /wp:uagb/advanced-heading -->';
 };
 
-// —— helper: paragraf core, centrat ——
+// —— helper: centred core paragraph ——
 $para = function ( $html, $center = true ) {
 	$cls = $center ? ' class="has-text-align-center"' : '';
 	$style = ' style="max-width:820px;margin-left:auto;margin-right:auto;"';
 	return '<!-- wp:paragraph' . ( $center ? ' {"align":"center"}' : '' ) . ' --><p' . $cls . $style . '>' . $html . '</p><!-- /wp:paragraph -->';
 };
 
-// —— helper: buton core (stilizat brand din tema copil) ——
+// —— helper: core button (brand styling from the child theme) ——
 $button = function ( $label, $url, $center = true ) {
 	$wrap_attr = $center ? ' {"layout":{"type":"flex","justifyContent":"center"}}' : '';
 	return '<!-- wp:buttons' . $wrap_attr . ' --><div class="wp-block-buttons">'
@@ -64,9 +64,9 @@ $button = function ( $label, $url, $center = true ) {
 		. '</div><!-- /wp:buttons -->';
 };
 
-// —— helper: HERO slider 4 slide-uri (1:1 audit) — full-bleed wp:html ——
+// —— helper: HERO slider, 4 slides (1:1 with the audit), full-bleed wp:html ——
 $hero_slider = function () {
-	// eyebrow, titlu, descriere, label CTA, slug categorie, imagine reprezentativă
+	// eyebrow, title, description, CTA label, category slug, representative image
 	$slides = array(
 		array( 'Premium Range', 'Mirrored Stainless Steel Shutter Multidecks', 'Lockable roller-shutter multidecks with a premium mirrored stainless steel finish — secure overnight, striking on the shop floor.', 'Shop Shutter Multidecks', 'premium-mirrored-stainless-steel-shutter-multidecks', 'SD75120SH-Newweb-724x1024.jpg' ),
 		array( 'Slimline', 'Slimline Patisserie Display Fridges', 'Space-saving double-glazed patisserie cabinets that show off cakes, desserts &amp; chilled treats.', 'Shop Slimline Patisseries', 'standard-patisserie-slimline-display-fridges', 'ECO-P60120B-web-984x1024.jpg' ),
@@ -98,9 +98,9 @@ $hero_slider = function () {
 	return '<!-- wp:html -->' . "\n" . $html . "\n" . '<!-- /wp:html -->';
 };
 
-// —— helper: bandă logo-uri clienți (1:1 cu originalul, pagina 7) ——
+// —— helper: client logo strip (1:1 with the original, page 7) ——
 $clients = function () use ( $heading ) {
-	// nume brand (alt) => fișier logo, în ordinea din originalul
+	// brand name (alt) => logo file, in the original order
 	$logos = array(
 		'Paul'                    => 'Paul-UK-web.jpg',
 		'Costa Coffee'            => 'Costa-Coffee-web.jpg',
@@ -132,15 +132,15 @@ $clients = function () use ( $heading ) {
 		. '<!-- /wp:html -->';
 };
 
-// —— helper: grilă produse Spectra Post Grid ——
+// —— helper: Spectra Post Grid product grid ——
 $grid = function ( $cat_id, $count = 6 ) use ( $bid ) {
 	return '<!-- wp:uagb/post-grid {"block_id":"' . $bid() . '","postType":"product","postsToShow":' . $count . ',"columns":3,"tcolumns":2,"mcolumns":1,"taxonomyType":"product_cat","categories":"' . $cat_id . '","displayPostExcerpt":false,"displayPostAuthor":false,"displayPostComment":false,"displayPostDate":false,"displayPostTaxonomy":false,"imgSize":"woocommerce_thumbnail","paginationMarkup":"empty"} /-->';
 };
 
-/* ---------------- construcție pagină ---------------- */
+/* ---------------- page assembly ---------------- */
 $parts = array();
 
-// 1. HERO SLIDER (4 slide-uri, full-bleed)
+// 1. HERO SLIDER (4 slides, full-bleed)
 $parts[] = $hero_slider();
 
 // 2. BRAND INTRO
@@ -150,7 +150,7 @@ $parts[] = $container(
 	. $button( 'Read more about ECO-Fridge', '/about-us/' )
 );
 
-// 2b. CLIENT LOGOS („Some of Our Clients") — fundal alb (conținut curat)
+// 2b. CLIENT LOGOS ("Some of Our Clients"), white background (clean content)
 $parts[] = $container( $clients() );
 
 // 3. PRODUCT OVERVIEW
@@ -160,15 +160,15 @@ $parts[] = $container(
 	'', true
 );
 
-// —— helper: bloc shortcode sub-categorii (tile-uri cu iconițe) ——
+// —— helper: sub-category shortcode block (tiles with icons) ——
 $subcats = function ( $parent, $cols = 5 ) {
 	return '<!-- wp:shortcode -->' . "\n" . '[ef_subcats parent="' . (int) $parent . '" cols="' . (int) $cols . '"]' . "\n" . '<!-- /wp:shortcode -->';
 };
 
-// 4. DISPLAY CABINETS — tile-uri sub-categorii (iconițe, 5 coloane) ca originalul
+// 4. DISPLAY CABINETS: sub-category tiles (icons, 5 columns) as on the original
 $parts[] = $container( $heading( 'Display Cabinets' ) . $subcats( 44, 5 ) );
 
-// 5. STORAGE CABINETS — tile-uri sub-categorii (fundal alb)
+// 5. STORAGE CABINETS: sub-category tiles (white background)
 $parts[] = $container( $heading( 'Storage Cabinets' ) . $subcats( 45, 5 ) );
 
 // 6. GRADED UNITS
@@ -178,7 +178,7 @@ $parts[] = $container(
 	. $button( 'View Refurbished &amp; End of Line Cabinets', '/product-category/graded-units/' )
 );
 
-// 7. SEO long-form (conținut original pagina 7)
+// 7. SEO long-form (original copy of page 7)
 if ( $seo_html ) {
 	$parts[] = $container(
 		'<!-- wp:html -->' . "\n" . '<div class="ef-seo-content">' . $seo_html . '</div>' . "\n" . '<!-- /wp:html -->',
@@ -195,7 +195,7 @@ if ( ! $home ) {
 	$id = $home->ID;
 	wp_update_post( array( 'ID' => $id, 'post_content' => $content ) );
 }
-// pagină fără titlu vizibil + lățime completă (Astra)
+// page without a visible title, full width (Astra)
 update_post_meta( $id, 'site-post-title', 'disabled' );
 update_post_meta( $id, 'ast-title-bar-display', 'disabled' );
 update_post_meta( $id, 'site-content-layout', 'page-builder' );
@@ -204,5 +204,5 @@ update_post_meta( $id, 'ast-global-header-display', '' );
 update_option( 'show_on_front', 'page' );
 update_option( 'page_on_front', $id );
 
-WP_CLI::log( 'Homepage construit: ' . strlen( $content ) . ' bytes, ' . count( $parts ) . ' secțiuni. Page ID=' . $id );
-WP_CLI::success( 'Homepage Spectra finalizat.' );
+WP_CLI::log( 'Homepage built: ' . strlen( $content ) . ' bytes, ' . count( $parts ) . ' sections. Page ID=' . $id );
+WP_CLI::success( 'Spectra homepage finished.' );

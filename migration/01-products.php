@@ -1,35 +1,35 @@
 <?php
 /**
- * Migrare produse eco-fridge: legacy (Woo 3.5.10 + Toolset Types) -> Woo modern.
+ * Eco-fridge product migration: legacy (Woo 3.5.10 + Toolset Types) -> modern Woo.
  *
- * Rulare (din container, sursă mapată în source-dump):
+ * Run (from the container, source mapped into source-dump):
  *   wp eval-file wp-content/source-dump/_run.php
  *
- * Citește direct din containerul MariaDB `ef-legacy-db` (db `legacy`, prefix 43lz2ypq8_).
- * Creează produse simple prin WooCommerce CRUD (regenerează lookup tables).
+ * Reads straight from the MariaDB container `ef-legacy-db` (db `legacy`, prefix 43lz2ypq8_).
+ * Creates simple products through WooCommerce CRUD (rebuilds the lookup tables).
  *
- * Remapări (vezi AUDIT.md §6):
- *   - product_cat + range + ranges + condition  -> product_cat (consolidat, dedupe pe slug, ierarhie)
+ * Remapping (see AUDIT.md §6):
+ *   - product_cat + range + ranges + condition  -> product_cat (merged, de-duplicated by slug, hierarchy kept)
  *   - product_tag                               -> product_tag
- *   - pa_model                                  -> atribut global (ascuns, ca în original)
- *   - wpcf-features        -> descriere scurtă (short description)
- *   - wpcf-spec-table(+2)  -> descriere lungă (shortcode-uri [table id=X /] TablePress)
- *   - wpcf-model-dimensions-> atribut local vizibil "Dimensions"
- *   - wpcf-from-price      -> meta _ef_from_price (afișare £POA via temă copil)
+ *   - pa_model                                  -> global attribute (hidden, as on the original)
+ *   - wpcf-features        -> short description
+ *   - wpcf-spec-table(+2)  -> long description (TablePress [table id=X /] shortcodes)
+ *   - wpcf-model-dimensions-> visible local attribute "Dimensions"
+ *   - wpcf-from-price      -> meta _ef_from_price (£POA shown by the child theme)
  *   - wpcf-youtube-id-number, wpcf-brochure-link, wpcf-graded-unit-* -> meta _ef_*
- *   - _thumbnail_id / _product_image_gallery    -> meta _ef_legacy_thumb/_gallery (atașare după sync media)
- *   - _upsell_ids / _crosssell_ids              -> meta _ef_legacy_upsell/_crosssell (remap în pasul 2)
- * Idempotent: sare peste produsele deja importate (meta _ef_legacy_id).
+ *   - _thumbnail_id / _product_image_gallery    -> meta _ef_legacy_thumb/_gallery (attached after the media sync)
+ *   - _upsell_ids / _crosssell_ids              -> meta _ef_legacy_upsell/_crosssell (remapped in step 2)
+ * Idempotent: skips products already imported (meta _ef_legacy_id).
  *
  * @package Eco-Fridge-Migration
  */
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
-if ( ! class_exists( 'WooCommerce' ) ) { WP_CLI::error( 'WooCommerce nu e activ.' ); }
+if ( ! class_exists( 'WooCommerce' ) ) { WP_CLI::error( 'WooCommerce is not active.' ); }
 
 $LP = '43lz2ypq8_';
 $db = @mysqli_connect( 'ef-legacy-db', 'root', 'root', 'legacy' );
-if ( ! $db ) { WP_CLI::error( 'Nu pot conecta la legacy DB: ' . mysqli_connect_error() ); }
+if ( ! $db ) { WP_CLI::error( 'Cannot connect to the legacy DB: ' . mysqli_connect_error() ); }
 mysqli_set_charset( $db, 'utf8mb4' );
 
 $Q = function ( $sql ) use ( $db ) {
@@ -39,7 +39,7 @@ $Q = function ( $sql ) use ( $db ) {
 };
 
 /* ---------------------------------------------------------------------------
- * 1. Arbore categorii: product_cat + range + ranges + condition -> product_cat
+ * 1. Category tree: product_cat + range + ranges + condition -> product_cat
  * ------------------------------------------------------------------------- */
 $cat_tax = "'product_cat','range','ranges','condition'";
 $legacy_terms = array(); // legacy term_id => row
@@ -78,7 +78,7 @@ $create_cat = function ( $legacy_id ) use ( &$create_cat, &$legacy_terms, &$slug
 foreach ( array_keys( $legacy_terms ) as $lid ) { $create_cat( $lid ); }
 
 /* ---------------------------------------------------------------------------
- * 2. Taguri produs
+ * 2. Product tags
  * ------------------------------------------------------------------------- */
 $tag_to_new = array();
 $res = $Q( "SELECT tt.term_id, t.name, t.slug FROM {$LP}term_taxonomy tt JOIN {$LP}terms t ON t.term_id = tt.term_id WHERE tt.taxonomy='product_tag'" );
@@ -90,7 +90,7 @@ while ( $row = mysqli_fetch_assoc( $res ) ) {
 }
 
 /* ---------------------------------------------------------------------------
- * 3. Atribut global: Model (pa_model)
+ * 3. Global attribute: Model (pa_model)
  * ------------------------------------------------------------------------- */
 $model_attr_id = wc_attribute_taxonomy_id_by_name( 'model' );
 if ( ! $model_attr_id ) {
@@ -110,7 +110,7 @@ while ( $row = mysqli_fetch_assoc( $res ) ) {
 }
 
 /* ---------------------------------------------------------------------------
- * 4. Produse
+ * 4. Products
  * ------------------------------------------------------------------------- */
 $res = $Q( "SELECT * FROM {$LP}posts WHERE post_type='product' AND post_status IN('publish','draft','private','pending') ORDER BY ID" );
 $products = array();
@@ -155,14 +155,14 @@ foreach ( $products as $p ) {
 		$prod->set_date_created( $date );
 		$prod->set_menu_order( (int) $p['menu_order'] );
 
-		// descrieri
+		// descriptions
 		$features = isset( $meta['wpcf-features'] ) ? $meta['wpcf-features'] : '';
 		$spec     = trim( ( isset( $meta['wpcf-spec-table'] ) ? $meta['wpcf-spec-table'] : '' ) . "\n" . ( isset( $meta['wpcf-spec-table-2'] ) ? $meta['wpcf-spec-table-2'] : '' ) );
 		$long     = trim( trim( $p['post_content'] ) . "\n\n" . $spec );
 		$prod->set_short_description( $features );
 		$prod->set_description( $long );
 
-		// preț / stoc
+		// price / stock
 		if ( isset( $meta['_regular_price'] ) && '' !== $meta['_regular_price'] ) { $prod->set_regular_price( $meta['_regular_price'] ); }
 		if ( isset( $meta['_sale_price'] ) && '' !== $meta['_sale_price'] ) { $prod->set_sale_price( $meta['_sale_price'] ); }
 		if ( isset( $meta['_sku'] ) && '' !== $meta['_sku'] ) {
@@ -184,11 +184,11 @@ foreach ( $products as $p ) {
 		if ( ! empty( $meta['_visibility'] ) && in_array( $meta['_visibility'], array( 'visible', 'catalog', 'search', 'hidden' ), true ) ) { $prod->set_catalog_visibility( $meta['_visibility'] ); }
 		$prod->set_featured( ( isset( $meta['_featured'] ) ? $meta['_featured'] : '' ) === 'yes' );
 
-		// categorii / taguri
+		// categories / tags
 		if ( $cat_ids ) { $prod->set_category_ids( array_values( array_unique( $cat_ids ) ) ); }
 		if ( $tag_ids ) { $prod->set_tag_ids( array_values( array_unique( $tag_ids ) ) ); }
 
-		// atribute
+		// attributes
 		$attrs = array(); $pos = 0;
 		if ( ! empty( $meta['wpcf-model-dimensions'] ) ) {
 			$a = new WC_Product_Attribute();
@@ -209,7 +209,7 @@ foreach ( $products as $p ) {
 		}
 		if ( $attrs ) { $prod->set_attributes( $attrs ); }
 
-		// meta remapate + referințe legacy
+		// remapped meta + legacy references
 		$prod->update_meta_data( '_ef_legacy_id', $old_id );
 		if ( isset( $meta['wpcf-from-price'] ) && '' !== $meta['wpcf-from-price'] ) { $prod->update_meta_data( '_ef_from_price', $meta['wpcf-from-price'] ); }
 		if ( ! empty( $meta['wpcf-youtube-id-number'] ) ) { $prod->update_meta_data( '_ef_youtube_id', $meta['wpcf-youtube-id-number'] ); }
@@ -233,14 +233,14 @@ foreach ( $products as $p ) {
 	}
 }
 
-// harta id vechi->nou pentru pasul 2 (upsells) + media
+// old -> new ID map for step 2 (upsells) and the media step
 file_put_contents( ABSPATH . 'wp-content/source-dump/_product-id-map.json', wp_json_encode( $id_map ) );
 
-WP_CLI::log( 'Categorii create/consolidate: ' . count( $slug_to_new ) );
-WP_CLI::log( 'Taguri: ' . count( $tag_to_new ) . ' | Modele (attr): ' . count( $model_to_new ) );
-WP_CLI::log( 'Produse importate: ' . $count . ' | sărite (deja existau): ' . $skipped );
+WP_CLI::log( 'Categories created/merged: ' . count( $slug_to_new ) );
+WP_CLI::log( 'Tags: ' . count( $tag_to_new ) . ' | Models (attr): ' . count( $model_to_new ) );
+WP_CLI::log( 'Products imported: ' . $count . ' | skipped (already there): ' . $skipped );
 if ( $errors ) {
-	WP_CLI::warning( 'Erori (' . count( $errors ) . '):' );
+	WP_CLI::warning( 'Errors (' . count( $errors ) . '):' );
 	foreach ( $errors as $e ) { WP_CLI::log( '  - ' . $e ); }
 }
-WP_CLI::success( 'Migrare produse (pasul 1) finalizată.' );
+WP_CLI::success( 'Product migration (step 1) finished.' );

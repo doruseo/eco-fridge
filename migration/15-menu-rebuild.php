@@ -1,15 +1,15 @@
 <?php
 /**
- * Pasul 15: reconstruiește UN SINGUR meniu autoritar „Primary Menu" (#342), 1:1 cu
- * ierarhia de pe eco-fridge.co.uk (etichete originale), unde FIECARE item este o
- * REFERINȚĂ INTERNĂ (categorie product_cat / pagină / produs) — niciodată custom link.
- * Toată structura tier 1→4 stă în meniu (editabil din Appearance → Menus), nu în cod.
+ * Step 15: rebuilds ONE authoritative menu, "Primary Menu" (#342), 1:1 with
+ * the eco-fridge.co.uk hierarchy (original labels), where EVERY item is an
+ * INTERNAL REFERENCE (product_cat category / page / product), never a custom link.
+ * The whole tier 1→4 structure lives in the menu (editable in Appearance → Menus), not in code.
  *
- * Activează și mega-meniul NATIV Astra Pro (post-meta `_menu_item_megamenu`) pe ramurile
- * mari, apoi asignează meniul pe locațiile Astra și șterge meniurile-clonă vechi
+ * Also turns on the NATIVE Astra Pro mega menu (post meta `_menu_item_megamenu`) on the large
+ * branches, then assigns the menu to the Astra locations and deletes the old clone menus
  * (Header Primary #400, Header Categories #401).
  *
- * Idempotent. Rulare: cp migration/15-menu-rebuild.php source-dump/_run.php &&
+ * Idempotent. Run: cp migration/15-menu-rebuild.php source-dump/_run.php &&
  *   npx wp-env run cli wp eval-file wp-content/source-dump/_run.php
  *
  * @package Eco-Fridge-Migration
@@ -17,14 +17,14 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-/** Nod de meniu: etichetă (originală) + referință internă + copii + opțiuni mega. */
+/** Menu node: (original) label + internal reference + children + mega options. */
 function efm_n( $label, $ref, $children = array(), $opts = array() ) {
 	return array( 'label' => $label, 'ref' => $ref, 'children' => $children, 'opts' => $opts );
 }
 
 /**
- * Rezolvă o referință ('home' | 'cat:slug' | 'page:path' | 'product:slug') în argumentele
- * wp_update_nav_menu_item corecte (obiect intern, NU custom link). Întoarce null dacă lipsește.
+ * Resolves a reference ('home' | 'cat:slug' | 'page:path' | 'product:slug') into the right
+ * wp_update_nav_menu_item arguments (internal object, NOT a custom link). Returns null if missing.
  */
 function efm_resolve_ref( $ref ) {
 	if ( 'home' === $ref ) {
@@ -32,7 +32,7 @@ function efm_resolve_ref( $ref ) {
 		if ( $fp ) {
 			return array( 'menu-item-object' => 'page', 'menu-item-object-id' => $fp, 'menu-item-type' => 'post_type' );
 		}
-		// fallback: link către home (doar dacă nu există pagină front)
+		// fallback: link to home (only if there is no front page)
 		return array( 'menu-item-url' => home_url( '/' ), 'menu-item-type' => 'custom' );
 	}
 	list( $kind, $slug ) = array_pad( explode( ':', $ref, 2 ), 2, '' );
@@ -60,8 +60,8 @@ function efm_resolve_ref( $ref ) {
 }
 
 /**
- * Inserează recursiv arborele în meniu. Setează titlul explicit (eticheta originală
- * suprascrie numele obiectului) + meta mega Astra. Colectează avertismente pt. referințe lipsă.
+ * Inserts the tree into the menu recursively. Sets the title explicitly (the original label
+ * overrides the object name) + the Astra mega meta. Collects warnings for missing references.
  */
 function efm_insert( $nodes, $menu_id, $parent, &$warnings ) {
 	foreach ( $nodes as $node ) {
@@ -81,7 +81,7 @@ function efm_insert( $nodes, $menu_id, $parent, &$warnings ) {
 			continue;
 		}
 
-		// mega-meniu nativ Astra pe acest item (dacă e cerut)
+		// native Astra mega menu on this item (if requested)
 		$o = $node['opts'];
 		if ( ! empty( $o['mega'] ) ) {
 			update_post_meta( $item_id, '_menu_item_megamenu', 'megamenu' );
@@ -92,7 +92,7 @@ function efm_insert( $nodes, $menu_id, $parent, &$warnings ) {
 		} else {
 			delete_post_meta( $item_id, '_menu_item_megamenu' );
 		}
-		// item = titlu de coloană în mega (tier-2 din ramurile Commercial)
+		// item = column heading in the mega menu (tier 2 of the Commercial branches)
 		if ( ! empty( $o['heading'] ) ) {
 			update_post_meta( $item_id, '_menu_item_megamenu_enable_heading', 'enable-heading' );
 		} else {
@@ -105,14 +105,14 @@ function efm_insert( $nodes, $menu_id, $parent, &$warnings ) {
 	}
 }
 
-/* ------------------------------------------------------------------ ARBORE 1:1 */
+/* ------------------------------------------------------------------ TREE 1:1 */
 
-$H = array( 'heading' => true ); // marchează un tier-2 ca titlu de coloană în mega
+$H = array( 'heading' => true ); // marks a tier-2 item as a column heading in the mega menu
 
 $tree = array(
 	efm_n( 'Home', 'home' ),
 
-	// —— DISPLAY CABINETS (22 sub-cat plate) → mega 4 coloane, full width ——
+	// —— DISPLAY CABINETS (22 flat sub-categories) → 4-column mega, full width ——
 	efm_n( 'Display Cabinets', 'cat:display-cabinets', array(
 		efm_n( 'Standard Silver Steel Multideck Display Fridges', 'cat:silver-steel-multideck-display-chillers' ),
 		efm_n( 'Premium Mirrored Stainless Steel Multidecks', 'cat:premium-mirrored-stainless-steel-multidecks' ),
@@ -138,7 +138,7 @@ $tree = array(
 		efm_n( 'Premium Double Glazed Counter Top Display', 'cat:double-glazed-counter-top-display' ),
 	), array( 'mega' => 4, 'width' => 'full' ) ),
 
-	// —— STORAGE CABINETS (13 cat + 3 produse + bakery retarder) → mega 4 coloane ——
+	// —— STORAGE CABINETS (13 categories + 3 products + bakery retarder) → 4-column mega ——
 	efm_n( 'Storage Cabinets', 'cat:storage-cabinets', array(
 		efm_n( 'Standard Upright Stainless Steel Gastronorm Chiller & Fish/Meat Cabinet', 'cat:upright-stainless-steel-gastronorm-chiller-fish-meat-cabinet' ),
 		efm_n( 'Standard Upright Stainless Steel Gastronorm Freezers', 'cat:standard-upright-stainless-steel-gastronorm-freezers' ),
@@ -163,7 +163,7 @@ $tree = array(
 	efm_n( 'Low Temperature Freezers', 'cat:low-temperature-chest-freezers' ),
 	efm_n( 'Used', 'cat:graded-units' ),
 
-	// —— COMMERCIAL FRIDGE (tier 2→4) → mega grupat 2 coloane cu titluri ——
+	// —— COMMERCIAL FRIDGE (tier 2→4) → grouped 2-column mega with headings ——
 	efm_n( 'Commercial Fridge', 'cat:commercial-fridge', array(
 		efm_n( 'Display Fridge', 'cat:commercial-display-fridge', array(
 			efm_n( 'Open Fridge for Shop', 'cat:multideck-fridge' ),
@@ -188,7 +188,7 @@ $tree = array(
 		), $H ),
 	), array( 'mega' => 2 ) ),
 
-	// —— COMMERCIAL FREEZER (tier 2→3) → mega grupat 2 coloane cu titluri ——
+	// —— COMMERCIAL FREEZER (tier 2→3) → grouped 2-column mega with headings ——
 	efm_n( 'Commercial Freezer', 'cat:commercial-freezer', array(
 		efm_n( 'Display Freezer', 'cat:display-freezer', array(
 			efm_n( 'Chest Freezer', 'cat:chest-freezer' ),
@@ -203,7 +203,7 @@ $tree = array(
 
 	efm_n( 'Blog', 'page:blog' ),
 
-	// —— CONTACT US (dropdown clasic, cu Markets nested) ——
+	// —— CONTACT US (classic dropdown, with Markets nested) ——
 	efm_n( 'Contact Us', 'page:contact-us', array(
 		efm_n( 'About Us', 'page:about-us' ),
 		efm_n( 'Support', 'page:support' ),
@@ -219,13 +219,13 @@ $tree = array(
 	) ),
 );
 
-/* ------------------------------------------------------------------ CONSTRUCȚIE */
+/* ------------------------------------------------------------------ BUILD */
 
 $menu_name = 'Primary Menu';
 $menu = wp_get_nav_menu_object( $menu_name );
 $menu_id = $menu ? (int) $menu->term_id : (int) wp_create_nav_menu( $menu_name );
 
-// idempotent: golește itemele existente
+// idempotent: empties the existing items
 foreach ( (array) wp_get_nav_menu_items( $menu_id ) as $it ) {
 	wp_delete_post( $it->ID, true );
 }
@@ -233,26 +233,26 @@ foreach ( (array) wp_get_nav_menu_items( $menu_id ) as $it ) {
 $warnings = array();
 efm_insert( $tree, $menu_id, 0, $warnings );
 
-// asignează pe locațiile Astra (native header + primary)
+// assign to the Astra locations (native header + primary)
 $locations = get_theme_mod( 'nav_menu_locations', array() );
 $locations['primary']      = $menu_id;
 $locations['ast-hf-menu-1'] = $menu_id;
-// dezasignează locațiile custom retrase
+// unassign the retired custom locations
 unset( $locations['ef_header_primary'], $locations['ef_header_categories'] );
 set_theme_mod( 'nav_menu_locations', $locations );
 
-// șterge meniurile-clonă vechi
+// delete the old clone menus
 foreach ( array( 'Header Primary', 'Header Categories' ) as $old ) {
 	$m = wp_get_nav_menu_object( $old );
 	if ( $m ) { wp_delete_nav_menu( $m->term_id ); }
 }
 
 $items = wp_get_nav_menu_items( $menu_id );
-WP_CLI::log( 'Meniu „Primary Menu" (#' . $menu_id . ') reconstruit: ' . count( $items ) . ' iteme, asignat pe primary + ast-hf-menu-1.' );
+WP_CLI::log( 'Menu "Primary Menu" (#' . $menu_id . ') rebuilt: ' . count( $items ) . ' items, assigned to primary + ast-hf-menu-1.' );
 if ( $warnings ) {
-	WP_CLI::warning( 'Referințe NErezolvate (' . count( $warnings ) . '):' );
+	WP_CLI::warning( 'UNresolved references (' . count( $warnings ) . '):' );
 	foreach ( $warnings as $w ) { WP_CLI::log( '   - ' . $w ); }
 } else {
-	WP_CLI::log( 'Toate referințele rezolvate (0 custom links, exceptând Home-ul dacă n-ar exista pagina front).' );
+	WP_CLI::log( 'All references resolved (0 custom links, except Home if there were no front page).' );
 }
-WP_CLI::success( 'Meniu autoritar + mega nativ Astra finalizate.' );
+WP_CLI::success( 'Authoritative menu and native Astra mega menu finished.' );

@@ -1,11 +1,11 @@
 <?php
 /**
- * Pasul 7a: logo site + meniu principal bogat (1:1 cu eco-fridge.co.uk).
- * Rulare: wp eval-file wp-content/source-dump/_run.php
+ * Step 7a: site logo + full main menu (1:1 with eco-fridge.co.uk).
+ * Run: wp eval-file wp-content/source-dump/_run.php
  *
- * Meniu top: Home, Display Cabinets (+sub-categorii), Storage Cabinets (+sub),
+ * Top menu: Home, Display Cabinets (+ sub-categories), Storage Cabinets (+ sub),
  * Bakery & Ovens, Medical, Low Temp Freezers, Used/Graded, Commercial Fridge,
- * Commercial Freezer, Blog, Contact Us (+sub pagini). Asignat pe locația Astra.
+ * Commercial Freezer, Blog, Contact Us (+ sub-pages). Assigned to the Astra location.
  *
  * @package Eco-Fridge-Migration
  */
@@ -20,16 +20,16 @@ $logo_id = (int) $wpdb->get_var( "SELECT post_id FROM {$wpdb->postmeta}
 if ( $logo_id ) {
 	set_theme_mod( 'custom_logo', $logo_id );
 	update_option( 'site_logo', $logo_id );
-	WP_CLI::log( "Logo setat: attachment #$logo_id" );
+	WP_CLI::log( "Logo set: attachment #$logo_id" );
 } else {
-	WP_CLI::warning( 'Logo ECO-Fridge-Logo-side negăsit în media.' );
+	WP_CLI::warning( 'Logo ECO-Fridge-Logo-side not found in the media library.' );
 }
 
-/* ---- MENIU ---- */
+/* ---- MENU ---- */
 $menu_name = 'Primary Menu';
 $menu = wp_get_nav_menu_object( $menu_name );
 if ( $menu ) {
-	// idempotent: golește itemele existente
+	// idempotent: empties the existing items
 	foreach ( wp_get_nav_menu_items( $menu->term_id ) as $it ) { wp_delete_post( $it->ID, true ); }
 	$menu_id = $menu->term_id;
 } else {
@@ -64,17 +64,17 @@ $add_page = function ( $slug, $title, $parent = 0 ) use ( $add ) {
 // Home
 $add_url( 'Home', home_url( '/' ) );
 
-// Display Cabinets + copii
+// Display Cabinets + children
 $display = $add_cat( 44, 0, 'Display Cabinets' );
 foreach ( get_terms( array( 'taxonomy' => 'product_cat', 'hide_empty' => false, 'parent' => 44 ) ) as $c ) {
 	if ( ! is_wp_error( $c ) ) { $add_cat( $c->term_id, $display ); }
 }
-// Storage Cabinets + copii
+// Storage Cabinets + children
 $storage = $add_cat( 45, 0, 'Storage Cabinets' );
 foreach ( get_terms( array( 'taxonomy' => 'product_cat', 'hide_empty' => false, 'parent' => 45 ) ) as $c ) {
 	if ( ! is_wp_error( $c ) ) { $add_cat( $c->term_id, $storage ); }
 }
-// Alte categorii top
+// Other top-level categories
 $add_cat( 85, 0, 'Bakery & Ovens' );
 $add_cat( 86, 0, 'Medical' );
 $add_cat( 83, 0, 'Low Temperature Freezers' );
@@ -96,12 +96,12 @@ $add_page( 'about-us', 'About Us', $contact );
 $add_page( 'support', 'Support', $contact );
 $add_page( 'markets', 'Markets', $contact );
 
-/* ---- asignare locație Astra ---- */
+/* ---- assign the Astra location ---- */
 $locations = get_theme_mod( 'nav_menu_locations', array() );
 $locations['primary'] = $menu_id;         // Astra primary
 $locations['ast-hf-menu-1'] = $menu_id;   // Astra Header Builder primary menu component
 set_theme_mod( 'nav_menu_locations', $locations );
 
 $items = wp_get_nav_menu_items( $menu_id );
-WP_CLI::log( 'Meniu „Primary Menu" construit: ' . count( $items ) . ' iteme, asignat pe primary + ast-hf-menu-1.' );
-WP_CLI::success( 'Logo + meniu finalizate.' );
+WP_CLI::log( 'Menu "Primary Menu" built: ' . count( $items ) . ' items, assigned to primary + ast-hf-menu-1.' );
+WP_CLI::success( 'Logo and menu finished.' );

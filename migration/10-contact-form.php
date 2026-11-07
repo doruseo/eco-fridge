@@ -1,12 +1,12 @@
 <?php
 /**
- * Pasul 10: formular de contact (WPForms Lite) — recreează CF7 „Contact us" (542).
- * Rulare: cp migration/10-contact-form.php source-dump/_run.php
+ * Step 10: contact form (WPForms Lite), recreating CF7 "Contact us" (542).
+ * Run: cp migration/10-contact-form.php source-dump/_run.php
  *         npx wp-env run cli wp eval-file wp-content/source-dump/_run.php
  *
- * Câmpuri 1:1 cu originalul: Name*, Company, Email*, Phone*, Enquiry.
- * Notificare -> sales@eco-fridge.co.uk, subiect + Reply-To ca în CF7.
- * Inserează formularul pe pagina contact-us (bloc shortcode), idempotent.
+ * Fields 1:1 with the original: Name*, Company, Email*, Phone*, Enquiry.
+ * Notification -> sales@eco-fridge.co.uk, subject and Reply-To as in CF7.
+ * Inserts the form on the contact-us page (shortcode block), idempotent.
  *
  * @package Eco-Fridge-Migration
  */
@@ -14,12 +14,12 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 if ( ! post_type_exists( 'wpforms' ) ) {
-	WP_CLI::error( 'WPForms nu e activ.' );
+	WP_CLI::error( 'WPForms is not active.' );
 }
 
 wp_set_current_user( 1 );
 
-// —— structura formularului (schema WPForms) ——
+// —— form structure (WPForms schema) ——
 $fields = array(
 	'1' => array( 'id' => '1', 'type' => 'name',     'label' => 'Name',          'format' => 'simple', 'required' => '1', 'size' => 'large' ),
 	'2' => array( 'id' => '2', 'type' => 'text',     'label' => 'Company',                             'size' => 'large' ),
@@ -55,7 +55,7 @@ $settings = array(
 	),
 );
 
-// —— creare / update form (idempotent după meta marker) ——
+// —— create / update the form (idempotent by a meta marker) ——
 $existing = get_posts( array(
 	'post_type'   => 'wpforms',
 	'post_status' => 'any',
@@ -90,7 +90,7 @@ $form_data = array(
 	'meta'     => array( 'template' => '' ),
 );
 
-// WPForms citește form_data din post_content (JSON). post_title trebuie să fie titlul formularului.
+// WPForms reads form_data from post_content (JSON). post_title must be the form title.
 wp_update_post( array(
 	'ID'           => $form_id,
 	'post_content' => wp_slash( wp_json_encode( $form_data ) ),
@@ -99,10 +99,10 @@ update_post_meta( $form_id, '_ef_contact_form', '1' );
 
 WP_CLI::log( "WPForms form ID = $form_id" );
 
-// —— inserare pe pagina contact-us (bloc shortcode), idempotent ——
+// —— insert on the contact-us page (shortcode block), idempotent ——
 $page = get_page_by_path( 'contact-us' );
 if ( ! $page ) {
-	WP_CLI::warning( 'Pagina contact-us lipsește — formularul nu a fost inserat.' );
+	WP_CLI::warning( 'The contact-us page is missing: the form was not inserted.' );
 } else {
 	$content = $page->post_content;
 	if ( false === strpos( $content, 'ef-contact-form' ) && false === strpos( $content, '[wpforms' ) ) {
@@ -112,10 +112,10 @@ if ( ! $page ) {
 			. '<!-- wp:shortcode -->' . "\n" . '<div class="ef-contact-form">[wpforms id="' . $form_id . '" title="false" description="false"]</div>' . "\n" . '<!-- /wp:shortcode -->'
 			. '</div></div><!-- /wp:uagb/container -->';
 		wp_update_post( array( 'ID' => $page->ID, 'post_content' => $content . $form_block ) );
-		WP_CLI::log( 'Formular inserat pe contact-us (page ' . $page->ID . ').' );
+		WP_CLI::log( 'Form inserted on contact-us (page ' . $page->ID . ').' );
 	} else {
-		WP_CLI::log( 'contact-us conține deja un formular — sărit.' );
+		WP_CLI::log( 'contact-us already contains a form: skipped.' );
 	}
 }
 
-WP_CLI::success( 'Formular de contact WPForms finalizat.' );
+WP_CLI::success( 'WPForms contact form finished.' );
