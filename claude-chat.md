@@ -2523,6 +2523,16 @@ Doru: formularele sa fie urmarite doar cand e chiar formularul de contact (filtr
 
 **Funnel-ul, verificat in Chrome real** (Doru a cerut si checkout-ul in funnel): `view_item_list` → `view_item` → `add_to_cart` → `view_cart` → `begin_checkout` → `add_payment_info` ajung toate in GA4; `purchase` se verifica la comanda reala. `add_shipping_info` nu e trimis niciodata — GTM4WP il trimite doar cand clientul alege o tarifa de livrare, iar livrarea e gratuita, fara alegere — deci se lasa afara din funnel-ul din GA4. `add_payment_info` pleaca odata cu `begin_checkout`, fiindca metoda de plata e preselectata.
 
+## 115. GTM v22 publicat si verificat cap-coada (2026-11-07, ~09:30)
+
+Doru a importat si publicat containerul corectat. **Versiunea live e 22**: 16 tag-uri (plus cele doua listenere de link-click pe care GTM le adauga singur), fiecare cu conditiile corecte — hostname `www.eco-fridge.co.uk`, echipa logata exclusa, `form_id = contact` la formular, `tel:` / `mailto:` la click-uri.
+
+**Proba in Chrome real, pe site-ul live:** produs → „Accept all" → Add to basket → cos → checkout → Contact Us (intrat in formular fara sa fie trimis, ca sa nu plece un email real) → click pe telefon → click pe email. In GA4 au ajuns, in ordine: `page_view`, `view_item`, `view_item_list` (fara cookie-uri, inainte de acord), `user_engagement`, **`add_to_cart`**, **`view_cart`**, **`begin_checkout`**, **`add_payment_info`**, **`form_start`** (formularul de contact), **`phone_click`**, **`email_click`** — toate cu acord complet.
+
+**Si o confirmare:** la „Add to basket" nu mai pleaca `form_start`/`form_submit` — „Form interactions" din GA4 Enhanced measurement e oprit, deci evenimentele `form_*` din GA4 inseamna acum doar formularul de contact.
+
+Ramase de vazut cu ochii, la prima ocazie reala: `purchase` (comanda reala) si `form_submit` + `generate_lead` (un mesaj trimis din formular).
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
