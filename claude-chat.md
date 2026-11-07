@@ -2729,6 +2729,13 @@ Verificat pe copia locala (wp-env): LCP masurat pe prima pagina, bannerul apare 
 
 **Pagini pierdute** (`lost page - changes-by-field-2026-11-07.csv`, 113 adrese): aceeasi lista ca pe 30 oct plus `/add-media-test/` si `/author/eco-fridge/`. Verificat live: 108 fac 301 (tag-uri → categorii, atasamente vechi → imagini, author/add-media-test → /blog/, gateway-ul vechi → /checkout/), iar 5 raspund 200 intentionat — `/product/` (canonical spre /shop/), `/product/removal-disposal/` (produs-serviciu ascuns, noindex), `/uncategorized/`, `/product-category/uncategorized/`, `/condition/ex-showroom/` (goale, noindex). Nicio pagina de recuperat.
 
+## 131. Parametrul de test scos; copia locala la zi (2026-11-07, ~13:30 UK)
+
+Doru: „scoate parametrul de test și actualizează copia locală".
+
+- **`?efcc_test` scos** din `ef-cookie-consent/includes/class-efcc-frontend.php` (functia `test_mode()` si cele doua utilizari). Urcat pe live si staging (backup `/tmp/class-efcc-frontend.php.before-test-removal`), md5 `a1f6f78c6677` identic cu repo-ul, cache golit; si in wp-env. Verificat: `/`, `?efcc_test=nooverlay` si `?efcc_test=nobanner` arata acum la fel (banner normal, `hide:false`, scriptul de afisare timpurie prezent).
+- **Copia locala a live-ului** in `source-dump/final-2026-11-07/`: `live-db-1330.sql.gz` (baza completa, `mariadb-dump --single-transaction`, 7,4 MB, dump terminat corect), `live-files-1330.tar.gz` (wp-config, .htaccess, robots.txt si tot `wp-content` fara uploads/cache, 65 MB; contine fisierul nou, md5 verificat), `live-uploads-new-1330.tar.gz` (gol: nicio imagine noua dupa 11:00; uploads-urile sunt deja in arhivele anterioare). Fisierele temporare sterse de pe server.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
