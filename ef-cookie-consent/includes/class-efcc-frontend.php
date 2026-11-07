@@ -104,8 +104,24 @@ class EFCC_Frontend {
 		return 'plugin' === EFCC_Settings::get( 'gcm', 'gtm_load' ) && '' !== (string) EFCC_Settings::get( 'gcm', 'gtm_id' );
 	}
 
+	/**
+	 * Page-speed diagnostic (temporary, 2026-11-07): ?efcc_test=nooverlay serves
+	 * the page without the grey overlay, ?efcc_test=nobanner without the banner,
+	 * so PageSpeed Insights can compare them with the normal page. Visitors never
+	 * get these URLs. Remove once the LCP question is settled.
+	 *
+	 * @return string '' | 'nooverlay' | 'nobanner'
+	 */
+	private static function test_mode() {
+		$mode = isset( $_GET['efcc_test'] ) ? sanitize_key( wp_unslash( $_GET['efcc_test'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return in_array( $mode, array( 'nooverlay', 'nobanner' ), true ) ? $mode : '';
+	}
+
 	/** Pages listed under "Hide the banner on" (the policy page keeps it). */
 	private static function banner_hidden_here() {
+		if ( 'nobanner' === self::test_mode() ) {
+			return true;
+		}
 		$ids = array_map( 'intval', EFCC_Settings::lines( str_replace( ',', "\n", (string) EFCC_Settings::get( 'general', 'hide_banner_on' ) ) ) );
 		return $ids && is_singular() && in_array( (int) get_queried_object_id(), $ids, true );
 	}
@@ -189,7 +205,7 @@ gtag('consent','default',<?php echo wp_json_encode( $def ); ?>);
 		$policy  = EFCC_Settings::policy_page();
 		$link    = $policy ? '<a href="' . esc_url( get_permalink( $policy ) ) . '">' . esc_html( $t['policy_link'] ) . '</a>' : esc_html( $t['policy_link'] );
 		$message = str_replace( '{policy}', $link, esc_html( $t['message'] ) );
-		$classes = 'efcc-banner efcc-banner--' . sanitize_html_class( $a['layout'] ) . ' efcc-buttons--' . sanitize_html_class( $a['button_style'] ) . ( ! empty( $a['uppercase'] ) ? ' efcc-buttons--upper' : '' ) . ( ! empty( $a['overlay'] ) ? ' efcc-banner--overlay' : '' );
+		$classes = 'efcc-banner efcc-banner--' . sanitize_html_class( $a['layout'] ) . ' efcc-buttons--' . sanitize_html_class( $a['button_style'] ) . ( ! empty( $a['uppercase'] ) ? ' efcc-buttons--upper' : '' ) . ( ! empty( $a['overlay'] ) && '' === self::test_mode() ? ' efcc-banner--overlay' : '' );
 		?>
 <div id="efcc-banner" class="<?php echo esc_attr( $classes ); ?>" role="region" aria-label="<?php echo esc_attr( $t['title'] ); ?>" hidden>
 	<div class="efcc-banner__inner">
