@@ -2405,6 +2405,21 @@ Deja configurat cu `GTM-NFMC9Z3` in GTM4WP, cu urmarirea ecommerce WooCommerce. 
 
 **Ramas:** comanda reala cu cardul si un formular (Doru); cache-ul LiteSpeed — Doru l-a oprit, nu l-am pornit; Search Console si Merchant Center.
 
+## 108. Bannerul de cookies: perete gri si butoane echilibrate; debug-ul AG (2026-11-07, ~07:25)
+
+Doru: „in pagina de setari a AG (…) am setarea Enable debug reporting bifata; o debifez sau o las asa?" Apoi: bannerul de cookies sa se vada, cu „un fel de perete gri" peste restul site-ului, ca vizitatorul sa stie ca trebuie sa raspunda; si, **dacă legea permite**, butoanele „Manage options" si „Reject all", plus „Save my choices" si „Reject all" din fereastra de preferinte, intr-un verde mai pal, ca „Accept all" sa iasa in evidenta. Pluginul actualizat si pe local, inclusiv zip-ul.
+
+**Debug-ul AG Lloyds: de debifat.** Scrie in jurnalele WooCommerce de pe server fiecare cerere si raspuns al platii, cu date de comanda si de client, iar jurnalele cresc; se porneste doar cand se depaneaza o problema concreta, si se opreste dupa.
+
+**Ce permite legea, si ce am facut:**
+- **Peretele gri — permis si facut.** Interzis e „cookie wall"-ul, adica acces la site doar daca accepti. Aici „Reject all" inchide peretele la fel de usor ca „Accept all", deci e o alegere obligatorie, nu un consimtamant fortat. Implementat ca setare noua, `appearance.overlay` (pornita implicit): un strat gri sub banner, care opreste click-urile pe pagina si scroll-ul cat timp bannerul asteapta raspuns, facut doar din CSS, deci dispare in clipa in care bannerul se inchide. Pe paginile unde bannerul e ascuns intentionat, cum e politica de cookies, nu apare nici peretele.
+- **„Reject all" mai pal — NU e permis, si nu l-am facut.** ICO (PECR) cere ca refuzul sa fie la fel de usor si de vizibil ca acceptarea si a trimis avertismente site-urilor mari tocmai pentru asta in 2023–2024; raportul EDPB despre bannere (ianuarie 2023) trateaza culorile si contrastul care fac refuzul mai putin vizibil drept practica inselatoare. Deci „Reject all" ramane identic cu „Accept all", in banner si in fereastra.
+- **„Manage options" si „Save my choices" mai pale — permis si facut.** Ele deschid sau salveaza alegeri detaliate, nu sunt alternativa directa la „Accept all", deci pot fi secundare. Stil nou `button_style = balanced`: verde deschis, cu text verde inchis, cu contrast ≈ 5,9:1, peste pragul WCAG AA. Optiunea si lista de verificare din admin explica regula.
+
+**Versiunea 1.1.0** (ca browserele sa ia noul CSS), urcata pe **live, staging si wp-env-ul local**, dupa ce am verificat ca pe server rula exact versiunea din repo; live setat pe `balanced`. Verificat vizual pe local cu o captura Chrome fara interfata: pagina gri, „Manage options" pal, „Reject all" si „Accept all" identice. Zip-ul refacut: `ef-cookie-consent.zip` in proiect si in `WP Plugins`. PR #87.
+
+**Copia locala:** baza live dupa schimbare, `source-dump/db/live-2026-11-07-*-cookie-1.1.0.sql.gz`; fisierele pluginului sunt in zip.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
