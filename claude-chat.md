@@ -2316,6 +2316,17 @@ Scoase acum de pe staging, ar fi lasat un site cu date reale de clienti deschis 
 
 6.017 comenzi, 131 de produse publicate, 73 de tabele, 111 MB, zero orfane, `debug.log` absent, urmatorul numar #14658, cele cinci comenzi pending protejate. **Staging e gata pentru Clone/Copy site.**
 
+## 103. Site-ul nou clonat; backup si staging inchise; copia locala completa (2026-11-07, ~05:40)
+
+Doru: a clonat staging-ul cu Clone/Copy site; site-ul nou sta pe `ghostwhite-horse-401012.hostingersite.com`, conectat deja la `eco-fridge.co.uk` (A @ inca neschimbat), folderul `/home/u510186744/websites/PNxOJBHKQ/`, user SSH `u510186744_PNxOJBHKQ`. PHP 8.3 a venit cu clona, CDN oprit, LiteSpeed oprit. Nu a pus parola, fiindca DNS-ul se muta in mai putin de o ora. Cereri: lacat si noindex pe backup si pe staging, copie completa la zi pe laptop, verificarea SSL, cheie SSH.
+
+- **SSL:** pe serverul nou, `eco-fridge.co.uk` si `www` primesc acum certificatul generic `*.hstgr.io`; „SSL is active" din dashboard e al domeniului temporar. Let's Encrypt emite certificatul real doar dupa ce A @ arata spre `148.230.121.74` — deci SSL se instaleaza imediat dupa propagare (Faza 8), cu cateva minute inevitabile de avertisment in browser.
+- **Testul pe domeniul real, inainte de DNS** (rezolvare fortata spre IP-ul nou): apex https 200, cu titlul corect si `noindex` (vine din clona); **`www` face 301 spre apex** — clonarea a pus `siteurl` pe `https://eco-fridge.co.uk`, invers fata de canonicul nostru. Se corecteaza in Faza 6, **inainte** de A @.
+- **Backup:** lacatul cu token pus la loc (token nou, doar local): orice adresa 403 cu `X-Robots-Tag: noindex`; plus `blog_public = 0` si `robots.txt` `Disallow: /`.
+- **Staging:** era deja inchis — toate adresele, inclusiv sitemap, feed si API, 401 cu `X-Robots-Tag: noindex`; `blog_public = 0`. `robots.txt` lasat neatins intentionat: e fisierul pentru live si trece in orice recopiere.
+- **Copie locala:** wp-env-ul local era din 29 octombrie, deci NU era la zi. Acum la mine: baza finala `source-dump/db/staging-final-2026-11-07.sql.gz` (7,5 MB, cu cele 86 de comenzi) si fisierele schimbate de atunci, `source-dump/final-2026-11-07/wp-content-delta-since-2026-10-29.tar.gz` (14.104 fisiere, 332 MB, zero erori). Impreuna cu wp-content-ul local, copia e completa. Prima incercare a esuat fiindca lista de fisiere scrisa pe Windows avea CRLF si `tar` a cautat nume cu `\r` la final.
+- **Cheia SSH** data lui Doru (aceeasi ca pe staging si backup); aliasul `ef-live` configurat la mine. Prima incercare de conectare: cheia inca neadaugata.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
@@ -2323,6 +2334,7 @@ Scoase acum de pe staging, ar fi lasat un site cu date reale de clienti deschis 
 - **Faza 3 GATA (intrarea 101):** 86 de comenzi importate, #14517–#14638, reconciliere 6.017 = 6.017, urmatorul numar #14658; rapoarte reconstruite; stocul preluat; nimic nou la produse, categorii, pagini, media, redirecturi sau SEO; regula care pastreaza cele 5 comenzi pending (PR #78); tabelele clonei sterse din staging. Punct de revenire: `source-dump/db/staging-before-f15-2026-11-07.sql.gz`.
 - **Produsele verificate si pe continut (intrarea 102):** la zi pe preturi (18), stoc (10), SKU, manual PDF si poza noua; zero modificari de text. **Staging e GATA de clonare.**
 - **Faza 6, in plus:** `WP_ENVIRONMENT_TYPE` → `production` (altfel nu pleaca emailurile de recenzii si nu se aplica protectia HTTPS), blocul no-cache scos, LiteSpeed pornit dupa verificari.
+- **Faza 5 GATA (intrarea 103):** site nou pe `ghostwhite-horse-401012.hostingersite.com`, folder `PNxOJBHKQ`, alias `ef-live`. Urmeaza Faza 6 (eu), apoi A @ (Doru) — NU inainte de confirmarea mea.
 - **Urmeaza Faza 5 (DORU):** Clone/Copy site din staging → parola imediat → PHP 8.3, CDN off, auto-update off → Connect domain `eco-fridge.co.uk` fara www → cheia SSH + domeniul temporar si folderul.
 - **De retinut pentru Faza 6:** tintele redirecturilor Rank Math sunt URL-uri ABSOLUTE pe `https://eco-fridge.o2dev.de/...`, deci search-replace-ul se face pe TOATE tabelele, nu doar pe cele WordPress.
 - **Dupa lansare:** de sters din File Manager `~/f15/backup-clone-2026-11-07.sql.gz` (nu s-a putut din SSH).
