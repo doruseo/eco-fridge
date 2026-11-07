@@ -281,3 +281,27 @@ add_filter(
 	},
 	100
 );
+
+/**
+ * Orders brought over from the original shop keep the status they had there.
+ *
+ * Five of them were still "Pending payment" at launch: abandoned card attempts,
+ * most followed by a paid repeat order. The original shop never cancelled them,
+ * but WooCommerce's unpaid-order sweep would do it on the first cron run here,
+ * changing their status, putting their stock back and emailing the shop five
+ * cancellations on launch morning. The sweep is left alone for every order
+ * placed on this site.
+ */
+add_filter(
+	'woocommerce_cancel_unpaid_order',
+	function ( $cancel, $order ) {
+		if ( ! $cancel || ! $order instanceof WC_Order ) {
+			return $cancel;
+		}
+		$created = $order->get_date_created();
+		// The day this site took over the shop (7 November 2026, UK time).
+		return $created && $created->getTimestamp() < 1794009600 ? false : $cancel;
+	},
+	10,
+	2
+);
