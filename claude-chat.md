@@ -2420,6 +2420,20 @@ Doru: „in pagina de setari a AG (…) am setarea Enable debug reporting bifata
 
 **Copia locala:** baza live dupa schimbare, `source-dump/db/live-2026-11-07-*-cookie-1.1.0.sql.gz`; fisierele pluginului sunt in zip.
 
+## 109. GTM dupa lansare: Amplitude, Consent Mode fara publicitate, ce mai e de facut (2026-11-07, ~07:45)
+
+Doru: in GTM exista un tag „Amplitude Analytics Browser SDK" (citeste `_amplitude`, injecteaza `cdn.amplitude.com/libs/analytics-browser-gtm-wrapper-*`) — ce e, il sterge? Consent Mode v2 e obligatoriu doar pentru publicitate? Il poate dezactiva, fiindca eco-fridge nu mai face publicitate? Ce mai ramane din `ghid-gtm-ga4-eco-fridge.html` si ce altceva trebuie facut in GTM, avand deja tag-urile: Amplitude (All Pages), GA4 Configuration (Initialization - All Pages), GA4 Add To Cart, GA4 Checkout, GA4 Purchase.
+
+**Am citit containerul publicat** (`gtm.js?id=GTM-NFMC9Z3`, versiunea 17), adica exact ce ruleaza acum pentru fiecare vizitator: Google tag cu **G-CTLE1GYXKG**; trei evenimente GA4 — `add_to_cart`, `begin_checkout`, `purchase` — toate cu „Send ecommerce data"; si tag-ul Amplitude (sablon `__cvt_WF3R3`), **pe All Pages si fara nicio cerinta de consimtamant**. Niciun ID Google Ads, niciun UA.
+
+**Amplitude:** e o platforma de analiza a comportamentului (nu Google), pusa in container acum un an, probabil de agentia veche. Ruleaza pe toate paginile **inainte de orice acord**, iar SDK-ul ei pune cookie-uri proprii — si nu e declarat in politica de cookies. Asa cum e, incalca PECR. Recomandare: **Pause acum** (reversibil, nu Delete), intrebat Mads daca cineva se mai uita in Amplitude; daca nu, sters. Dacă il vor, trebuie „Require additional consent → analytics_storage", trigger plus `efcc_consent_update`, si adaugat ca serviciu in pluginul de cookies.
+
+**Consent Mode v2 fara publicitate:** Google il cere obligatoriu pentru functiile de publicitate (Ads, remarketing, audiente) pe traficul din UK/SEE. Dar **legea** (PECR/UK GDPR) cere acord pentru cookie-urile GA4 oricum. Consent Mode e mecanismul prin care GA4 respecta alegerea din banner: fara el, GA4 ar pune `_ga` inainte de acord. Deci **nu se dezactiveaza**; semnalele `ad_*` raman „denied" si nu deranjeaza nimic. Bonus: in modul Advanced, GA4 modeleaza vizitele celor care refuza.
+
+**Gasit si reparat in ghid:** regula recomandata pentru triggere era „Page Hostname equals `eco-fridge.co.uk`". De azi site-ul raspunde doar pe **`www.eco-fridge.co.uk`**, deci regula aceea ar fi oprit toate tag-urile. Ghidul spune acum `www.eco-fridge.co.uk`; si URL-ul feed-ului Merchant e pe www.
+
+**Ce mai ramane in GTM, fara publicitate:** consent overview pornit, Amplitude pe pauza; un tag GA4 pentru restul evenimentelor de ecommerce pe care site-ul le trimite deja (`view_item_list`, `select_item`, `view_item`, `remove_from_cart`, `view_cart`, `add_shipping_info`, `add_payment_info`), cu `{{Event}}` ca nume; tag-ul de formular (`generate_lead`, `form_start`, `form_submit`); filtrul de hostname si cel pentru echipa logata in triggere; optional parametrii comenzii la purchase. In GA4: Form interactions oprit in Enhanced measurement, retentie 14 luni, `generate_lead` ca key event, unwanted referrals pentru pagina de plata (domeniul se vede la comanda reala) si `eco-fridge.o2dev.de`, Merchant Center legat. Sectiunile 5.5 (Google Ads) si 7 (Ads) se sar.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.

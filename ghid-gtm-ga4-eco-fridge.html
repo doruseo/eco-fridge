@@ -176,7 +176,7 @@
 </table></div>
 <div class="box"><strong>Recomandat la toate triggerele de mai sus</strong> (<em>This trigger fires on: Some Custom Events</em>):
 <ul>
-	<li><code>Page Hostname</code> <em>equals</em> <code>eco-fridge.co.uk</code> – așa testele de pe staging (eco-fridge.o2dev.de) nu ajung în rapoarte. În timpul testelor pe staging, schimbă temporar în <em>matches RegEx</em> <code>eco-fridge\.(co\.uk|o2dev\.de)</code>.</li>
+	<li><code>Page Hostname</code> <em>equals</em> <code>www.eco-fridge.co.uk</code> (de la lansare site-ul e doar pe www – <code>eco-fridge.co.uk</code> fără www nu se mai potrivește niciodată) – așa testele de pe staging (eco-fridge.o2dev.de) nu ajung în rapoarte. În timpul testelor pe staging, schimbă temporar în <em>matches RegEx</em> <code>eco-fridge\.(co\.uk|o2dev\.de)</code>.</li>
 	<li><code>DLV - visitorType</code> <em>does not match RegEx</em> <code>administrator|shop_manager</code> – vizitele echipei logate nu intră în statistici.</li>
 </ul></div>
 
@@ -301,7 +301,7 @@
 <ul>
 	<li><strong>Google Ads → Goals → Conversions → Settings → Enhanced conversions</strong>: pornește-le, metoda <em>Google Tag Manager</em>.</li>
 	<li><strong>Google Ads → Settings → Consent</strong>: confirmă că folosiți Consent Mode (EF Cookie Consent trimite ad_user_data și ad_personalization).</li>
-	<li><strong>Merchant Center 133011514</strong> (după lansare): feed <code>https://eco-fridge.co.uk/feed/google-merchant/</code>; ID-urile produselor din feed sunt identice cu <code>item_id</code> din dataLayer, deci remarketingul și raportările pe produs se potrivesc.</li>
+	<li><strong>Merchant Center 133011514</strong> (după lansare): feed <code>https://www.eco-fridge.co.uk/feed/google-merchant/</code>; ID-urile produselor din feed sunt identice cu <code>item_id</code> din dataLayer, deci remarketingul și raportările pe produs se potrivesc.</li>
 </ul>
 
 <!-- 8 -->
@@ -315,7 +315,7 @@
 	<li>Formularul de contact (cu mesaj „TEST – please ignore”): <code>generate_lead</code> + tag-urile lead <em>Fired</em>.</li>
 	<li>GA4 → <strong>Admin → DebugView</strong>: evenimentele apar cu parametrii lor.</li>
 	<li>Spune-i lui Claude numerele comenzilor de test, ca să le șteargă (lansarea se face din staging).</li>
-	<li>Pune la loc condiția de hostname <code>equals eco-fridge.co.uk</code>.</li>
+	<li>Pune la loc condiția de hostname <code>equals www.eco-fridge.co.uk</code>.</li>
 </ol>
 
 <!-- 9 -->
