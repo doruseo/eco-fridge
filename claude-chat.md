@@ -2562,6 +2562,8 @@ Doru a plasat comanda de test pe produsul ascuns #14659. Referintele platii rama
 
 **Si un semn bun:** in jurnalul de email apar doua emailuri „You left something in your cart" trimise azi — unul catre o adresa reala de client (06:47), deci site-ul nou are deja vizitatori care adauga in cos.
 
+**Stearsa, la cererea lui Doru („sterge comanda de test"):** comanda **#14660**, definitiv, prin `WC_Order::delete(true)`, cu o verificare de siguranta inainte (produsul de test si totalul de £1,20). Dupa: zero randuri ramase in posturi, meta, linii, meta de linii, note, `wc_order_stats` si lookup-ul de produse. Plata de la Lloyds nu e atinsa. **Neatinse, fiindca nu au fost cerute:** comanda neplatita #14658 si produsul de test #14659 — raman de decis. Copia locala actualizata dupa stergere (`source-dump/db/live-2026-11-07-*-after-test-order-deleted.sql.gz`).
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
