@@ -74,6 +74,7 @@ class EFCC_Settings {
 				'layout'       => 'bar',
 				'button_style' => 'equal',
 				'uppercase'    => 1,
+				'overlay'      => 1,
 				'primary'      => '#1f821f',
 				'primary_text' => '#ffffff',
 				'background'   => '#ffffff',
@@ -297,7 +298,7 @@ class EFCC_Settings {
 		// Bounds and choices.
 		$choice = array(
 			'layout'            => array( 'bar', 'box-left', 'box-right', 'center' ),
-			'button_style'      => array( 'accent', 'equal' ),
+			'button_style'      => array( 'accent', 'equal', 'balanced' ),
 			'icon_style'        => array( 'colorful', 'brand', 'mono' ),
 			'floating_position' => array( 'left', 'right' ),
 			'gtm_load'          => array( 'plugin', 'external', 'none' ),
