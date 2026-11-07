@@ -2564,6 +2564,18 @@ Doru a plasat comanda de test pe produsul ascuns #14659. Referintele platii rama
 
 **Stearsa, la cererea lui Doru („sterge comanda de test"):** comanda **#14660**, definitiv, prin `WC_Order::delete(true)`, cu o verificare de siguranta inainte (produsul de test si totalul de £1,20). Dupa: zero randuri ramase in posturi, meta, linii, meta de linii, note, `wc_order_stats` si lookup-ul de produse. Plata de la Lloyds nu e atinsa. **Neatinse, fiindca nu au fost cerute:** comanda neplatita #14658 si produsul de test #14659 — raman de decis. Copia locala actualizata dupa stergere (`source-dump/db/live-2026-11-07-*-after-test-order-deleted.sql.gz`).
 
+## 118. Calendarul bifat dupa lansare, si ce mai e de facut azi (2026-11-07, ~08:00)
+
+Doru: „bifeaza tot ce s-a facut in [calendar] si spune-mi ce mai este de facut azi."
+
+**Bifat in „Calendar lansare":** planul pas cu pas (Fazele 1–9 gata), protectiile de staging (scoase pe site-ul nou), regula de canonic (cu corectura: serverul ignora `.htaccess`, redirectul e in `wp-config.php`), search-replace (cronul real NU s-a pus — `crontab` nu exista pe cont, WP-Cron ramane pe vizite), DNS, SSL, licente (AG pe aceeasi activare, Astra activ, parola SMTP nu a trebuit retastata), GTM v22, comanda reala (◐ — mai trebuie formularul real si `purchase` in GA4), paritatea URL (◐ — mai trebuie Search Console).
+
+**Reparat in Sheet:** la actualizarea de la intrarea 104, statusurile randurilor „Regula de canonic" si „search-replace" fusesera scrise cu un rand mai jos (in randul canonicului apărea textul clonarii). Acum fiecare rand are statusul lui.
+
+**Corectat pe drum:** credeam ca emailul catre Mads de dupa lansare e gata; `email-mads-go-live-2026-11-07.html` e de fapt **propunerea de lansare** de dinainte. Anuntul de dupa lansare e inca de scris.
+
+**Ce mai e azi** — lista din raspunsul catre Doru: formularul real din Contact Us; decizia pentru #14658 si produsul de test (inclusiv o comanda incognito cu transfer bancar pentru `purchase` in GA4); AG debug debifat; Search Console (sitemap + inspectii); Merchant Center (feed pe www); emailul catre Mads plus cererile catre Ambrit; GA4 (key events, retentie 14 luni, referrals nedorite, legatura Ads); decizia pentru cache-ul LiteSpeed.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
