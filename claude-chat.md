@@ -2619,6 +2619,8 @@ Doru: „verifica setarile din pluginul de cache LiteSpeed si bifeaza ce trebuie
 
 **Copia locala:** baza live dupa schimbari, `source-dump/db/live-2026-11-07-*-litespeed.sql.gz`.
 
+**„Mobile cache trebuie bifat?" — Nu, verificat.** Singura diferenta de HTML intre desktop si telefon e o clasa pe `<body>` pusa de Astra prin `wp_is_mobile()` (`ast-desktop` / `ast-header-break-point`); doua cereri de desktop dau HTML identic, deci nu e alt continut. Am servit unui telefon emulat complet (390 px, touch, user-agent iPhone) copia din cache generata pentru desktop si, separat, o pagina proaspata: JavaScript-ul Astra corecteaza clasa la incarcare (`ast-header-break-point` in ambele cazuri), pagina nu iese din ecran, iar capturile sunt identice pixel cu pixel. Header-ul nostru e acelasi pe ambele dispozitive. Un cache separat pentru mobil ar dubla cache-ul fara niciun castig, iar pe acest server s-ar baza pe reguli din `.htaccess` pe care serverul nu le respecta.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
