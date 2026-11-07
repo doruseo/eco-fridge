@@ -2762,6 +2762,14 @@ Doru a scris suportului Hostinger despre `WRONGPASS`; ei au propus reactivarea O
 
 **Verificat fara repercusiuni:** 9 pagini (home, produs, categorie, contact, blog, shop, sitemap, wp-login, feed) 200 fara erori PHP; adaugare in cos → 1 produs, Store API cart corect, checkout afiseaza Lloyds Cardnet (blocul de checkout se randeaza in browser); pagini din cache LiteSpeed `hit`, pagini necache ~1,0–1,2 s. Copia locala: `live-db-<ora>-redis.sql.gz` si arhiva drop-in + conf in `source-dump/final-2026-11-07/`.
 
+## 135. „Nu pleaca nimic in GA4 / Tag Assistant nu activeaza tagurile" — verificat (2026-11-07, ~15:00 UK)
+
+- Pe live, ca vizitator (Chrome headless, fara login): GTM-NFMC9Z3 (versiunea 23 publicata) se incarca, Google tag G-CTLE1GYXKG porneste. Fara consimtamant pleaca ping-uri GA4 fara cookie (`gcs=G100`: page_view, view_item, view_item_list); dupa „Accept all" pleaca hit-uri cu `gcs=G111`, se pun `_ga`, `_ga_CTLE1GYXKG`, `_gcl_au`. Consent Mode v2 (EF Cookie Consent, mod advanced) si GTM4WP functioneaza; dataLayer are view_item / view_item_list pe produs.
+- Containerul GTM are o exceptie pe toate tagurile de eveniment GA4: `visitorType` = administrator|shop_manager → nu pornesc cand esti logat in WordPress (Tag Assistant le arata la „Not fired"). Doar Google tag (page_view) porneste si pentru admini.
+- `?gtm_debug=` trece de redirecturi (non-www si http → www, parametrul pastrat); cache-ul LiteSpeed nu afecteaza Tag Assistant.
+- Concluzie: nu e nimic stricat pe site. De verificat la Doru: testul se face delogat / in incognito, fara ad-blocker, cu „Accept all"; in GA4 — Admin → Data filters (Internal / Developer traffic) si Realtime.
+- Observat: tagul de Google Ads AW-1015171724 inca trimite (conversion linker / ccm) — e legat de Google tag; ramane intrebarea deschisa despre scoaterea lui.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
