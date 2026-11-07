@@ -2327,6 +2327,24 @@ Doru: a clonat staging-ul cu Clone/Copy site; site-ul nou sta pe `ghostwhite-hor
 - **Copie locala:** wp-env-ul local era din 29 octombrie, deci NU era la zi. Acum la mine: baza finala `source-dump/db/staging-final-2026-11-07.sql.gz` (7,5 MB, cu cele 86 de comenzi) si fisierele schimbate de atunci, `source-dump/final-2026-11-07/wp-content-delta-since-2026-10-29.tar.gz` (14.104 fisiere, 332 MB, zero erori). Impreuna cu wp-content-ul local, copia e completa. Prima incercare a esuat fiindca lista de fisiere scrisa pe Windows avea CRLF si `tar` a cautat nume cu `\r` la final.
 - **Cheia SSH** data lui Doru (aceeasi ca pe staging si backup); aliasul `ef-live` configurat la mine. Prima incercare de conectare: cheia inca neadaugata.
 
+## 104. Faza 6 pe site-ul nou: gata si testat pe domeniul real, inainte de DNS (2026-11-07, ~06:00)
+
+Doru a adaugat cheia SSH; aliasul `ef-live` merge. Backup inainte de orice: `/tmp/live-before-faza6.sql.gz` pe server (7,5 MB).
+
+**Ce gasit:** Hostinger, la „Connect domain", rescrisese `eco-fridge.o2dev.de` in **`eco-fridge.co.uk` fara www**, in 8.497 de locuri; zero ramasite de staging sau de domeniul temporar. Deci `siteurl`/`home` erau pe apex si `www` facea 301 spre apex — invers fata de canonicul nostru. Si `LSOC_PREFIX` era inca al contului de staging.
+
+**Ce am facut:**
+1. `search-replace '//eco-fridge.co.uk' '//www.eco-fridge.co.uk'` pe **toate tabelele**: 8.497 de inlocuiri, inclusiv **179 de tinte de redirect Rank Math**, guid-uri, termmeta, optiuni. `siteurl`/`home` = `https://www.eco-fridge.co.uk`. Verificat dupa, prin SQL direct (WP-CLI sarise cateva obiecte Astra serializate): zero linkuri ramase spre apex, zero `www.www.`.
+2. `wp-config.php`: `WP_ENVIRONMENT_TYPE` → **`production`** (emailurile de recenzii si protectia HTTPS din codul nostru depind de asta), blocul lacatului de staging scos (fisierul lui nici nu venise cu clona), `LSOC_PREFIX` → contul nou. Pe server nu exista Python, deci editarile s-au facut cu PHP, scrise in loc cu `cat`.
+3. `.htaccess`: blocul „staging no cache" scos; **regula de canonic pusa primul bloc** — orice gazda diferita de `www.eco-fridge.co.uk` → un singur 301 spre `https://www`, cu `/.well-known/` scutit.
+4. Rewrite flush, cache flush.
+
+**Testul cu DNS-ul simulat** (rezolvare fortata spre 148.230.121.74): `http://eco-fridge.co.uk/`, `https://eco-fridge.co.uk/` si `http://www…/` → **un singur 301** spre `https://www.eco-fridge.co.uk/`, cu calea si parametrii pastrati. Prima pagina, shop, o categorie, o pagina de gama, un produs, coș, blog, sitemap (index si produse), robots.txt, feed — toate **200**; checkout cu coșul gol → coș; `/contact/` → `/contact-us/`; un redirect vechi WordPress si unul Rank Math ajung unde trebuie; 404 real pe o adresa inexistenta. **Zero urme de staging/domeniu temporar/apex in HTML, zero erori PHP.** `/.well-known/acme-challenge/` raspunde 404 fara redirect pe ambele nume, deci Let's Encrypt poate valida.
+
+**Alte verificari:** SMTP prin IONOS cu parola care se decripteaza (salt-urile au venit cu clona, deci nu mai trebuie retastata); „New order" la mads@ si orders@; plati active: Lloyds card si transfer bancar. Cron: WP-Cron ramane pornit (ruleaza la vizite) — `crontab` nu exista pe cont, iar un cron real din hPanel se poate pune dupa lansare.
+
+**Ramas, deliberat, pana la Faza 9:** `blog_public = 0` (pagina are inca noindex), cache-ul LiteSpeed oprit.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
@@ -2334,6 +2352,7 @@ Doru: a clonat staging-ul cu Clone/Copy site; site-ul nou sta pe `ghostwhite-hor
 - **Faza 3 GATA (intrarea 101):** 86 de comenzi importate, #14517–#14638, reconciliere 6.017 = 6.017, urmatorul numar #14658; rapoarte reconstruite; stocul preluat; nimic nou la produse, categorii, pagini, media, redirecturi sau SEO; regula care pastreaza cele 5 comenzi pending (PR #78); tabelele clonei sterse din staging. Punct de revenire: `source-dump/db/staging-before-f15-2026-11-07.sql.gz`.
 - **Produsele verificate si pe continut (intrarea 102):** la zi pe preturi (18), stoc (10), SKU, manual PDF si poza noua; zero modificari de text. **Staging e GATA de clonare.**
 - **Faza 6, in plus:** `WP_ENVIRONMENT_TYPE` → `production` (altfel nu pleaca emailurile de recenzii si nu se aplica protectia HTTPS), blocul no-cache scos, LiteSpeed pornit dupa verificari.
+- **Faza 6 GATA (intrarea 104):** site-ul nou pe www, production, canonic, testat pe domeniul real. **Doru poate schimba A @.**
 - **Faza 5 GATA (intrarea 103):** site nou pe `ghostwhite-horse-401012.hostingersite.com`, folder `PNxOJBHKQ`, alias `ef-live`. Urmeaza Faza 6 (eu), apoi A @ (Doru) — NU inainte de confirmarea mea.
 - **Urmeaza Faza 5 (DORU):** Clone/Copy site din staging → parola imediat → PHP 8.3, CDN off, auto-update off → Connect domain `eco-fridge.co.uk` fara www → cheia SSH + domeniul temporar si folderul.
 - **De retinut pentru Faza 6:** tintele redirecturilor Rank Math sunt URL-uri ABSOLUTE pe `https://eco-fridge.o2dev.de/...`, deci search-replace-ul se face pe TOATE tabelele, nu doar pe cele WordPress.
