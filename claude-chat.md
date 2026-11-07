@@ -2281,11 +2281,48 @@ Doru: migrarea Migrate Guru a pornit la 4:11 si s-a terminat la 4:28; wp-admin-u
 
 Tabelele clonei (103) **sterse din baza staging-ului** — trei au cerut `FOREIGN_KEY_CHECKS=0` — deci baza e la **73 de tabele, 111 MB**, si copierea de la Faza 5 nu duce date in plus pe site-ul nou. Dump-ul clonei urcat in `~/f15` pe staging **nu a putut fi sters** (stratul h5g refuza scrierea in fisier); e in afara docrootului, deci nu e servit si nu e copiat de Clone site, dar e de sters din File Manager dupa lansare.
 
+## 102. Staging e gata de clonare: produsele sunt la zi si pe continut, nu doar pe pret si stoc (2026-11-07, ~05:30)
+
+Doru: „produsele pe noul site de staging sunt actualizate la zi din sursa de backup (stoc, pret, produse sterse, produse adaugate, modificari)? Verifica site-ul de staging si vezi ce altceva mai trebuie, precum Protecțiile de staging scoase, si confirma cand e gata." Intre timp: „cele 5 comenzi cu plati cu cardul abandonate, din ce data erau?" — #14564 (4 sep, £1.554), #14596 (18 sep, £3.105), #14600 (23 sep, £2.568), #14628 (26 oct, £2.220), #14635 (4 nov, £2.340); patru au fost refacute si platite de client, #14600 nu.
+
+### Ce lipsea din verificarea de la Faza 3
+
+`f15-compare.sql` compara structura (produse noi/sterse, categorii), pretul efectiv si stocul. **Nu compara textele si specificatiile.** Lista celor 33 de produse „modificate dupa 10 iulie" era, din raportul de marti, doar o lista de verificat cu ochii. Acum am facut comparatia exacta: copia de azi fata de dump-ul din iulie din care s-a construit site-ul, produs cu produs, pe titlu, slug, descriere, descriere scurta, status, ordine, **toate** metadatele si categoriile.
+
+**Capcana de la comparatie:** ambele dump-uri au domeniul rescris de migrare — cel din iulie pe `eco-fridge.o2dev.de`, cel de azi pe `eco-fridge-backup.o2dev.de` — deci la prima trecere aproape toate descrierile pareau schimbate, chiar si la produse neatinse din 2020. Dupa normalizarea ambelor domenii: **zero modificari de titlu, descriere, descriere scurta sau status.** Ce s-a schimbat cu adevarat pe site-ul vechi din iulie:
+
+| Ce | Cate | Pe staging |
+|---|---|---|
+| Preturi (grab and go, patiserii ECO-P75/BP75, patiserii slimline „Winter Sale") | 18 | toate la valoarea noua (ex. £1.440, £698, £835) |
+| Stoc in/out | 10 | toate la valoarea noua (+ upright-cake preluat azi) |
+| SKU `X-SD75/120` → `X-SD75/120HC` | 1 | deja `X-SD75/120HC` |
+| Link catre manualul PDF la Retarder Prover | 1 | deja in descrierea scurta |
+| Poza „in situ" la Large Cake Display Fridge | 1 | deja in descrierea scurta |
+| Trei congelatoare low-temperature mutate in Storage Freezer | 3 | sunt in categoria noastra Low Temperature Chest Freezers — structura noastra, mai fina |
+
+Restul diferentelor sunt zgomot: datele de link-uri interne ale unui plugin vechi, cu lungimi serializate schimbate de domeniu. **Concluzie: produsele staging-ului sunt la zi pe tot ce conteaza.** Bazele locale de comparatie au fost sterse dupa, fiindca tabelele de posturi contin si comenzi.
+
+### Protectiile de staging: raman pe staging, se scot pe copie
+
+Randul de calendar „06:30 Protectiile de staging scoase" e de dinainte de planul din intrarea 99. Le-am verificat una cate una:
+
+- **Lacatul** se incarca din `wp-config.php` doar dacă `../.h5g/ef-staging-lock.php` exista (`file_exists`), deci copia nu poate da eroare fatala, oricum ar copia Hostinger folderul.
+- **`WP_ENVIRONMENT_TYPE` e `staging`** — si conteaza: `reviews.php` trimite emailurile automate de recenzii si `security.php` aplica protectia HTTPS doar in `production`. Pe site-ul nou trebuie `production`.
+- `.htaccess` are blocul „staging no cache"; **cache-ul de pagini LiteSpeed e oprit** (`litespeed.conf.cache` gol); `blog_public = 0`; `X-Robots-Tag` nu exista nicaieri.
+
+Scoase acum de pe staging, ar fi lasat un site cu date reale de clienti deschis si n-ar mai fi putut fi recopiat curat. Deci **raman pe staging** si se scot **pe site-ul nou**, la Faza 6: environment pe `production`, lacatul scos dupa parola din hPanel, blocul no-cache scos, LiteSpeed pornit dupa verificari, search-replace pe toate tabelele. La Faza 9: `blog_public = 1`, apoi parola hPanel scoasa ultima. Randul din Sheet e rescris asa.
+
+### Starea staging-ului, gata de copiere
+
+6.017 comenzi, 131 de produse publicate, 73 de tabele, 111 MB, zero orfane, `debug.log` absent, urmatorul numar #14658, cele cinci comenzi pending protejate. **Staging e gata pentru Clone/Copy site.**
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
 - **Faza 2 GATA (04:11–04:28):** copia finala pe clona; clona reinchisa la indexare (`blog_public = 0`, `robots.txt` `Disallow: /`). Wp-admin-ul ei NU se deschide si nu trebuie deschis — upgrade-ul bazei nu se ruleaza.
 - **Faza 3 GATA (intrarea 101):** 86 de comenzi importate, #14517–#14638, reconciliere 6.017 = 6.017, urmatorul numar #14658; rapoarte reconstruite; stocul preluat; nimic nou la produse, categorii, pagini, media, redirecturi sau SEO; regula care pastreaza cele 5 comenzi pending (PR #78); tabelele clonei sterse din staging. Punct de revenire: `source-dump/db/staging-before-f15-2026-11-07.sql.gz`.
+- **Produsele verificate si pe continut (intrarea 102):** la zi pe preturi (18), stoc (10), SKU, manual PDF si poza noua; zero modificari de text. **Staging e GATA de clonare.**
+- **Faza 6, in plus:** `WP_ENVIRONMENT_TYPE` → `production` (altfel nu pleaca emailurile de recenzii si nu se aplica protectia HTTPS), blocul no-cache scos, LiteSpeed pornit dupa verificari.
 - **Urmeaza Faza 5 (DORU):** Clone/Copy site din staging → parola imediat → PHP 8.3, CDN off, auto-update off → Connect domain `eco-fridge.co.uk` fara www → cheia SSH + domeniul temporar si folderul.
 - **De retinut pentru Faza 6:** tintele redirecturilor Rank Math sunt URL-uri ABSOLUTE pe `https://eco-fridge.o2dev.de/...`, deci search-replace-ul se face pe TOATE tabelele, nu doar pe cele WordPress.
 - **Dupa lansare:** de sters din File Manager `~/f15/backup-clone-2026-11-07.sql.gz` (nu s-a putut din SSH).
