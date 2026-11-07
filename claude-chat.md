@@ -2736,6 +2736,16 @@ Doru: „scoate parametrul de test și actualizează copia locală".
 - **`?efcc_test` scos** din `ef-cookie-consent/includes/class-efcc-frontend.php` (functia `test_mode()` si cele doua utilizari). Urcat pe live si staging (backup `/tmp/class-efcc-frontend.php.before-test-removal`), md5 `a1f6f78c6677` identic cu repo-ul, cache golit; si in wp-env. Verificat: `/`, `?efcc_test=nooverlay` si `?efcc_test=nobanner` arata acum la fel (banner normal, `hide:false`, scriptul de afisare timpurie prezent).
 - **Copia locala a live-ului** in `source-dump/final-2026-11-07/`: `live-db-1330.sql.gz` (baza completa, `mariadb-dump --single-transaction`, 7,4 MB, dump terminat corect), `live-files-1330.tar.gz` (wp-config, .htaccess, robots.txt si tot `wp-content` fara uploads/cache, 65 MB; contine fisierul nou, md5 verificat), `live-uploads-new-1330.tar.gz` (gol: nicio imagine noua dupa 11:00; uploads-urile sunt deja in arhivele anterioare). Fisierele temporare sterse de pe server.
 
+## 132. Pluginul general: `o2-cookie-consent.zip`, versiunea 1.2.0 (2026-11-07, ~13:45 UK)
+
+Doru: „implementeaza modificarile si in pluginul general redenumit o2-cookie-consent.zip din folderul C:\Users\doruh\Downloads\WP Plugins". El redenumise zip-ul; inauntru era inca vechea versiune (1.1.1 de la 11:35, folder `ef-cookie-consent`, fara afisarea timpurie a bannerului).
+
+- **`tools/build-generic-cookie-consent.py` rescris**: iesirea e `../WP Plugins/o2-cookie-consent.zip`; folderul, fisierul principal (`o2-cookie-consent.php`), text domain-ul, slug-ul paginii din admin si `@package` devin **`o2-cookie-consent` / `O2_Cookie_Consent`**; scriptul se opreste daca ramane `ef-cookie-consent`, Eco-Fridge, `efcc_test` sau verdele vechi. Prefixele `efcc`, numele optiunilor si tabelul jurnalului raman, deci un site care trece de la vechiul folder isi pastreaza setarile: dezactivezi si stergi pluginul vechi, apoi instalezi si activezi `o2-cookie-consent`.
+- **Continut**: tot ce s-a facut azi — fara suprafata gri implicit, bannerul afisat imediat (LCP), fara parametrul de test; versiunea **1.2.0** (ridicata si in sursa `ef-cookie-consent.php`).
+- **Verificat**: 12 fisiere, toate trec `php -l`; instalat si activat pe instanta de test `localhost:8889`: „O2 Cookie Consent 1.2.0 — O2 Digital", bannerul apare, scriptul timpuriu prezent, CSS servit din `o2-cookie-consent/`. Dezactivat dupa test.
+- Un `ef-cookie-consent.zip` regenerat accidental de vechiul script (la o editare esuata) a fost sters imediat; in `WP Plugins` raman `o2-cookie-consent.zip` si vechiul `o2dev-cookie-consent.zip` (neatins).
+- **Eco-Fridge live/staging raman la 1.1.1** ca numar de versiune (codul e identic cu 1.2.0, diferă doar linia de versiune): urcarea acestei linii a fost blocata de sistemul de permisiuni, nefiind ceruta explicit.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
