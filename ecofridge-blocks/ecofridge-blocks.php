@@ -28,6 +28,7 @@ require_once EFB_DIR . 'includes/forms.php';
 require_once EFB_DIR . 'includes/blocks.php';
 require_once EFB_DIR . 'includes/legacy-urls.php';
 require_once EFB_DIR . 'includes/legacy-attachment-redirects.php';
+require_once EFB_DIR . 'includes/asset-trim.php';
 require_once EFB_DIR . 'includes/tag-redirects.php';
 require_once EFB_DIR . 'includes/markets.php';
 require_once EFB_DIR . 'includes/blog.php';

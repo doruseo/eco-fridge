@@ -219,7 +219,7 @@ add_action( 'astra_header_before', function () {
 		$lid = get_theme_mod( 'custom_logo' );
 		// Shown at most 58px tall (~230px wide): without `sizes` the browser assumed
 		// 100vw and fetched the 1920px file on desktop.
-		echo wp_get_attachment_image( $lid, 'full', false, array( 'class' => 'ef-logo-img', 'alt' => get_bloginfo( 'name' ), 'sizes' => '230px', 'loading' => 'eager', 'fetchpriority' => 'high' ) );
+		echo wp_get_attachment_image( $lid, 'full', false, array( 'class' => 'ef-logo-img', 'alt' => get_bloginfo( 'name' ), 'sizes' => '230px', 'loading' => 'eager', 'fetchpriority' => 'auto' ) ); // eager, normal priority: "auto" also stops WordPress from promoting this first (1920px source) image to "high", which belongs to the page's largest early image
 	} else {
 		echo esc_html( get_bloginfo( 'name' ) );
 	}
