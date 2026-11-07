@@ -157,8 +157,8 @@ only_contact_form = [{"type": "EQUALS", "parameter": [t("arg0", form_id_var), t(
 trg_form_start = custom_event("CE - form_start (contact form)", "form_start", only_contact_form)
 trg_form_submit = custom_event("CE - form_submit (contact form)", "form_submit", only_contact_form)
 trg_lead = custom_event("CE - generate_lead (contact form)", "generate_lead", only_contact_form)
-trg_phone = link_click("Click - phone (tel:)", "tel:")
-trg_email = link_click("Click - email (mailto:)", "mailto:")
+trg_phone = link_click("Click - phone link", "tel:")
+trg_email = link_click("Click - email link", "mailto:")
 
 INITIALIZATION_ALL_PAGES = "2147479573"  # GTM built-in trigger
 
