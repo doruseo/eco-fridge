@@ -2451,6 +2451,28 @@ Doru, vazand `order_details.<câmp>` in ghidul GTM: „vreau ca absolut tot ce e
 
 Regula e salvata si in memorie, extinsa: cod, mesaje, tot ce ajunge in baza sau pe site si orice nume de tastat in GTM/GA4. PR #90.
 
+## 111. GTM verificat in browser real: tag-urile trag (2026-11-07, ~08:20)
+
+Doru: „verifica din nou containerul GTM, pe care l-am salvat de curand. Dupa accept cookies, se incarca pe granted, insa nu trage niciun tag."
+
+**Containerul publicat, versiunea 18:** Amplitude pe pauza (`__paused`); Google tag `G-CTLE1GYXKG` pe Initialization, cu `send_page_view`; GA4 Event pentru `add_to_cart`, `begin_checkout`, `purchase`, toate cu datele de ecommerce din dataLayer; Conversion Linker si doua link-click listeners. Fara filtre de hostname, fara cerinte suplimentare de consimtamant.
+
+**Proba reala:** un Chrome fara interfata, condus prin protocolul DevTools (script Node in scratchpad), pe site-ul live: incarcare → click pe „Accept all" → reincarcare → produs → „Add to basket" → checkout, cu fiecare cerere spre Google inregistrata:
+
+| Moment | Ce pleaca spre GA4 (`G-CTLE1GYXKG`) | Consimtamant |
+|---|---|---|
+| prima incarcare | `page_view` | `gcs=G100` (refuzat, fara cookie-uri) |
+| click „Accept all" | `consent_update` (Google), `user_engagement` | `G111` (acordat) |
+| reincarcare | `page_view`, `scroll` | `G111` |
+| Add to basket | **`add_to_cart`** | `G111` |
+| checkout | `page_view`, **`begin_checkout`** | `G111` |
+
+Deci **tag-urile trag si datele ajung in GA4**, inainte de acord fara cookie-uri si dupa acord cu cookie-uri. In Tag Assistant, evenimentele de dupa click (`gtm.click`, `consent update`, `efcc_consent_update`, `efcc_*_granted`) nu au tag-uri legate, deci apar normal cu „Tags Not Fired"; Google tag apare ca „Fired" la evenimentul **Initialization** din stanga.
+
+**Gasit pe drum:** pe langa GA4 pleaca si cereri spre **Google Ads `AW-1015171724`** (remarketing `viewthroughconversion` si `ccm/collect`). Nu vin dintr-un tag din GTM, ci din destinatia Ads legata la Google tag (combinata in setarile Google tag sau prin legatura GA4–Ads). Respecta consimtamantul (pana la acord doar ping fara cookie-uri), dar dacă eco-fridge nu mai face publicitate, legatura se scoate din setarile Google tag.
+
+**Lipsesc, cum stiam:** tag-uri GA4 pentru `view_item`, `view_item_list` si restul evenimentelor de magazin, pe care site-ul le trimite deja in dataLayer, plus tag-ul de formular.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
