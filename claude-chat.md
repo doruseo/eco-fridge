@@ -2473,6 +2473,25 @@ Deci **tag-urile trag si datele ajung in GA4**, inainte de acord fara cookie-uri
 
 **Lipsesc, cum stiam:** tag-uri GA4 pentru `view_item`, `view_item_list` si restul evenimentelor de magazin, pe care site-ul le trimite deja in dataLayer, plus tag-ul de formular.
 
+## 112. Containerul GTM complet, gata de importat (2026-11-07, ~08:40)
+
+Doru: sa-i scriu tot containerul intr-un fisier pentru Admin → Import Container → workspace nou („new website") → **Overwrite**; fara Amplitude (nu-l mai foloseste nimeni, ramane ca backup in workspace-ul actual); cu variabila Constant „GA4 Measurement ID" = `G-CTLE1GYXKG`.
+
+**Fisierul:** `gtm/GTM-NFMC9Z3-new-website.json`, generat de `gtm/build-container.py` (se regenereaza cu `python gtm/build-container.py`, deci orice schimbare se face in script, nu de mana in JSON).
+
+**Ce contine — 5 tag-uri, 4 triggere, 30 de variabile, 5 variabile built-in:**
+- **Google tag - GA4**: Tag ID `{{GA4 Measurement ID}}`, `send_page_view` true, `content_group` = tipul paginii; trigger Initialization - All Pages.
+- **GA4 Event - ecommerce**: Event name `{{Event}}`, datele de ecommerce din dataLayer; trigger **CE - ecommerce** = `view_item_list | select_item | view_item | add_to_cart | remove_from_cart | view_cart | begin_checkout | add_shipping_info | add_payment_info`. Inlocuieste cele trei tag-uri separate de acum si adauga cele sase evenimente care lipseau.
+- **GA4 Event - purchase**: ecommerce plus 19 parametri ai comenzii din `order_details` (status, metoda de plata, tip client, firma, judet, oras, zona codului postal, add-on-uri, total cu TVA, unitati, sursa/mediu/campanie/tip sursa/pagina de intrare/dispozitiv, sesiuni inainte de comanda).
+- **GA4 Event - generate_lead** si **GA4 Event - form start and submit**: `form_id`, `form_name`, `form_destination`, `lead_source`.
+- Toate triggerele au doua conditii: **Page Hostname equals `www.eco-fridge.co.uk`** si **`visitorType` nu e `administrator|shop_manager`**, deci nici staging-ul, nici echipa logata nu intra in rapoarte.
+- Toate tag-urile sunt pe „No additional consent required": sunt tag-uri Google si citesc singure Consent Mode-ul trimis de site.
+- **Fara Amplitude, fara Conversion Linker si fara tag-uri Google Ads** (nu se mai face publicitate).
+
+**Verificat inainte de predare:** JSON valid; fiecare `{{variabila}}` folosita exista in fisier; fiecare tag are un trigger existent; numele din dataLayer confirmate in cod (`analytics.php`, `form.js`) si pe site (`visitorType` = `visitor-logged-out`); zero romana. Importul in sine il face Doru — nu am acces la contul GTM.
+
+**De stiut:** legatura spre Google Ads `AW-1015171724` vazuta la intrarea 111 nu e in container, ci in setarile Google tag, deci importul nu o scoate.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
