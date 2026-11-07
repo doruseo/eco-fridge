@@ -2250,12 +2250,45 @@ De verificat dupa migrare si **dacă Migrate Guru a rescris `wp-config.php`**: i
 
 Randul **„Curățenie pe staging" era nebifat**, desi lucrarea e facuta de ieri seara — Doru avea dreptate. Acum e `✅ Facut (6 nov)`, cu rezultatele in celula (baza 840 MB → 114 MB, docroot 3,6 GB → 1,2 GB, ce s-a sters si ce s-a pastrat intentionat). Am completat si randul de 05:10 cu starea destinatiei si cu cele trei capcane de mai sus, si am marcat `✖ INLOCUIT` cele doua randuri vechi care spun sa creez un site gol in hPanel — nu se poate, si nu vrem sa fie urmate azi din greseala.
 
-## Stare la 2026-11-07 (dimineata lansarii)
+## 101. Faza 3: datele la zi in staging — 86 de comenzi, reconciliere 6.017 = 6.017 (2026-11-07, 04:30–05:00 UK)
 
-- **Faza 1 GATA (05:00):** `ef-close-shop` activat pe site-ul vechi si toate metodele de plata oprite; Doru a verificat ca nu se mai adauga in coş.
-- **Clona e DESCHISA si pregatita ca destinatie (intrarea 100):** lacatul cu token scos din `wp-config.php` — era obligatoriu, altfel Migrate Guru primea 403; `/wp-admin/` si `/wp-login.php` merg (iThemes „Hide Backend" dezactivat, loginul ascuns era `/ecofridge-login`); upgrade de baza rulat, deci wp-admin se deschide fara erori fatale; pagina de migrare e `admin.php?page=migrateguru`. Rămâne neindexabila: `blog_public = 0`, robots.txt `Disallow: /`.
-- **Urmeaza:** Faza 2, cheia Migrate Guru generata pe clona si migrarea pornita IMEDIAT (traieste 30 de minute). Apoi Faza 3, importul in staging cu uneltele din `~/f15`.
-- **Dupa migrare, de refacut pe clona:** „Hide Backend" si blocarea loginului revin odata cu baza veche; de verificat si dacă Migrate Guru a rescris `wp-config.php`.
+Doru: migrarea Migrate Guru a pornit la 4:11 si s-a terminat la 4:28; wp-admin-ul clonei nu se mai deschide („database prea veche"), dar `ef-close-shop` se vede in File Manager, deci copia e a magazinului deja inchis. Cererea: „Comenzile de test sterse, apoi extragerea datelor la zi din copie si datele la zi importate in staging."
+
+**Ca wp-admin-ul clonei nu se deschide e exact ce trebuie acum** (intrarea 100): baza e din nou cea veche, iar upgrade-ul ei nu se mai ruleaza — am citit totul prin SQL.
+
+### Ordinea, cu ce a iesit la fiecare pas
+
+1. **Clona, citita fara sa fie atinsa:** 6.017 comenzi, ultima **#14638 (5 noiembrie, 21:11)**, `ef-close-shop` activ, 131 de produse. Migrarea a adus inapoi **`blog_public = 1` si `robots.txt`-ul vechi** (doar `Disallow: /wp-admin/`), deci clona era din nou indexabila: puse la loc imediat `blog_public = 0`, `robots.txt` cu `Disallow: /` si refuzul fisierelor `.bak/.sql/...` din `.htaccess`. Garzile din `wp-config.php` (cron oprit, update-uri blocate) au supravietuit migrarii.
+2. **Dump de lucru:** 103 din 266 de tabele, 9,1 MB, fara Matomo, Lloyds Cardnet, iThemes si Action Scheduler; local in `source-dump/db/backup-clone-2026-11-07.sql.gz`.
+3. **Comenzile de test:** deja sterse vineri — verificat: zero comenzi peste #7261, niciunul din ID-urile de test, zero randuri de statistici.
+4. **Punct de revenire inainte de orice scriere:** dump al staging-ului, 73 de tabele, 7,3 MB, adus local: `source-dump/db/staging-before-f15-2026-11-07.sql.gz`.
+5. **Comparatia (`f15-compare.sql`) pe clona proaspata**, cum a cerut Doru marti: **zero produse noi, zero retrase, zero categorii noi sau disparute, zero pagini noi**, iar cea mai noua editare de produs e din **2 noiembrie** — adica nimic nu s-a schimbat dupa repetitia de marti. Singura diferenta de pret/stoc ramane `upright-cake-display-fridge` → outofstock. Cupoane zero, recenzii zero.
+6. **Importul (`f15-import-orders.sql`):** **86 de comenzi, #14517–#14638, £211.930,74** (cu trei mai multe decat marti: #14635, #14636, #14638), 264 de linii, 4.387 de randuri de meta, 135 de note. Zero coliziuni de ID, zero comenzi fara linii sau fara total, zero meta orfan. **Chei potrivite 6.017 = 6.017 comenzi pe site-ul vechi** — reconcilierea F15-10 e zero, masurata. **Urmatorul numar: #14658.**
+7. **Rapoartele:** 86 de randuri in `wc_order_stats`, 92 in lookup-ul de produse. `wc_get_order` citeste corect prima si ultima comanda importata, cu adresa, linia de produs si `check_doors`.
+8. **Stocul:** `upright-cake-display-fridge` trecut pe outofstock.
+
+### Doua lucruri din raportul de marti care s-au dovedit deja facute
+
+- **Media:** PDF-ul manualului de retarder-prover e pe staging si legat de brosura lui; imaginea `GDT120C-Insitu-1` exista in marimea pe care o folosea pagina veche. Nimic de copiat.
+- **Cele „25 de redirecturi lipsa" nu lipsesc.** Marti am comparat cu harta PHP, dar pe staging **Rank Math Redirections e pornit**, iar harta PHP se foloseste doar cand modulul e oprit. In Rank Math, 15 dintre ele sunt active, una e gunoi (`/recaptcha/…`), iar **9 sunt puse inactive intentionat de migrarea 52**, fiindca sursa lor functioneaza deja aici. Le-am activat intai — si apoi le-am verificat pe oglinda locala: `/range/double-glazed-counter-display-chiller/`, `/ranges/patisserie-display-fridges/`, `/condition/discount-products/` si cele doua `gastronorm` raspund **200**, iar `/cake-display-fridge/` si cele doua produse „double-glazed counter" sunt deja trimise de WordPress catre pagina potrivita. Redirecturile mele le-ar fi ascuns sau le-ar fi dat 410. **Le-am retras pe toate sapte** (create azi, sterse prin API-ul Rank Math), harta PHP e inapoi identica cu repo-ul, 227 de redirecturi active ca inainte. Concluzie: **nimic de adaugat la redirecturi.**
+- **Meta SEO Yoast: nu se importa.** Pe cele 89 de valori de pe continut modificat, 32 sunt identice cu ale noastre, 54 difera fiindca **le-am rescris noi** in octombrie (unele vechi erau chiar gresite: cuptorul si grill-ul aveau descrierea unui frigider vertical), iar 3 sunt ale unei pagini vechi duplicat a homepage-ului, care nu exista la noi.
+
+### Un risc gasit si inchis inainte de lansare
+
+**Cinci comenzi importate sunt „Pending payment"** (#14564, #14596, #14600, #14628, #14635) — incercari de card abandonate, majoritatea urmate de o comanda platita cu aceeasi suma. Site-ul vechi nu le-a anulat niciodata, dar cu `hold_stock_minutes = 60` si o actiune `woocommerce_cancel_unpaid_orders` deja programata, **WooCommerce le-ar fi anulat la primul cron real de pe site-ul nou**: status schimbat, stoc pus inapoi si **cinci emailuri „Cancelled order" la Mads in dimineata lansarii**. Regula noua din `ecofridge-blocks/includes/woocommerce.php` scuteste comenzile create inainte de 7 noiembrie; comenzile de pe site-ul nou se anuleaza normal. Probat pe staging: cele cinci → `false`, o comanda de azi → `true`. Urcat pe staging, md5 identic cu repo-ul; PR #78.
+
+### Curatenie
+
+Tabelele clonei (103) **sterse din baza staging-ului** — trei au cerut `FOREIGN_KEY_CHECKS=0` — deci baza e la **73 de tabele, 111 MB**, si copierea de la Faza 5 nu duce date in plus pe site-ul nou. Dump-ul clonei urcat in `~/f15` pe staging **nu a putut fi sters** (stratul h5g refuza scrierea in fisier); e in afara docrootului, deci nu e servit si nu e copiat de Clone site, dar e de sters din File Manager dupa lansare.
+
+## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
+
+- **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
+- **Faza 2 GATA (04:11–04:28):** copia finala pe clona; clona reinchisa la indexare (`blog_public = 0`, `robots.txt` `Disallow: /`). Wp-admin-ul ei NU se deschide si nu trebuie deschis — upgrade-ul bazei nu se ruleaza.
+- **Faza 3 GATA (intrarea 101):** 86 de comenzi importate, #14517–#14638, reconciliere 6.017 = 6.017, urmatorul numar #14658; rapoarte reconstruite; stocul preluat; nimic nou la produse, categorii, pagini, media, redirecturi sau SEO; regula care pastreaza cele 5 comenzi pending (PR #78); tabelele clonei sterse din staging. Punct de revenire: `source-dump/db/staging-before-f15-2026-11-07.sql.gz`.
+- **Urmeaza Faza 5 (DORU):** Clone/Copy site din staging → parola imediat → PHP 8.3, CDN off, auto-update off → Connect domain `eco-fridge.co.uk` fara www → cheia SSH + domeniul temporar si folderul.
+- **De retinut pentru Faza 6:** tintele redirecturilor Rank Math sunt URL-uri ABSOLUTE pe `https://eco-fridge.o2dev.de/...`, deci search-replace-ul se face pe TOATE tabelele, nu doar pe cele WordPress.
+- **Dupa lansare:** de sters din File Manager `~/f15/backup-clone-2026-11-07.sql.gz` (nu s-a putut din SSH).
 
 ## Stare la 2026-11-03 (dimineata)
 
