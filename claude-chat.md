@@ -2504,6 +2504,21 @@ Doru: a importat containerul; „verifica din nou". Si: cum sterge vechiul works
 
 **Workspace-ul vechi:** backup-ul real nu e workspace-ul, ci **Versions** — versiunile 17 si 18, cu Amplitude, raman pentru totdeauna si se pot republica oricand. Workspace-urile se schimba si se sterg din panoul „Current Workspace", din coloana stanga a tab-ului Workspace.
 
+## 114. Containerul GTM rescris: formularul de contact filtrat exact, click pe telefon si email, cate un tag pe eveniment (2026-11-07, ~09:10)
+
+Doru: formularele sa fie urmarite doar cand e chiar formularul de contact (filtrat dupa form ID); tracking pe click-urile pe telefon; „adauga si add_to_cart si tot ce trebuie"; fisierul JSON rescris, pentru un nou import.
+
+**Ce exista pe site, verificat:** un singur formular propriu — blocul `efb/contact-form` cu `formId` = **`contact`**, doar pe `/contact-us/` (pagina #7319); `form.js` il trimite ca `form_id`. Telefoane: `tel:01280811411` (peste tot) si `tel:01280811410` (contact); email: `mailto:sales@eco-fridge.co.uk`.
+
+**Containerul nou** (`gtm/GTM-NFMC9Z3-new-website.json`, din `gtm/build-container.py`) — **16 tag-uri, 15 triggere, 32 de variabile, 8 built-in**:
+- **Cate un tag GA4 pe fiecare eveniment de magazin**, cu triggerul lui, ca sa se vada dupa nume in GTM si in Tag Assistant: `view_item_list`, `select_item`, `view_item`, **`add_to_cart`**, `remove_from_cart`, `view_cart`, `begin_checkout`, `add_shipping_info`, `add_payment_info`, plus `purchase` cu cei 19 parametri ai comenzii.
+- **Formularul de contact:** `form_start`, `form_submit`, `generate_lead`, fiecare cu trigger propriu care cere **`form_id` = `contact`**, pe langa conditiile comune.
+- **`phone_click`** (Link Click pe `tel:`): `phone_number` curatat de „tel:" si spatii, `link_text`, `page_path`. **`email_click`** (Link Click pe `mailto:`): `email_address`, `link_text`, `page_path`. Numerele si adresa sunt ale firmei, nu date personale ale vizitatorului.
+- Conditii comune pe toate triggerele: `Page Hostname = www.eco-fridge.co.uk`, echipa logata exclusa.
+- Testat logica celor doua variabile JavaScript pe valori reale (`tel:+44 1280 811410` → `+441280811410`, `mailto:…?subject=…` → adresa simpla). Verificat: fiecare referinta exista, fiecare tag are trigger, zero romana.
+
+**Ce nu poate repara containerul:** `form_start`/`form_submit` pe care le vedem la „Add to basket" vin din **GA4 Enhanced measurement → Form interactions**, trimise direct de Google tag, nu prin triggere GTM — si au **aceleasi nume** ca evenimentele noastre, deci s-ar amesteca in rapoarte. Se opresc doar din GA4. Dupa asta, `form_*` in GA4 inseamna exclusiv formularul de contact.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
