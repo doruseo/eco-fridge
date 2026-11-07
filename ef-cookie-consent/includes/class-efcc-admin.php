@@ -178,7 +178,7 @@ class EFCC_Admin {
 			array( (bool) $gcm['enabled'], 'Google Consent Mode v2 on', 'gcm' ),
 			array( 'plugin' !== $gcm['gtm_load'] || '' !== $gcm['gtm_id'], 'plugin' === $gcm['gtm_load'] ? ( $gcm['gtm_id'] ? 'GTM container ' . $gcm['gtm_id'] . ' loaded by the plugin' : 'Enter your GTM container ID' ) : 'GTM loaded elsewhere / not used', 'gcm' ),
 			array( (bool) $g['log'], 'Consent log on (proof of consent)', 'general' ),
-			array( 'equal' === EFCC_Settings::get( 'appearance', 'button_style' ), 'Buttons with equal prominence (ICO recommends "Reject all" as prominent as "Accept all")', 'banner', true ),
+			array( in_array( EFCC_Settings::get( 'appearance', 'button_style' ), array( 'equal', 'balanced' ), true ), '"Reject all" as prominent as "Accept all" (ICO, EDPB)', 'banner', true ),
 		);
 		echo '<div class="efcc-grid"><section class="efcc-card"><h2>Checklist</h2><ul class="efcc-checks">';
 		foreach ( $checks as $c ) {
@@ -205,9 +205,11 @@ class EFCC_Admin {
 		self::row_select( 'appearance', 'layout', 'Layout', array( 'bar' => 'Bar at the bottom', 'box-left' => 'Box, bottom left', 'box-right' => 'Box, bottom right', 'center' => 'Box in the centre' ) );
 		self::row_select( 'appearance', 'button_style', 'Buttons', array(
 			'accent' => '"Accept all" filled, "Reject all" and "Manage options" outlined',
-			'equal'  => 'Equal prominence – all three filled (recommended by the ICO)',
-		), 'The ICO expects rejecting to be as easy as accepting and has criticised banners that make "Accept" stand out. "Equal prominence" is the safest choice under PECR. "Reject all" is always the middle button.' );
+			'equal'    => 'Equal prominence – all three filled (recommended by the ICO)',
+			'balanced' => '"Accept all" and "Reject all" filled the same; "Manage options" and "Save my choices" in a lighter shade',
+		), 'The ICO and the EDPB expect rejecting to be as easy and as visible as accepting, so "Reject all" always looks exactly like "Accept all" in "Equal prominence" and "Balanced". "Balanced" only softens the buttons that open or save detailed choices. "Reject all" is always the middle button.' );
 		self::row_check( 'appearance', 'uppercase', 'Button text', 'Capital letters on every button (applied to all of them, so none stands out)' );
+		self::row_check( 'appearance', 'overlay', 'Grey overlay', 'Dim the page behind the banner until the visitor makes a choice (accepting and rejecting both close it, so this is not a cookie wall)' );
 		self::row_color( 'appearance', 'primary', 'Main colour (buttons, links, switches)' );
 		self::row_color( 'appearance', 'primary_text', 'Text on the main colour' );
 		self::row_color( 'appearance', 'background', 'Background' );

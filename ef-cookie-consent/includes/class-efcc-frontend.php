@@ -189,7 +189,7 @@ gtag('consent','default',<?php echo wp_json_encode( $def ); ?>);
 		$policy  = EFCC_Settings::policy_page();
 		$link    = $policy ? '<a href="' . esc_url( get_permalink( $policy ) ) . '">' . esc_html( $t['policy_link'] ) . '</a>' : esc_html( $t['policy_link'] );
 		$message = str_replace( '{policy}', $link, esc_html( $t['message'] ) );
-		$classes = 'efcc-banner efcc-banner--' . sanitize_html_class( $a['layout'] ) . ' efcc-buttons--' . sanitize_html_class( $a['button_style'] ) . ( ! empty( $a['uppercase'] ) ? ' efcc-buttons--upper' : '' );
+		$classes = 'efcc-banner efcc-banner--' . sanitize_html_class( $a['layout'] ) . ' efcc-buttons--' . sanitize_html_class( $a['button_style'] ) . ( ! empty( $a['uppercase'] ) ? ' efcc-buttons--upper' : '' ) . ( ! empty( $a['overlay'] ) ? ' efcc-banner--overlay' : '' );
 		?>
 <div id="efcc-banner" class="<?php echo esc_attr( $classes ); ?>" role="region" aria-label="<?php echo esc_attr( $t['title'] ); ?>" hidden>
 	<div class="efcc-banner__inner">
@@ -205,6 +205,8 @@ gtag('consent','default',<?php echo wp_json_encode( $def ); ?>);
 		</div>
 	</div>
 </div>
+<?php // Shown by CSS only while the banner is visible (.efcc-banner--overlay:not([hidden]) + .efcc-overlay). ?>
+<div class="efcc-overlay" aria-hidden="true"></div>
 
 <div id="efcc-modal" class="efcc-modal efcc-buttons--<?php echo esc_attr( $a['button_style'] ); ?><?php echo ! empty( $a['uppercase'] ) ? ' efcc-buttons--upper' : ''; ?>" hidden>
 	<div class="efcc-modal__backdrop" data-efcc="close"></div>

@@ -30,6 +30,17 @@
 .efcc-buttons--upper .efcc-btn { text-transform: uppercase; letter-spacing: .03em; }
 /* "Equal prominence": every choice looks the same (ICO guidance). */
 .efcc-buttons--equal .efcc-btn--secondary { background: var(--efcc-primary) !important; color: var(--efcc-primary-text) !important; }
+/* "Balanced": "Reject all" stays exactly as visible as "Accept all" (ICO, EDPB);
+   only the buttons that open or save detailed choices are a lighter shade. */
+.efcc-buttons--balanced .efcc-btn[data-efcc="reject"] { background: var(--efcc-primary) !important; color: var(--efcc-primary-text) !important; }
+.efcc-buttons--balanced .efcc-btn[data-efcc="manage"], .efcc-buttons--balanced .efcc-btn[data-efcc="save"] {
+	background: color-mix(in srgb, var(--efcc-primary) 16%, #ffffff) !important;
+	border-color: color-mix(in srgb, var(--efcc-primary) 38%, #ffffff);
+	color: color-mix(in srgb, var(--efcc-primary) 78%, #000000) !important;
+}
+.efcc-buttons--balanced .efcc-btn[data-efcc="manage"]:hover, .efcc-buttons--balanced .efcc-btn[data-efcc="save"]:hover {
+	background: color-mix(in srgb, var(--efcc-primary) 26%, #ffffff) !important;
+}
 
 /* —— banner —— */
 .efcc-banner {
@@ -58,6 +69,15 @@
 .efcc-banner__buttons { display: flex; flex-wrap: wrap; gap: 10px; flex: 0 0 auto; }
 .efcc-banner--box-left .efcc-banner__buttons, .efcc-banner--box-right .efcc-banner__buttons, .efcc-banner--center .efcc-banner__buttons { margin-top: 16px; }
 .efcc-banner--box-left .efcc-btn, .efcc-banner--box-right .efcc-btn, .efcc-banner--center .efcc-btn { flex: 1 1 auto; }
+
+/* —— grey overlay while the banner waits for a choice ——
+   Not a cookie wall: "Accept all" and "Reject all" both close it. */
+.efcc-overlay { display: none; }
+.efcc-banner--overlay:not([hidden]) + .efcc-overlay {
+	display: block; position: fixed; inset: 0; z-index: calc(var(--efcc-z) - 2);
+	background: rgba(17, 24, 39, .55);
+}
+html.efcc-banner-open:has(.efcc-banner--overlay:not([hidden])) { overflow: hidden; }
 
 /* —— preferences dialog —— */
 .efcc-modal { position: fixed; inset: 0; z-index: calc(var(--efcc-z) + 1); display: flex; align-items: center; justify-content: center; padding: 16px; }
