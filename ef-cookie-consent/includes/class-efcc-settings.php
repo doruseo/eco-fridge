@@ -74,7 +74,7 @@ class EFCC_Settings {
 				'layout'       => 'bar',
 				'button_style' => 'equal',
 				'uppercase'    => 1,
-				'overlay'      => 1,
+				'overlay'      => 0,
 				'primary'      => '#1f821f',
 				'primary_text' => '#ffffff',
 				'background'   => '#ffffff',
