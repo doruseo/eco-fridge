@@ -392,6 +392,12 @@ html.ef-drawer-open { overflow: hidden; }
 }
 .ef-product-card:hover { box-shadow: 0 6px 18px rgba(0,0,0,.08); }
 
+/* WooCommerce hides the product gallery (inline opacity: 0) until its slider script
+   runs at the end of the page, so the main product image painted late and the LCP
+   on product pages was 5 s in PageSpeed. The rules below already keep the layout
+   stable before the slider starts, so the gallery can be visible from the start. */
+.woocommerce-js div.product div.images.woocommerce-product-gallery { opacity: 1 !important; }
+
 /* Content sections — white background (white-background products blend naturally) */
 .ef-section-alt { background: #fff; }
 
@@ -1055,6 +1061,10 @@ div.wpforms-container .wpforms-submit:hover {
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
   padding: 12px 4px 30px;   /* room for the lifted card and its shadow */
+  /* Snap point = the 4px padding, so the track is already at rest when the page
+     loads. Without it the browser snapped the track by 4px on load; Chrome counts
+     that as a scroll and stops measuring LCP (PageSpeed NO_LCP on the home page). */
+  scroll-padding-inline: 4px;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
