@@ -2690,6 +2690,12 @@ Doru: „pe desktop scorul de page speed este 100%, iar pe mobile 74%"; a aproba
 
 **Lectie:** inainte de a scoate un CSS „nefolosit", verificat cu capturi si cu dropdown-urile deschise (cos, mega-meniu), nu doar pagina statica — si testat intai pe staging, nu direct pe live.
 
+## 127. PageSpeed: eroarea reala e `NO_LCP`; test cu parametru in adresa (2026-11-07, ~09:30 UK)
+
+Doru a trimis capturile PageSpeed (mobil): Performance „!", iar in detalii **LCP: Error! NO_LCP** si TBT tot `NO_LCP`, cu FCP 1,8 s, Speed Index 4,4 s, CLS 0 — **Chromium 157** la Google. Filmstrip-ul arata pagina alba si apoi direct pagina cu **suprafata gri si bannerul** deasupra. Local (Lighthouse 13.6 cu Chrome 156) LCP-ul se gaseste. **Ipoteza**, neconfirmata oficial: cand suprafata gri e deja pe ecran la prima afisare, Chrome nu mai socoteste nimic de sub ea ca LCP.
+
+**Test fara efect pentru vizitatori** (aprobat de Doru: „testeaza"): `ef-cookie-consent/includes/class-efcc-frontend.php` are acum un parametru temporar — `?efcc_test=nooverlay` (fara suprafata gri) si `?efcc_test=nobanner` (fara banner). Urcat pe live cu backup, md5 verificat; adresa normala neschimbata (clasa overlay prezenta, `hide:false`). API-ul public PageSpeed are cota zilnica epuizata, deci Doru ruleaza testul din pagina PageSpeed pe cele trei adrese. **De scos dupa test.**
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
