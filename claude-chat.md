@@ -2696,6 +2696,16 @@ Doru a trimis capturile PageSpeed (mobil): Performance „!", iar in detalii **L
 
 **Test fara efect pentru vizitatori** (aprobat de Doru: „testeaza"): `ef-cookie-consent/includes/class-efcc-frontend.php` are acum un parametru temporar — `?efcc_test=nooverlay` (fara suprafata gri) si `?efcc_test=nobanner` (fara banner). Urcat pe live cu backup, md5 verificat; adresa normala neschimbata (clasa overlay prezenta, `hide:false`). API-ul public PageSpeed are cota zilnica epuizata, deci Doru ruleaza testul din pagina PageSpeed pe cele trei adrese. **De scos dupa test.**
 
+## 128. Suprafata gri scoasa: PageSpeed masoara din nou (2026-11-07, ~09:45 UK)
+
+Rezultatele lui Doru, PageSpeed mobil: **`?efcc_test=nooverlay` → 96**; `?efcc_test=nobanner` → `NO_LCP`; adresa normala (banner + suprafata gri) → `NO_LCP`. Deci **suprafata gri** facea pagina nemasurabila pentru Chromium 157. Cererea lui: „Scoate overlay la cookie consent, dar fa bannerul sa se incarce in continuu pe fiecare pagina, sa nu dispara pana ce utilizatorul da accept (atat cat permite legea)".
+
+**Facut:** `appearance.overlay = 0` pe live si pe staging (backup al setarilor in `/tmp` pe fiecare server), cache golit; verificat pe pagina proaspata si pe cea din cache: fara clasa `efcc-banner--overlay`. In plugin, valoarea implicita a devenit 0, cu motivul scris in admin langa optiune; versiunea **1.1.1**, urcata pe live, staging si wp-env-ul local; zip refacut (proiect + `WP Plugins`). Captura pe telefon: banner normal, pagina fara gri.
+
+**Bannerul ramane pana la o alegere — deja asa functiona:** fara cookie de consimtamant, `showBanner()` ruleaza la fiecare incarcare de pagina; bannerul nu are buton „×", deci nu se poate inchide fara alegere. Ce permite legea: „Reject all" si „Save my choices" il inchid la fel ca „Accept all" — a-l tine afisat dupa un refuz, sau a cere din nou la fiecare pagina pana la acceptare, ar face consimtamantul fortat (ICO/PECR, EDPB).
+
+**Ramas deschis:** si fara banner deloc (`nobanner`) PageSpeed da `NO_LCP` — deci pentru vizitatorii care au ales deja, Chromium 157 tot nu gaseste un LCP pe prima pagina. Nu afecteaza scorul (PageSpeed testeaza mereu ca vizitator nou), dar merita inteles; parametrul de test ramane pana atunci.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.

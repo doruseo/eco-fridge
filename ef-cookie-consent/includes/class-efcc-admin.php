@@ -209,7 +209,7 @@ class EFCC_Admin {
 			'balanced' => '"Accept all" and "Reject all" filled the same; "Manage options" and "Save my choices" in a lighter shade',
 		), 'The ICO and the EDPB expect rejecting to be as easy and as visible as accepting, so "Reject all" always looks exactly like "Accept all" in "Equal prominence" and "Balanced". "Balanced" only softens the buttons that open or save detailed choices. "Reject all" is always the middle button.' );
 		self::row_check( 'appearance', 'uppercase', 'Button text', 'Capital letters on every button (applied to all of them, so none stands out)' );
-		self::row_check( 'appearance', 'overlay', 'Grey overlay', 'Dim the page behind the banner until the visitor makes a choice (accepting and rejecting both close it, so this is not a cookie wall)' );
+		self::row_check( 'appearance', 'overlay', 'Grey overlay', 'Dim the page behind the banner until the visitor makes a choice (accepting and rejecting both close it, so this is not a cookie wall). Off by default: with the page dimmed on first paint, PageSpeed Insights (Chromium 157) reports NO_LCP and gives no Performance score.' );
 		self::row_color( 'appearance', 'primary', 'Main colour (buttons, links, switches)' );
 		self::row_color( 'appearance', 'primary_text', 'Text on the main colour' );
 		self::row_color( 'appearance', 'background', 'Background' );
