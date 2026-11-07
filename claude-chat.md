@@ -2597,6 +2597,28 @@ Doru: a pornit LiteSpeed; intreaba dacă porneste si „Object Cache — Recomme
 
 **Recomandari:** **Object Cache — da**, il porneste Doru, apoi verific ca valorile persista intre cereri. **CDN — nu azi:** schimba stratul din fata site-ului (certificat, cache la margine, cereri catre webhook-ul Lloyds), iar azi abia am dovedit plata, redirecturile si GTM; serverul e in UK, la fel ca clientii, deci castigul e mic. De incercat dupa o saptamana linistita, cu reverificarea redirecturilor si a unei comenzi cu cardul.
 
+## 121. LiteSpeed reglat pentru magazin: cache de pagini activ, de 7–8 ori mai rapid, fara efect pe design sau functii (2026-11-07, ~08:25)
+
+Doru: „verifica setarile din pluginul de cache LiteSpeed si bifeaza ce trebuie sau debifeaza ce nu trebuie, plus setarile optime care insa sa nu afecteze designul si functionalitatile."
+
+**Ce era deja bine (ramas neschimbat, intentionat):** toate optimizarile care rescriu CSS/JS/HTML sunt oprite — minificare, combinare, UCSS/CCSS, CSS async, JS defer/delay, Guest Mode, Instant Click, lazy load si LQIP, optimizarea de imagini LiteSpeed. Motive: tema e deja optimizata (munca de Core Web Vitals din octombrie); imaginile AVIF/WebP le face `o2-image-optimizer`; amanarea scripturilor ar strica ordinea de care depinde Consent Mode (valorile implicite inaintea GTM); Instant Click ar umfla analytics-ul cu preincarcari. Crawler, CDN/QUIC.cloud, ESI si cache-ul pe mobil separat — oprite; debug oprit.
+
+**Schimbat** (setarile vechi salvate local in `source-dump/final-2026-11-07/litespeed-conf-before-2026-11-07.tsv`):
+- Cache pentru utilizatori logati: **oprit** (doar echipa e logata; magazinul e guest-only).
+- Cache pentru comentatori: **oprit** (cine lasa o recenzie isi vede recenzia in asteptare).
+- Cache REST: **oprit** (Store API din cos/checkout si cautarea live cu preturi nu trebuie servite vechi).
+- Browser cache: **pornit**; golirea cache-ului la update-uri de pluginuri/tema: **pornita**.
+- Heartbeat pe front-end: **oprit** (nimic din magazin nu-l foloseste).
+- Stirile LiteSpeed din dashboard: oprite.
+
+**Masurat:** prima pagina — **1,29 s la prima cerere, apoi 0,16–0,18 s**, cu `X-LiteSpeed-Cache: hit`. Cache-ul de pagini functioneaza pe acest server, desi el ignora regulile de rescriere din `.htaccess`.
+
+**Verificat ca nu s-a stricat nimic, cu pagini servite din cache:** redirecturile canonice (cate trei cereri pe fiecare varianta) — un singur 301 spre `https://www`; parcursul complet in Chrome real, de doua ori — bannerul apare, acordul se salveaza, „Add to basket", cos, checkout, formularul de contact, click pe telefon si email, cu **toate evenimentele GA4** ca inainte; **numarul din cosul din header** („1 item") e corect pe pagini care altfel ar fi din cache — LiteSpeed nu mai serveste din cache cand vizitatorul are ceva in cos, exact cum trebuie. Endpoint-urile noastre publice (formular, cautare, jurnalul de consimtamant) nu folosesc nonce, deci nu pot expira in pagini din cache; nonce-urile din `woo-single.php` sunt pe pagina de cos, care nu se pune in cache.
+
+**Object Cache (Redis) — inca nefunctional, si de ce:** socket-ul raspunde, dar Redis respinge datele din setari (`WRONGPASS`), iar fisierul pe care il citeste drop-in-ul nu are activat comutatorul principal. Se rezolva din hPanel → „Object Cache", care creeaza utilizatorul Redis al contului nou si scrie parola corecta. Pana atunci WordPress merge normal fara el.
+
+**Copia locala:** baza live dupa schimbari, `source-dump/db/live-2026-11-07-*-litespeed.sql.gz`.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
