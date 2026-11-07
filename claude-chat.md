@@ -2746,6 +2746,12 @@ Doru: „implementeaza modificarile si in pluginul general redenumit o2-cookie-c
 - Un `ef-cookie-consent.zip` regenerat accidental de vechiul script (la o editare esuata) a fost sters imediat; in `WP Plugins` raman `o2-cookie-consent.zip` si vechiul `o2dev-cookie-consent.zip` (neatins).
 - **Eco-Fridge live/staging raman la 1.1.1** ca numar de versiune (codul e identic cu 1.2.0, diferă doar linia de versiune): urcarea acestei linii a fost blocata de sistemul de permisiuni, nefiind ceruta explicit.
 
+## 133. Emailul catre Mads: site-ul nou e live (2026-11-07, ~14:00 UK)
+
+Doru a cerut un email scurt in HTML. Fisier: `email-mads-launched-2026-11-07.html` (stiluri inline, ca la emailul de propunere). Contine: lansarea pe eco-fridge.co.uk; login la `https://www.eco-fridge.co.uk/wp-login.php` (verificat: 200, `/wp-admin/` duce acolo; nu mai exista „Hide Backend" de pe site-ul vechi); aceiasi useri, parole si 2FA; userii **mads** si **kass**; apoi pe scurt: comenzi/clienti/stoc/preturi preluate, adresele vechi pastrate, plata cu cardul verificata cu o comanda reala, emailuri si SMS, clienti guest, viteza 93–97 pe mobil (vechiul ~34), GA4 pe tot funnel-ul; de facut: Ambrit activ 30 de zile + backup-ul de luni.
+
+**Parolele nu sunt in fisier**: WordPress le tine doar criptat, deci am pus doua campuri galbene `[MADS PASSWORD]` / `[KASS PASSWORD]` pe care le completeaza Doru. **Verificat pe live:** mads are 2FA (email principal + TOTP), **kass nu are 2FA** — emailul o spune si recomanda activarea.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
