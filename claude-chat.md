@@ -2434,6 +2434,23 @@ Doru: in GTM exista un tag „Amplitude Analytics Browser SDK" (citeste `_amplit
 
 **Ce mai ramane in GTM, fara publicitate:** consent overview pornit, Amplitude pe pauza; un tag GA4 pentru restul evenimentelor de ecommerce pe care site-ul le trimite deja (`view_item_list`, `select_item`, `view_item`, `remove_from_cart`, `view_cart`, `add_shipping_info`, `add_payment_info`), cu `{{Event}}` ca nume; tag-ul de formular (`generate_lead`, `form_start`, `form_submit`); filtrul de hostname si cel pentru echipa logata in triggere; optional parametrii comenzii la purchase. In GA4: Form interactions oprit in Enhanced measurement, retentie 14 luni, `generate_lead` ca key event, unwanted referrals pentru pagina de plata (domeniul se vede la comanda reala) si `eco-fridge.o2dev.de`, Merchant Center legat. Sectiunile 5.5 (Google Ads) si 7 (Ads) se sar.
 
+## 110. Totul in engleza, in cod si pe site-uri (2026-11-07, ~08:10)
+
+Doru, vazand `order_details.<câmp>` in ghidul GTM: „vreau ca absolut tot ce exista in cod si peste tot in aceste site-uri sa fie in engleza, nimic in romana."
+
+**Audit, inainte de orice schimbare:**
+- **Codul nostru** (tot ce e urmarit in git in afara `source-dump/`: `ecofridge-blocks`, `ef-cookie-consent`, `o2-image-optimizer`, `astra-child`, `migration`, `tools`): pluginurile si tema erau deja integral in engleza. Romana ramasese doar in **migrarile 01–22**, primele scrise, in blocurile de documentatie, comentarii si mesajele WP-CLI.
+- **Site-ul live:** pagini, produse, meta, optiuni, termeni, redirecturi, comentarii si fisierele site-ului — **zero romana**. Singurele diacritice din baza sunt numele firmelor a doi clienti, „Şah sultan ltd" (turca) si „Kimi Bubble Tea & Pâtisserie" (franceza): date reale, neatinse. Staging are aceeasi baza; site-ul de backup e copia site-ului vechi, nu e codul nostru.
+- **Arhivele zip** (`ef-cookie-consent.zip`, `ef-close-shop.zip`, `tools/ecofridge-tls-fix.zip`): curate.
+
+**Ce am schimbat:**
+- **Migrarile 01–22: 394 de linii traduse**, toate comentarii, documentatie sau mesaje. **Nicio linie de logica atinsa** — verificat pe diff, iar `php -l` trece pe toate 22. O scanare finala pe tot codul (diacritice plus cuvinte romanesti uzuale, fara diacritice) nu mai gaseste nimic; potrivirile ramase sunt cuvinte englezesti („care homes", `orderby => 'rand'`).
+- **Ghidul GTM:** singurul identificator romanesc de tastat in GTM, `order_details.<câmp>`, e acum `order_details.<field>`. Toate celelalte nume din ghid (variabile, triggere, parametri) erau deja in engleza.
+
+**Ce NU am tradus, si de ce:** documentele scrise pentru Doru — acest jurnal, `AUDIT.md`, raportul F15, proza celor doua ghiduri. Nu sunt cod si nu ajung pe niciun site; se traduc doar dacă le cere. `source-dump/` contine fisiere ale temei vechi si ale unor terti.
+
+Regula e salvata si in memorie, extinsa: cod, mesaje, tot ce ajunge in baza sau pe site si orice nume de tastat in GTM/GA4. PR #90.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
