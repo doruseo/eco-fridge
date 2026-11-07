@@ -2768,6 +2768,7 @@ Doru a scris suportului Hostinger despre `WRONGPASS`; ei au propus reactivarea O
 - Containerul GTM are o exceptie pe toate tagurile de eveniment GA4: `visitorType` = administrator|shop_manager → nu pornesc cand esti logat in WordPress (Tag Assistant le arata la „Not fired"). Doar Google tag (page_view) porneste si pentru admini.
 - `?gtm_debug=` trece de redirecturi (non-www si http → www, parametrul pastrat); cache-ul LiteSpeed nu afecteaza Tag Assistant.
 - Concluzie: nu e nimic stricat pe site. De verificat la Doru: testul se face delogat / in incognito, fara ad-blocker, cu „Accept all"; in GA4 — Admin → Data filters (Internal / Developer traffic) si Realtime.
+- Doru: in DebugView au ajuns cateva evenimente, dar nu add_to_cart / checkout. Testat ca vizitator tot funnelul pe live: view_item, view_item_list, add_to_cart, view_cart (/cart/), begin_checkout, add_payment_info — toate ajung in GA4 cu `gcs=G111`. Simptomul (page_view da, evenimentele de ecommerce nu) se potriveste exact cu exceptia administrator|shop_manager din GTM → testul trebuie facut delogat (incognito). Minor: add_payment_info porneste imediat la incarcarea checkout-ului (metoda de plata e preselectata).
 - Observat: tagul de Google Ads AW-1015171724 inca trimite (conversion linker / ccm) — e legat de Google tag; ramane intrebarea deschisa despre scoaterea lui.
 
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
