@@ -2752,6 +2752,16 @@ Doru a cerut un email scurt in HTML. Fisier: `email-mads-launched-2026-11-07.htm
 
 **Parolele nu sunt in fisier**: WordPress le tine doar criptat, deci am pus doua campuri galbene `[MADS PASSWORD]` / `[KASS PASSWORD]` pe care le completeaza Doru. **Verificat pe live:** mads are 2FA (email principal + TOTP), **kass nu are 2FA** — emailul o spune si recomanda activarea.
 
+## 134. Object Cache (Redis) pornit de Hostinger — verificat si reparat ultimul pas (2026-11-07, ~14:30 UK)
+
+Doru a scris suportului Hostinger despre `WRONGPASS`; ei au propus reactivarea Object Cache cu credentiale Redis noi, Doru a confirmat, iar Object Cache a aparut activ.
+
+**Ce am gasit:** credentialele noi erau in setarile LiteSpeed (`litespeed.conf.object-*`) si functionau (auth OK, PING, baza 4327 cu 75 de chei), dar fisierul pe care il citeste efectiv drop-in-ul, `wp-content/.litespeed_conf.php` (12:23), avea inca parola veche → `WRONGPASS`, deci WordPress cadea pe cache-ul din memorie (`wp_using_ext_object_cache() = false`). Site-ul nu era afectat, doar Redis nu era folosit.
+
+**Reparat:** backup `/tmp/litespeed_conf.before-objfix.php`, apoi `wp litespeed-option set object true` → LiteSpeed a rescris fisierul. Acum: `wp_using_ext_object_cache() = true`, o valoare scrisa intr-un proces e citita din altul (Redis persistent), 600 de operatii Redis in 11 ms.
+
+**Verificat fara repercusiuni:** 9 pagini (home, produs, categorie, contact, blog, shop, sitemap, wp-login, feed) 200 fara erori PHP; adaugare in cos → 1 produs, Store API cart corect, checkout afiseaza Lloyds Cardnet (blocul de checkout se randeaza in browser); pagini din cache LiteSpeed `hit`, pagini necache ~1,0–1,2 s. Copia locala: `live-db-<ora>-redis.sql.gz` si arhiva drop-in + conf in `source-dump/final-2026-11-07/`.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
