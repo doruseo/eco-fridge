@@ -2576,6 +2576,16 @@ Doru: „bifeaza tot ce s-a facut in [calendar] si spune-mi ce mai este de facut
 
 **Ce mai e azi** — lista din raspunsul catre Doru: formularul real din Contact Us; decizia pentru #14658 si produsul de test (inclusiv o comanda incognito cu transfer bancar pentru `purchase` in GA4); AG debug debifat; Search Console (sitemap + inspectii); Merchant Center (feed pe www); emailul catre Mads plus cererile catre Ambrit; GA4 (key events, retentie 14 luni, referrals nedorite, legatura Ads); decizia pentru cache-ul LiteSpeed.
 
+## 119. Randuri noi in calendar si checklist pentru dupa lansare (2026-11-07, ~08:10)
+
+Doru: un rand pentru stergerea produsului de test, unul pentru verificarea GA4 si setarea Key events, unul pentru verificarea `purchase` in GA4 la sfarsitul lunii; apoi inca trei, in calendar si in checklist: cronul real din hPanel, stergerea dump-ului ramas pe staging, HPOS peste 2–3 saptamani.
+
+**Calendar lansare**, in ordine cronologica: „Stergerea produsului de test" (7 nov, dupa testul GA4) · „Verificare GA4 si setare Key events" (luni 9 nov: evenimentele asteptate, key events `generate_lead` si `phone_click`, retentie 14 luni, referrals nedorite, legatura Ads, funnel-ul fara `add_shipping_info`) · „Cron real din hPanel" si „Stergerea dump-ului ramas pe staging" (saptamana 9–13 nov) · randul HPOS existent, cu data scrisa acum „~21–28 nov (peste 2–3 saptamani de la lansare)" · „Verificare purchase in GA4" (luni 30 nov: comanda cu comanda fata de WooCommerce, cu diferentele acceptate — echipa logata, refuzul cookie-urilor, blocante de reclame). Doua dintre randuri ajunsesera initial inaintea lui „duminica 8 nov" — mutate cu `moveDimension`, fara rescrierea textelor.
+
+**Pentru cron, ordinea e scrisa explicit:** intai sarcina din hPanel, verificata ca ruleaza, abia apoi `DISABLE_WP_CRON` — invers, toate sarcinile programate s-ar opri.
+
+**Checklist eco-fridge:** faza noua **„17. Dupa lansare"**: F17-01 cron real, F17-02 dump-ul de pe staging, F17-03 HPOS (cu trimitere la F4-14).
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
