@@ -1,16 +1,16 @@
 <?php
 /**
- * Pasul 22: mută rândul 2 al header-ului (meniul de categorii comerciale) în
- * ULTIMUL rând al Header Builder-ului Astra (Below Header), ca meniu NATIV editabil
- * din Customize, cu COȘUL STANDARD Astra.
+ * Step 22: moves header row 2 (the commercial category menu) into
+ * the LAST row of the Astra Header Builder (Below Header), as a NATIVE menu editable
+ * from Customize, with the STANDARD Astra cart.
  *
- *  - creează meniul INDIVIDUAL „Commercial Menu" cu cele 8 categorii top-level de
- *    produs + sub-categoriile lor (referințe TAXONOMY, NU custom links), clonate din
- *    meniul autoritar #342. Mega nativ Astra pe ramurile mari.
- *  - asignează „Commercial Menu" pe locația `ast-hf-menu-2` (componenta menu-2).
- *  - configurează Below Header: menu-2 (stânga) + woo-cart nativ (dreapta).
+ *  - creates the SEPARATE "Commercial Menu" with the 8 top-level product
+ *    categories + their sub-categories (TAXONOMY references, NOT custom links), cloned from
+ *    the authoritative menu #342. Native Astra mega menu on the large branches.
+ *  - assigns "Commercial Menu" to the `ast-hf-menu-2` location (menu-2 component).
+ *  - configures Below Header: menu-2 (left) + native woo-cart (right).
  *
- * Idempotent. Rulare: cp migration/22-below-header-menu.php source-dump/_run.php &&
+ * Idempotent. Run: cp migration/22-below-header-menu.php source-dump/_run.php &&
  *   npx wp-env run cli wp eval-file wp-content/source-dump/_run.php
  *
  * @package Eco-Fridge-Migration
@@ -18,23 +18,23 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-/* ---- sursa: meniul autoritar #342 ---- */
+/* ---- source: the authoritative menu #342 ---- */
 $src = wp_get_nav_menu_object( 'Primary Menu' );
 $src_id = $src ? (int) $src->term_id : 0;
-if ( ! $src_id ) { WP_CLI::error( 'Primary Menu (#342) negăsit.' ); }
+if ( ! $src_id ) { WP_CLI::error( 'Primary Menu (#342) not found.' ); }
 $src_items = wp_get_nav_menu_items( $src_id );
 
-/* ---- meniul individual „Commercial Menu" (idempotent) ---- */
+/* ---- the separate "Commercial Menu" (idempotent) ---- */
 $name = 'Commercial Menu';
 $m = wp_get_nav_menu_object( $name );
 $menu_id = $m ? (int) $m->term_id : (int) wp_create_nav_menu( $name );
 foreach ( (array) wp_get_nav_menu_items( $menu_id ) as $it ) { wp_delete_post( $it->ID, true ); }
 
-/* copiii pe părinte în sursă */
+/* children by parent in the source */
 $by = array();
 foreach ( (array) $src_items as $it ) { $by[ (int) $it->menu_item_parent ][] = $it; }
 
-/* categoriile top-level de produs (cele 8) din #342, în ordine */
+/* the top-level product categories (the 8 of them) from #342, in order */
 $mega_slugs = array( 'display-cabinets', 'storage-cabinets', 'commercial-fridge', 'commercial-freezer' );
 
 $clone = function ( $src_item, $new_parent ) use ( &$clone, $by, $menu_id, $mega_slugs ) {
@@ -49,13 +49,13 @@ $clone = function ( $src_item, $new_parent ) use ( &$clone, $by, $menu_id, $mega
 	) );
 	if ( is_wp_error( $new_id ) || ! $new_id ) { return; }
 
-	// mega nativ Astra pe ramurile mari (top-level)
+	// native Astra mega menu on the large (top-level) branches
 	$t = get_term( (int) $src_item->object_id, 'product_cat' );
 	if ( 0 === (int) $new_parent && $t && in_array( $t->slug, $mega_slugs, true ) ) {
 		update_post_meta( $new_id, '_menu_item_megamenu', 'megamenu' );
 		update_post_meta( $new_id, '_menu_item_megamenu_col', in_array( $t->slug, array( 'display-cabinets', 'storage-cabinets' ), true ) ? '4' : '2' );
 	}
-	// clonează recursiv copiii
+	// clone the children recursively
 	if ( ! empty( $by[ $src_item->ID ] ) ) {
 		foreach ( $by[ $src_item->ID ] as $child ) { $clone( $child, $new_id ); }
 	}
@@ -69,11 +69,11 @@ foreach ( (array) ( $by[0] ?? array() ) as $top ) {
 	}
 }
 
-/* NB: „Commercial Menu" e afișat de header-ul CUSTOM pe rândul 2 (bară verde), cu
- * icon-mega — vezi astra-child/inc/header.php (îl citește după NUME). Rândul 1 =
- * „Landing Pages Menu" (locația primary). Header-ul Astra nativ rămâne ascuns prin CSS.
- * (Nu mai configurăm Below Header nativ.) */
+/* NB: "Commercial Menu" is shown by the CUSTOM header on row 2 (the green bar), with
+ * icon-mega: see astra-child/inc/header.php (it reads the menu by NAME). Row 1 =
+ * "Landing Pages Menu" (primary location). The native Astra header stays hidden by CSS.
+ * (The native Below Header is no longer configured.) */
 
 $items = wp_get_nav_menu_items( $menu_id );
-WP_CLI::log( '„Commercial Menu" #' . $menu_id . ' creat: ' . count( $items ) . ' iteme (' . $count_top . ' categorii top), citit de header-ul custom pe rândul 2.' );
-WP_CLI::success( 'Commercial Menu creat (rândul 2 al header-ului custom).' );
+WP_CLI::log( '"Commercial Menu" #' . $menu_id . ' created: ' . count( $items ) . ' items (' . $count_top . ' top categories), read by the custom header on row 2.' );
+WP_CLI::success( 'Commercial Menu created (row 2 of the custom header).' );

@@ -1,17 +1,17 @@
 <?php
 /**
- * Pasul 19: SIDEBAR DE FILTRE pe arhivele de categorii de produse (stânga).
+ * Step 19: FILTER SIDEBAR on the product category archives (left).
  *
- * A) Dimensiuni → atribute filtrabile: parsează atributul local „dimensions"
- *    (format „W x D x H mm") și creează atributele globale `pa_width` / `pa_height`
- *    cu INTERVALE (bucket-uri), pe care le asignează produselor.
- * B) Layout + widget-uri: setează arhivele Woo pe „left-sidebar" și populează
- *    sidebar-ul „astra-woo-shop-sidebar" (apare doar pe magazin) cu:
- *      - Sub-categorii (widget custom contextual)  - Filter by price (nativ)
+ * A) Dimensions → filterable attributes: parses the local "dimensions" attribute
+ *    (format "W x D x H mm") and creates the global attributes `pa_width` / `pa_height`
+ *    with RANGES (buckets), which it assigns to the products.
+ * B) Layout + widgets: sets the Woo archives to "left-sidebar" and fills
+ *    the "astra-woo-shop-sidebar" sidebar (shown only in the shop) with:
+ *      - Sub-categories (contextual custom widget)   - Filter by price (native)
  *      - Width (layered nav pa_width)              - Height (layered nav pa_height)
- *    Toate contextuale la categoria curentă.
+ *    All of them contextual to the current category.
  *
- * Idempotent. Rulare: cp migration/19-shop-filters.php source-dump/_run.php &&
+ * Idempotent. Run: cp migration/19-shop-filters.php source-dump/_run.php &&
  *   npx wp-env run cli wp eval-file wp-content/source-dump/_run.php
  *
  * @package Eco-Fridge-Migration
@@ -19,9 +19,9 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-/* ---------- A) ATRIBUTE pa_width / pa_height din dimensiuni ---------- */
+/* ---------- A) pa_width / pa_height ATTRIBUTES from the dimensions ---------- */
 
-/** Creează (dacă lipsește) atributul global + înregistrează taxonomia în request-ul curent. */
+/** Creates the global attribute (if missing) and registers the taxonomy in the current request. */
 function ef_ensure_attribute( $label, $slug ) {
 	$tax = wc_attribute_taxonomy_name( $slug ); // pa_<slug>
 	if ( ! wc_attribute_taxonomy_id_by_name( $slug ) ) {
@@ -42,7 +42,7 @@ function ef_ensure_attribute( $label, $slug ) {
 	return $tax;
 }
 
-/** Creează termenul (bucket) și îi setează ordinea (menu_order) în layered nav. */
+/** Creates the term (bucket) and sets its order (menu_order) in the layered nav. */
 function ef_ensure_term( $name, $tax, $order ) {
 	$t = get_term_by( 'name', $name, $tax );
 	if ( $t && ! is_wp_error( $t ) ) {
@@ -56,7 +56,7 @@ function ef_ensure_term( $name, $tax, $order ) {
 	return $tid;
 }
 
-/** Găsește bucket-ul (low, high] pentru o valoare. */
+/** Finds the (low, high] bucket for a value. */
 function ef_bucket( $value, $buckets ) {
 	foreach ( $buckets as $b ) {
 		if ( $value > $b['low'] && $value <= $b['high'] ) { return $b['tid']; }
@@ -66,7 +66,7 @@ function ef_bucket( $value, $buckets ) {
 
 $tax_w = ef_ensure_attribute( 'Width', 'width' );
 $tax_h = ef_ensure_attribute( 'Height', 'height' );
-if ( ! $tax_w || ! $tax_h ) { WP_CLI::error( 'Nu s-au putut crea atributele pa_width/pa_height.' ); }
+if ( ! $tax_w || ! $tax_h ) { WP_CLI::error( 'Could not create the pa_width/pa_height attributes.' ); }
 
 $width_defs = array(
 	array( 'Up to 600 mm', 0, 600 ),
@@ -110,18 +110,18 @@ foreach ( $products as $id ) {
 	if ( $ht ) { wp_set_object_terms( $id, array( (int) $ht ), $tax_h, false ); }
 	$assigned++;
 }
-WP_CLI::log( "Dimensiuni: $assigned produse etichetate cu pa_width/pa_height ($skipped sărite)." );
+WP_CLI::log( "Dimensions: $assigned products tagged with pa_width/pa_height ($skipped skipped)." );
 
-/* ---------- B) LAYOUT + WIDGET-URI în sidebar-ul de shop ---------- */
+/* ---------- B) LAYOUT + WIDGETS in the shop sidebar ---------- */
 
 $s = get_option( 'astra-settings', array() );
 if ( ! is_array( $s ) ) { $s = array(); }
-$s['archive-product-sidebar-layout'] = 'left-sidebar'; // arhive produse (categorii) = sidebar stânga
-$s['woocommerce-sidebar-layout']     = 'left-sidebar'; // fallback global shop
-$s['site-sidebar-width']             = 20;             // sidebar mai îngust (implicit Astra = 30%)
+$s['archive-product-sidebar-layout'] = 'left-sidebar'; // product archives (categories) = left sidebar
+$s['woocommerce-sidebar-layout']     = 'left-sidebar'; // global shop fallback
+$s['site-sidebar-width']             = 20;             // narrower sidebar (Astra default = 30%)
 update_option( 'astra-settings', $s );
 
-// instanțe widget
+// widget instances
 $pf = get_option( 'widget_woocommerce_price_filter', array() );
 $pf[2] = array( 'title' => 'Price' );
 $pf['_multiwidget'] = 1;
@@ -138,7 +138,7 @@ $sc[2] = array( 'title' => 'Categories' );
 $sc['_multiwidget'] = 1;
 update_option( 'widget_ef_subcat_filter', $sc );
 
-// asignează în sidebar-ul de shop (apare doar pe magazin/arhive)
+// assign to the shop sidebar (shown only on the shop/archives)
 $sw = get_option( 'sidebars_widgets', array() );
 if ( ! is_array( $sw ) ) { $sw = array(); }
 $sw['astra-woo-shop-sidebar'] = array(
@@ -149,4 +149,4 @@ $sw['astra-woo-shop-sidebar'] = array(
 );
 update_option( 'sidebars_widgets', $sw );
 
-WP_CLI::success( 'Sidebar de filtre (sub-categorii + preț + lățime + înălțime) configurat pe arhivele de categorii.' );
+WP_CLI::success( 'Filter sidebar (sub-categories + price + width + height) configured on the category archives.' );

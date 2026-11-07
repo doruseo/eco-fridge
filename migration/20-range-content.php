@@ -1,16 +1,16 @@
 <?php
 /**
- * Pasul 20: importă CONȚINUTUL LONG-FORM al categoriilor/range-urilor din originalul
- * eco-fridge (câmp Toolset Types `wpcf-range-content-2` pe termenii legacy), 1:1 cu
- * site-ul live. NU e nevoie de crawl — conținutul e exact în DB-ul legacy, iar toate
- * cele 127 de imagini referite există deja în media sincronizată.
+ * Step 20: imports the LONG-FORM COPY of the categories/ranges from the original
+ * eco-fridge (Toolset Types field `wpcf-range-content-2` on the legacy terms), 1:1 with
+ * the live site. NO crawl needed: the content is exactly in the legacy DB, and all
+ * 127 images it references already exist in the synced media.
  *
- * Îl stochează în term meta `_ef_range_content` pe categoriile noastre product_cat
- * (mapate după slug), cu URL-urile absolute rescrise relativ (portabil la orice domeniu).
- * Randarea (sub grila de produse) + editarea se fac din tema copil (inc/category-content.php).
+ * Stores it in term meta `_ef_range_content` on our product_cat categories
+ * (mapped by slug), with absolute URLs rewritten as relative (portable to any domain).
+ * Rendering (below the product grid) and editing are done by the child theme (inc/category-content.php).
  *
- * Idempotent. Necesită containerul `ef-legacy-db` pornit (vezi memoria de reluare).
- * Rulare: cp migration/20-range-content.php source-dump/_run.php &&
+ * Idempotent. Needs the `ef-legacy-db` container running (see the resume notes).
+ * Run: cp migration/20-range-content.php source-dump/_run.php &&
  *   npx wp-env run cli wp eval-file wp-content/source-dump/_run.php
  *
  * @package Eco-Fridge-Migration
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 $LP = '43lz2ypq8_';
 $db = @mysqli_connect( 'ef-legacy-db', 'root', 'root', 'legacy' );
-if ( ! $db ) { WP_CLI::error( 'Nu mă pot conecta la legacy DB (pornește containerul ef-legacy-db).' ); }
+if ( ! $db ) { WP_CLI::error( 'Cannot connect to the legacy DB (start the ef-legacy-db container).' ); }
 mysqli_set_charset( $db, 'utf8mb4' );
 
 $res = mysqli_query( $db,
@@ -29,9 +29,9 @@ $res = mysqli_query( $db,
 	 JOIN {$LP}terms t ON t.term_id = tm.term_id
 	 WHERE tm.meta_key = 'wpcf-range-content-2' AND CHAR_LENGTH(tm.meta_value) > 50"
 );
-if ( ! $res ) { WP_CLI::error( 'Query legacy eșuat: ' . mysqli_error( $db ) ); }
+if ( ! $res ) { WP_CLI::error( 'Legacy query failed: ' . mysqli_error( $db ) ); }
 
-/** Rescrie URL-urile absolute (live + copie) în relative → portabil la orice domeniu. */
+/** Rewrites absolute URLs (live + copy) as relative ones → portable to any domain. */
 function ef_rewrite_urls( $html ) {
 	return str_replace(
 		array(
@@ -60,8 +60,8 @@ while ( $row = mysqli_fetch_assoc( $res ) ) {
 }
 mysqli_close( $db );
 
-WP_CLI::log( "Conținut categorie importat: $imported termeni (" . number_format( $chars ) . ' caractere total).' );
+WP_CLI::log( "Category copy imported: $imported terms (" . number_format( $chars ) . ' characters in total).' );
 if ( $skipped ) {
-	WP_CLI::warning( 'Slug-uri legacy fără corespondent product_cat (' . count( $skipped ) . '): ' . implode( ', ', $skipped ) );
+	WP_CLI::warning( 'Legacy slugs without a matching product_cat (' . count( $skipped ) . '): ' . implode( ', ', $skipped ) );
 }
-WP_CLI::success( 'Conținut long-form categorii importat (term meta _ef_range_content).' );
+WP_CLI::success( 'Long-form category copy imported (term meta _ef_range_content).' );

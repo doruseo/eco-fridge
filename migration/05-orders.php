@@ -1,28 +1,28 @@
 <?php
 /**
- * Pasul 5 migrare: comenzi (5931) legacy Woo 3.5.10 -> Woo modern (HPOS).
- * Rulare: wp eval-file wp-content/source-dump/_run.php
+ * Migration step 5: orders (5931) legacy Woo 3.5.10 -> modern Woo (HPOS).
+ * Run: wp eval-file wp-content/source-dump/_run.php
  *
- * Creează fiecare comandă prin WooCommerce CRUD (WC_Order) => scrie corect în HPOS.
- * Păstrează: billing/shipping, totaluri, plată, date, order_key, note client,
- * liniile de produs (mapate la produsele noi via _product-id-map.json, cu nume
- * păstrat oricum), shipping items, tax items, add-on-urile YITH (itemmeta),
+ * Creates each order through WooCommerce CRUD (WC_Order), so it is written correctly to HPOS.
+ * Keeps: billing/shipping, totals, payment, dates, order_key, customer notes,
+ * the product lines (mapped to the new products through _product-id-map.json, with the name
+ * kept either way), shipping items, tax items, the YITH add-ons (itemmeta),
  * check_doors (order meta). customer_id=0 (guest) + _ef_legacy_customer_user
- * pentru re-linkuire ulterioară dacă migrăm useri.
+ * for re-linking later if users are ever migrated.
  *
- * Protecții: fără emailuri (pre_wp_mail), fără reducere stoc. Idempotent/reluabil
- * prin meta _ef_legacy_order_id. Numărul comenzii vechi se afișează via filtru în
- * tema copil (woocommerce_order_number).
+ * Safeguards: no emails (pre_wp_mail), no stock reduction. Idempotent and re-runnable
+ * through meta _ef_legacy_order_id. The old order number is shown by a filter in
+ * the child theme (woocommerce_order_number).
  *
  * @package Eco-Fridge-Migration
  */
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
-if ( ! class_exists( 'WooCommerce' ) ) { WP_CLI::error( 'WooCommerce inactiv.' ); }
+if ( ! class_exists( 'WooCommerce' ) ) { WP_CLI::error( 'WooCommerce is not active.' ); }
 
-// protecții side-effects
-add_filter( 'pre_wp_mail', '__return_true' );                        // nu trimite niciun email
-add_filter( 'woocommerce_can_reduce_order_stock', '__return_false' ); // nu atinge stocul curent
+// side-effect safeguards
+add_filter( 'pre_wp_mail', '__return_true' );                        // send no email at all
+add_filter( 'woocommerce_can_reduce_order_stock', '__return_false' ); // leave the current stock alone
 
 global $wpdb;
 $LP = '43lz2ypq8_';
@@ -30,12 +30,12 @@ $db = @mysqli_connect( 'ef-legacy-db', 'root', 'root', 'legacy' );
 if ( ! $db ) { WP_CLI::error( 'Legacy DB: ' . mysqli_connect_error() ); }
 mysqli_set_charset( $db, 'utf8mb4' );
 
-// harta produse vechi->noi
+// old -> new product map
 $pmap_file = ABSPATH . 'wp-content/source-dump/_product-id-map.json';
 $pmap = file_exists( $pmap_file ) ? json_decode( file_get_contents( $pmap_file ), true ) : array();
-if ( ! $pmap ) { WP_CLI::warning( 'Harta produse goală — liniile vor păstra doar numele.' ); }
+if ( ! $pmap ) { WP_CLI::warning( 'The product map is empty: order lines will keep only the name.' ); }
 
-// set comenzi deja importate (reluare) — din stocarea activă (HPOS sau posts)
+// orders already imported (re-run), read from the active storage (HPOS or posts)
 if ( \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled() ) {
 	$done = $wpdb->get_col( "SELECT meta_value FROM {$wpdb->prefix}wc_orders_meta WHERE meta_key='_ef_legacy_order_id'" );
 } else {
@@ -43,7 +43,7 @@ if ( \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_e
 }
 $done_set = array_flip( $done );
 
-// mapare postmeta -> setter WC_Order (billing/shipping)
+// postmeta -> WC_Order setter map (billing/shipping)
 $field_setters = array(
 	'_billing_first_name' => 'set_billing_first_name', '_billing_last_name' => 'set_billing_last_name',
 	'_billing_company' => 'set_billing_company', '_billing_address_1' => 'set_billing_address_1',
@@ -57,7 +57,7 @@ $field_setters = array(
 	'_shipping_state' => 'set_shipping_state', '_shipping_postcode' => 'set_shipping_postcode',
 	'_shipping_country' => 'set_shipping_country',
 );
-// itemmeta standard pe line_item (setate prin obiect, nu copiate ca meta)
+// standard line_item itemmeta (set through the object, not copied as meta)
 $std_item_meta = array_flip( array( '_product_id', '_variation_id', '_qty', '_tax_class', '_line_subtotal', '_line_subtotal_tax', '_line_total', '_line_tax', '_line_tax_data' ) );
 
 $res = mysqli_query( $db, "SELECT ID, post_status, post_date, post_date_gmt, post_excerpt FROM {$LP}posts WHERE post_type='shop_order' ORDER BY ID" );
@@ -82,7 +82,7 @@ while ( $o = mysqli_fetch_assoc( $res ) ) {
 			if ( isset( $meta[ $mk ] ) && '' !== $meta[ $mk ] ) { $order->$fn( $meta[ $mk ] ); }
 		}
 
-		// identitate / plată
+		// identity / payment
 		$order->set_currency( isset( $meta['_order_currency'] ) ? $meta['_order_currency'] : 'GBP' );
 		$order->set_prices_include_tax( ( isset( $meta['_prices_include_tax'] ) ? $meta['_prices_include_tax'] : '' ) === 'yes' );
 		$order->set_customer_id( 0 );
@@ -96,7 +96,7 @@ while ( $o = mysqli_fetch_assoc( $res ) ) {
 		if ( ! empty( $meta['_order_key'] ) ) { $order->set_order_key( $meta['_order_key'] ); }
 		if ( '' !== (string) $o['post_excerpt'] ) { $order->set_customer_note( $o['post_excerpt'] ); }
 
-		// linii comandă
+		// order lines
 		$ir = mysqli_query( $db, "SELECT order_item_id, order_item_name, order_item_type FROM {$LP}woocommerce_order_items WHERE order_id=$old_id ORDER BY order_item_id" );
 		while ( $it = mysqli_fetch_assoc( $ir ) ) {
 			$iid  = (int) $it['order_item_id'];
@@ -117,7 +117,7 @@ while ( $o = mysqli_fetch_assoc( $res ) ) {
 				if ( isset( $im['_line_tax'] ) ) { $li->set_total_tax( $im['_line_tax'] ); }
 				if ( ! empty( $im['_tax_class'] ) ) { $li->set_tax_class( $im['_tax_class'] ); }
 				if ( isset( $im['_line_tax_data'] ) ) { $t = maybe_unserialize( $im['_line_tax_data'] ); if ( is_array( $t ) ) { $li->set_taxes( $t ); } }
-				// meta custom (add-on-uri YITH, pa_model, etichete Removal & Disposal etc.)
+				// custom meta (YITH add-ons, pa_model, Removal & Disposal labels etc.)
 				foreach ( $im as $k => $v ) { if ( ! isset( $std_item_meta[ $k ] ) ) { $li->add_meta_data( $k, maybe_unserialize( $v ), true ); } }
 				$order->add_item( $li );
 			} elseif ( 'shipping' === $it['order_item_type'] ) {
@@ -140,7 +140,7 @@ while ( $o = mysqli_fetch_assoc( $res ) ) {
 			}
 		}
 
-		// totaluri (setate explicit — fără recalcul)
+		// totals (set explicitly, no recalculation)
 		if ( isset( $meta['_cart_discount'] ) ) { $order->set_discount_total( $meta['_cart_discount'] ); }
 		if ( isset( $meta['_cart_discount_tax'] ) ) { $order->set_discount_tax( $meta['_cart_discount_tax'] ); }
 		if ( isset( $meta['_order_shipping'] ) ) { $order->set_shipping_total( $meta['_order_shipping'] ); }
@@ -148,7 +148,7 @@ while ( $o = mysqli_fetch_assoc( $res ) ) {
 		if ( isset( $meta['_order_tax'] ) ) { $order->set_cart_tax( $meta['_order_tax'] ); }
 		if ( isset( $meta['_order_total'] ) ) { $order->set_total( $meta['_order_total'] ); }
 
-		// date
+		// dates
 		$created = ( $o['post_date_gmt'] && '0000-00-00 00:00:00' !== $o['post_date_gmt'] ) ? $o['post_date_gmt'] : $o['post_date'];
 		$order->set_date_created( $created );
 		if ( ! empty( $meta['_date_paid'] ) && is_numeric( $meta['_date_paid'] ) ) { $order->set_date_paid( (int) $meta['_date_paid'] ); }
@@ -157,7 +157,7 @@ while ( $o = mysqli_fetch_assoc( $res ) ) {
 		// status
 		$order->set_status( preg_replace( '/^wc-/', '', $o['post_status'] ) );
 
-		// meta păstrate
+		// meta kept
 		$order->update_meta_data( '_ef_legacy_order_id', $old_id );
 		if ( isset( $meta['_customer_user'] ) ) { $order->update_meta_data( '_ef_legacy_customer_user', $meta['_customer_user'] ); }
 		if ( isset( $meta['check_doors'] ) ) { $order->update_meta_data( 'check_doors', $meta['check_doors'] ); }
@@ -170,11 +170,11 @@ while ( $o = mysqli_fetch_assoc( $res ) ) {
 	}
 
 	if ( 0 === $i % 500 ) {
-		WP_CLI::log( "  ... $i/$total procesate (create=$count, sarite=$skipped, erori=" . count( $errors ) . ')' );
+		WP_CLI::log( "  ... $i/$total processed (created=$count, skipped=$skipped, errors=" . count( $errors ) . ')' );
 		wp_cache_flush();
 	}
 }
 
-WP_CLI::log( "Comenzi: importate=$count | sarite(existau)=$skipped | erori=" . count( $errors ) . " | total legacy=$total" );
+WP_CLI::log( "Orders: imported=$count | skipped (already there)=$skipped | errors=" . count( $errors ) . " | total legacy=$total" );
 if ( $errors ) { foreach ( array_slice( $errors, 0, 20 ) as $e ) { WP_CLI::log( '  - ' . $e ); } }
-WP_CLI::success( 'Migrare comenzi (pasul 5) finalizată.' );
+WP_CLI::success( 'Order migration (step 5) finished.' );

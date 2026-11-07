@@ -1,15 +1,15 @@
 <?php
 /**
- * Pasul 14: setează ordinea sub-categoriilor Display Cabinets și Storage Cabinets
- * 1:1 cu site-ul original eco-fridge.co.uk (term meta `order` — folosit și de
- * WooCommerce, editabil din Products → Categories). Rulare: wp eval-file _run.php
+ * Step 14: sets the order of the Display Cabinets and Storage Cabinets sub-categories
+ * 1:1 with the original eco-fridge.co.uk (term meta `order`, also used by
+ * WooCommerce, editable from Products → Categories). Run: wp eval-file _run.php
  *
  * @package Eco-Fridge-Migration
  */
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-// Ordinea EXACTĂ din homepage-ul original (slug-uri), Display apoi Storage.
+// The EXACT order of the original homepage (slugs), Display then Storage.
 $order = array(
 	// Display Cabinets (44)
 	'standard-counter-display-chiller',
@@ -34,7 +34,7 @@ $order = array(
 	'silver-steel-multideck-display-chillers',
 	'standard-upright-display-freezers',
 	'upright-display-chiller',
-	// Storage Cabinets (45) — ordine custom din original
+	// Storage Cabinets (45): custom order from the original
 	'stainless-steel-counter-chillers',
 	'stainless-steel-counter-freezers',
 	'standard-upright-storage-freezer',
@@ -60,6 +60,6 @@ foreach ( $order as $i => $slug ) {
 	$set++;
 }
 
-WP_CLI::log( 'Ordine setată pe ' . $set . ' categorii.' );
-if ( $missing ) { WP_CLI::warning( 'Slug-uri negăsite: ' . implode( ', ', $missing ) ); }
-WP_CLI::success( 'Ordine sub-categorii Display/Storage finalizată.' );
+WP_CLI::log( 'Order set on ' . $set . ' categories.' );
+if ( $missing ) { WP_CLI::warning( 'Slugs not found: ' . implode( ', ', $missing ) ); }
+WP_CLI::success( 'Display/Storage sub-category order finished.' );

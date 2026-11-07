@@ -1,14 +1,14 @@
 <?php
 /**
- * Pasul 9: migrează blogul (107 postări) din legacy în posturi native.
- * Rulare: cp migration/09-blog.php source-dump/_run.php
+ * Step 9: migrates the blog (107 posts) from the legacy DB into native posts.
+ * Run: cp migration/09-blog.php source-dump/_run.php
  *         npx wp-env run cli wp eval-file wp-content/source-dump/_run.php
  *
- * Fiecare post legacy -> post nativ cu același slug/titlu/dată/conținut.
- * Categoria „Blog" + taguri recreate. Featured image remapat prin
- * _attachment-id-map.json. Yoast metadesc -> excerpt. URL-uri o2dev/co.uk
- * -> relative (imaginile există deja local din migrarea media). Idempotent
- * după _ef_legacy_id. Autor unic „ECO-Fridge". Test post gol exclus.
+ * Each legacy post -> a native post with the same slug/title/date/content.
+ * The "Blog" category and tags are recreated. Featured image remapped through
+ * _attachment-id-map.json. Yoast metadesc -> excerpt. o2dev/co.uk URLs
+ * -> relative (the images already exist locally from the media migration). Idempotent
+ * by _ef_legacy_id. Single author "ECO-Fridge". The empty test post is excluded.
  *
  * @package Eco-Fridge-Migration
  */
@@ -20,15 +20,15 @@ $db = @mysqli_connect( 'ef-legacy-db', 'root', 'root', 'legacy' );
 if ( ! $db ) { WP_CLI::error( 'Legacy DB: ' . mysqli_connect_error() ); }
 mysqli_set_charset( $db, 'utf8mb4' );
 
-// admin -> unfiltered_html, ca să nu se filtreze iframe/style/caption la insert
+// admin -> unfiltered_html, so iframe/style/caption are not filtered on insert
 wp_set_current_user( 1 );
 
-// harta atașamentelor (legacy id -> new id)
+// attachment map (legacy id -> new id)
 $map_file = WP_CONTENT_DIR . '/source-dump/_attachment-id-map.json';
 $att_map  = file_exists( $map_file ) ? json_decode( file_get_contents( $map_file ), true ) : array();
 if ( ! is_array( $att_map ) ) { $att_map = array(); }
 
-// autor unic „ECO-Fridge"
+// single author "ECO-Fridge"
 $author_id = username_exists( 'ecofridge' );
 if ( ! $author_id ) {
 	$author_id = wp_insert_user( array(
@@ -39,10 +39,10 @@ if ( ! $author_id ) {
 		'first_name'   => 'ECO-Fridge',
 		'role'         => 'author',
 	) );
-	if ( is_wp_error( $author_id ) ) { WP_CLI::error( 'Autor: ' . $author_id->get_error_message() ); }
+	if ( is_wp_error( $author_id ) ) { WP_CLI::error( 'Author: ' . $author_id->get_error_message() ); }
 }
 
-// categoria Blog
+// the Blog category
 $blog_cat = get_term_by( 'slug', 'blog', 'category' );
 if ( ! $blog_cat ) {
 	$t = wp_insert_term( 'Blog', 'category', array( 'slug' => 'blog' ) );
@@ -51,7 +51,7 @@ if ( ! $blog_cat ) {
 	$blog_cat_id = (int) $blog_cat->term_id;
 }
 
-// curăță conținutul: domenii -> relativ (imaginile există local), fără trailing gunk
+// clean the content: domains -> relative (images exist locally), no trailing junk
 $clean = function ( $html ) {
 	$html = str_replace(
 		array(
@@ -64,7 +64,7 @@ $clean = function ( $html ) {
 	return $html;
 };
 
-// posturi publicate, cu conținut (exclude test post gol)
+// published posts with content (the empty test post is excluded)
 $res = mysqli_query( $db, "SELECT ID, post_author, post_date, post_date_gmt, post_content, post_title, post_excerpt, post_name, post_modified, post_modified_gmt
 	FROM {$LP}posts
 	WHERE post_type='post' AND post_status='publish' AND TRIM(post_content) <> ''
@@ -83,7 +83,7 @@ while ( $row = mysqli_fetch_assoc( $res ) ) {
 		if ( '_yoast_wpseo_metadesc' === $m['meta_key'] ) { $metadesc = $m['meta_value']; }
 	}
 
-	// taguri legacy (slug + name)
+	// legacy tags (slug + name)
 	$tags = array();
 	$tr = mysqli_query( $db, "SELECT t.name FROM {$LP}term_relationships r
 		JOIN {$LP}term_taxonomy tt ON tt.term_taxonomy_id=r.term_taxonomy_id AND tt.taxonomy='post_tag'
@@ -111,7 +111,7 @@ while ( $row = mysqli_fetch_assoc( $res ) ) {
 		'ping_status'       => 'closed',
 	);
 
-	// idempotent după _ef_legacy_id
+	// idempotent by _ef_legacy_id
 	$existing = get_posts( array(
 		'post_type'   => 'post',
 		'post_status' => 'any',
@@ -133,22 +133,22 @@ while ( $row = mysqli_fetch_assoc( $res ) ) {
 
 	update_post_meta( $new_id, '_ef_legacy_id', $old_id );
 
-	// categorie Blog
+	// Blog category
 	if ( $blog_cat_id ) { wp_set_object_terms( $new_id, array( $blog_cat_id ), 'category', false ); }
 
-	// taguri
+	// tags
 	if ( $tags ) { wp_set_object_terms( $new_id, $tags, 'post_tag', false ); $tag_count += count( $tags ); }
 
-	// featured image remapat
+	// remapped featured image
 	if ( $thumb_old && isset( $att_map[ (string) $thumb_old ] ) ) {
 		$new_thumb = (int) $att_map[ (string) $thumb_old ];
 		if ( get_post( $new_thumb ) ) { set_post_thumbnail( $new_id, $new_thumb ); $with_thumb++; }
 	}
 
-	// layout Astra ca la pagini
+	// Astra layout as on pages
 	update_post_meta( $new_id, 'site-sidebar-layout', 'no-sidebar' );
 	update_post_meta( $new_id, 'site-content-layout', 'plain-container' );
 }
 
-WP_CLI::log( "Blog: create=$created, actualizate=$updated, cu featured image=$with_thumb, relații taguri=$tag_count" );
-WP_CLI::success( 'Migrare blog finalizată.' );
+WP_CLI::log( "Blog: created=$created, updated=$updated, with featured image=$with_thumb, tag relations=$tag_count" );
+WP_CLI::success( 'Blog migration finished.' );
