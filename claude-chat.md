@@ -2717,6 +2717,18 @@ Doru: „actualizeaza si ef-cookie-consent.zip din folderul C:\Users\doruh\Downl
 
 **Verificat:** toate fisierele PHP trec `php -l`; instalat si activat pe instanta de test locala (`localhost:8889`, separata de copia Eco-Fridge): apare ca „O2 Cookie Consent 1.1.1 — O2 Digital", bannerul se afiseaza, valorile implicite Consent Mode sunt trimise inaintea GTM, culoarea e `#2563eb`, suprafata gri oprita. Dezactivat dupa test.
 
+## 130. Rapoartele O2X: de ce LCP e 5–6 s pe live si trei corecturi (2026-11-07, ~13:30 UK)
+
+Doru a pus in proiect rapoartele O2X (`evolution-baseline-staging-final*.csv`, `lighthouse-test-history-2026-11-07.csv`): pe mobil, staging 86 → live 73, LCP median 2,95 s → 6,07 s, desi TTFB a scazut la 63 ms. Trei cauze gasite si dovedite cu masuratori (Lighthouse 13.6 + sonde CDP):
+
+1. **Textul bannerului de cookies devenea LCP.** Bannerul era afisat de `efcc.js`, incarcat la finalul paginii, deci textul lui (41.580 px, mai mare decat continutul paginii pe Contact, Range etc.) aparea tarziu si in simularea Lighthouse depindea de toate scripturile. **Corectura:** `class-efcc-frontend.php` scrie un mic script inline imediat dupa banner, care il afiseaza cand nu exista cookie-ul `efcc_consent` (si fara GPC, daca e activ). `efcc.js` decide in continuare restul. Vizitatorii cu consimtamant nu vad nimic diferit.
+2. **Galeria produsului era ascunsa pana la final.** WooCommerce pune `opacity: 0` pe galerie pana ruleaza scriptul de slider, deci imaginea principala aparea la ~0,5 s dupa ce era descarcata (LCP simulat 5 s). **Corectura:** `astra-child/style.css` → galeria vizibila de la inceput; regulile existente care tin layout-ul stabil inainte de slider raman (CLS 0 verificat).
+3. **`NO_LCP` pe prima pagina = scroll-snap.** In trace-ul Chrome: `PaintTiming::NotifyScroll` la 73–119 ms pe `.ef-cc-track`. Caruselul are `padding` 4 px si `scroll-snap-type: x mandatory`, deci browserul il „aliniaza" 4 px la incarcare; Chrome considera asta derulare si opreste masurarea LCP. Test cu CSS injectat: fara snap sau cu `scroll-padding-inline: 4px` LCP reapare. **Corectura:** `scroll-padding-inline: 4px` pe `.ef-cc-track` (vizual identic). Explica si de ce `?efcc_test=nobanner` dadea tot `NO_LCP`.
+
+Verificat pe copia locala (wp-env): LCP masurat pe prima pagina, bannerul apare la ~60 ms dupa primul continut, imaginea produsului imediat, CLS 0. **Urcarea pe live/staging a fost blocata de sistemul de permisiuni → astept aprobarea lui Doru.**
+
+**Pagini pierdute** (`lost page - changes-by-field-2026-11-07.csv`, 113 adrese): aceeasi lista ca pe 30 oct plus `/add-media-test/` si `/author/eco-fridge/`. Verificat live: 108 fac 301 (tag-uri → categorii, atasamente vechi → imagini, author/add-media-test → /blog/, gateway-ul vechi → /checkout/), iar 5 raspund 200 intentionat — `/product/` (canonical spre /shop/), `/product/removal-disposal/` (produs-serviciu ascuns, noindex), `/uncategorized/`, `/product-category/uncategorized/`, `/condition/ex-showroom/` (goale, noindex). Nicio pagina de recuperat.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.

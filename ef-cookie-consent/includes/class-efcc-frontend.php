@@ -221,6 +221,15 @@ gtag('consent','default',<?php echo wp_json_encode( $def ); ?>);
 		</div>
 	</div>
 </div>
+<?php
+		if ( ! self::banner_hidden_here() ) :
+			// Show the banner as soon as it is parsed, not when efcc.js runs at the end
+			// of the page: otherwise the banner text paints late and becomes the
+			// Largest Contentful Paint (PageSpeed LCP 5-6 s on mobile). efcc.js still
+			// decides afterwards (valid consent, GPC, page exclusions) and hides it.
+			?>
+<script>(function(){var d=document,b=d.getElementById('efcc-banner');if(b&&d.cookie.indexOf(<?php echo wp_json_encode( self::COOKIE . '=' ); ?>)<0<?php echo ! empty( $g['gpc'] ) ? '&&!navigator.globalPrivacyControl' : ''; ?>){b.hidden=false;d.documentElement.classList.add('efcc-banner-open');}})();</script>
+<?php endif; ?>
 <?php // Shown by CSS only while the banner is visible (.efcc-banner--overlay:not([hidden]) + .efcc-overlay). ?>
 <div class="efcc-overlay" aria-hidden="true"></div>
 
