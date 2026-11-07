@@ -2519,6 +2519,10 @@ Doru: formularele sa fie urmarite doar cand e chiar formularul de contact (filtr
 
 **Ce nu poate repara containerul:** `form_start`/`form_submit` pe care le vedem la „Add to basket" vin din **GA4 Enhanced measurement → Form interactions**, trimise direct de Google tag, nu prin triggere GTM — si au **aceleasi nume** ca evenimentele noastre, deci s-ar amesteca in rapoarte. Se opresc doar din GA4. Dupa asta, `form_*` in GA4 inseamna exclusiv formularul de contact.
 
+**Corectura dupa primul import:** GTM a refuzat fisierul — „The name contains invalid character: ":"". Doua triggere aveau `:` in nume („Click - phone (tel:)", „Click - email (mailto:)"); acum se numesc **„Click - phone link"** si **„Click - email link"**. Verificat dupa: toate cele 71 de nume contin doar litere, cifre, spatiu si `_ . ( ) -`, fara duplicate, fara referinte nerezolvate.
+
+**Funnel-ul, verificat in Chrome real** (Doru a cerut si checkout-ul in funnel): `view_item_list` → `view_item` → `add_to_cart` → `view_cart` → `begin_checkout` → `add_payment_info` ajung toate in GA4; `purchase` se verifica la comanda reala. `add_shipping_info` nu e trimis niciodata — GTM4WP il trimite doar cand clientul alege o tarifa de livrare, iar livrarea e gratuita, fara alegere — deci se lasa afara din funnel-ul din GA4. `add_payment_info` pleaca odata cu `begin_checkout`, fiindca metoda de plata e preselectata.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.

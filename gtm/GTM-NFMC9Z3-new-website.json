@@ -1,6 +1,6 @@
 {
   "exportFormatVersion": 2,
-  "exportTime": "2026-11-07 06:48:15",
+  "exportTime": "2026-11-07 06:51:31",
   "containerVersion": {
     "path": "accounts/0/containers/0/versions/0",
     "accountId": "0",
@@ -2183,7 +2183,7 @@
         "containerId": "0",
         "triggerId": "46",
         "fingerprint": "0",
-        "name": "Click - phone (tel:)",
+        "name": "Click - phone link",
         "type": "LINK_CLICK",
         "filter": [
           {
@@ -2258,7 +2258,7 @@
         "containerId": "0",
         "triggerId": "47",
         "fingerprint": "0",
-        "name": "Click - email (mailto:)",
+        "name": "Click - email link",
         "type": "LINK_CLICK",
         "filter": [
           {
