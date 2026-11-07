@@ -2533,6 +2533,16 @@ Doru a importat si publicat containerul corectat. **Versiunea live e 22**: 16 ta
 
 Ramase de vazut cu ochii, la prima ocazie reala: `purchase` (comanda reala) si `form_submit` + `generate_lead` (un mesaj trimis din formular).
 
+## 116. Produs de test de £1 pe live, pentru comanda reala (2026-11-07, ~09:40)
+
+Doru: „este in regula sa-mi creezi un produs de test de 1 GBP ca sa dau o comanda de test?" — Da; e singurul fel de a verifica, pe site-ul live, plata Lloyds, emailurile, SMS-ul, numerotarea si evenimentul `purchase` din GA4.
+
+**Creat pe live: #14659, „Live payment test – do not buy"**, `https://www.eco-fridge.co.uk/product/live-payment-test-do-not-buy/` — £1,00 + TVA 20% = **£1,20** la plata, livrare gratuita, produs fizic (ca checkout-ul sa ceara adresa si cele doua intrebari de livrare, exact ca la o comanda reala), o bucata pe comanda, fara stoc gestionat.
+
+**Ascuns peste tot, verificat:** vizibilitate „hidden" in catalog, `noindex, nofollow` in pagina, absent din shop, din cautare, din sitemap-ul de produse si din feed-ul Merchant (tot 129 de produse). Se ajunge la el doar din linkul direct.
+
+**De stiut pentru comanda:** e o plata reala de £1,20 cu cardul (ca #8036/#8037 din octombrie); emailul „New order" ajunge la mads@ si orders@, iar SMS-ul de comanda pleaca si el; numarul comenzii va fi **#14660** (dupa ultima comanda importata, #14638, si dupa produsul de test). Dupa verificare: comanda si produsul se sterg definitiv, ca la curatenia din 6 noiembrie, iar copia locala se actualizeaza. Cele £1,20 raman in GA4 si nu se pot sterge de acolo; sunt neglijabile.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
