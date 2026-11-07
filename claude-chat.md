@@ -2218,6 +2218,45 @@ Paritate URL-uri si indexare, sitemap in Search Console, Merchant Center pe dome
 - **De verificat pe live, imediat după mutare:** robots.txt răspunde 200, scorul SEO din Lighthouse revine la ~100, canonical-urile apar, paginile cu LCP mare se re-măsoară fără parola de staging.
 - **Urmează până joi 5 noiembrie:** repetiția migrării pe site-ul de backup, cross-browser, Rich Results Test, deciziile de produs ale lui Mads.
 
+## 100. Ziua lansarii, 05:00: magazinul vechi inchis, clona deblocata — si trei capcane care ar fi oprit din nou Migrate Guru (2026-11-07)
+
+Doru, dimineata: „am instalat ef-close-shop.zip si am dat disable la toate modalitatile de plati din WooCommerce la site-ul vechi. Am verificat in magazin si nu mai am buton de shop, nu mai pot sa adaug produse in cos. Deci pluginul a mers." Apoi: „deblocheaza-mi site-ul eco-fridge-backup.o2dev.de ca sa pot accesa /wp-admin/", si, a doua oara, mai scurt: „deblocheaza site-ul de backup".
+
+**Faza 1 e facuta, deci magazinul vechi e inchis** fara sa fie ascuns: catalogul se vede in continuare, dar nu se mai comanda. Exact ce trebuie, fiindca ore bune dupa schimbarea DNS-ului o parte din vizitatori tot pe serverul vechi ajung.
+
+### De ce „deblocheaza" nu era doar o comoditate
+
+Lacatul pe care l-am pus marti (intrarea 79) raspundea **403 oricui**, in afara cererii cu token. Si serviciul Migrate Guru verifica destinatia **printr-o cerere HTTP obisnuita**. Deci, lasat pe loc, ne-ar fi dat din nou exact eroarea de marti — „We are unable to connect to your destination site" — si am fi pierdut minute din fereastra de lansare căutand o cauza pe care o cunoasteam deja. Lacatul a fost scos complet din `wp-config.php`, cu `php -l` curat si copie de siguranta in `/tmp`, nu in docroot.
+
+### Doua lucruri care l-ar fi blocat oricum la login, gasite inainte sa le intalneasca
+
+1. **`/wp-admin/` dadea 404 si `/wp-login.php` ducea la `/not_found`.** Nu era lacatul: site-ul vechi are **iThemes Security cu „Hide Backend"**, iar clona a venit cu optiunea lui — loginul adevarat era `https://eco-fridge-backup.o2dev.de/ecofridge-login`. Am dezactivat modulul, deci acum merg adresele normale, pe care le cerea Doru.
+2. **wp-admin trimitea la `upgrade.php`.** Nucleul clonei e WordPress 7.1.4 peste baza site-ului vechi: `db_version` 53496 fata de 61833. Am rulat upgrade-ul prin WP-CLI (0,4 secunde) si am probat apoi paginile **ca administrator**, cu cookie-uri de autentificare generate pe server: Dashboard 200, Plugins 200, iar pagina Migrate Guru 200 cu „Migration Key" in ea. **Zero „Fatal error"**, desi sunt 40 de pluginuri vechi sub un nucleu nou. Baza clonei se rescrie oricum integral la migrarea de azi, deci upgrade-ul nu strica nimic din ce preluam.
+   Si un detaliu de care depinde clicul: **slug-ul paginii e `migrateguru`**, nu `migrate-guru` — `admin.php?page=migrate-guru` da 403 „you are not allowed to access this page".
+
+**Si o masura preventiva:** am oprit blocarea automata a loginului din iThemes (`brute-force` si `network-brute-force`), ca o parola greșit tastata sa nu ne incuie accesul in dimineata lansarii. Zero blocari active in momentul schimbarii.
+
+### Ce rămâne in loc, ca sa nu apara in Google
+
+`blog_public = 0`, deci paginile ies cu `<meta name='robots' content='noindex, nofollow' />`, plus `robots.txt` fizic cu `Disallow: /` si refuzul fisierelor `.bak/.sql/.gz/...` din `.htaccess` (verificat: 403). Am incercat si un `X-Robots-Tag` din `.htaccess` si **nu functioneaza pe LiteSpeed** — masurat, antetul nu apare in raspuns, nici in `IfModule`, nici fara — deci am scos blocul mort ca sa nu ne bazam pe ceva care nu lucreaza. Clona e deschisa, dar nu e indexabila.
+
+### De refacut imediat dupa migrarea de azi
+
+Migrarea aduce din nou baza site-ului vechi, deci **„Hide Backend" si blocarea loginului revin**, loginul clonei redevine `/ecofridge-login`, iar nucleul va fi iar mai nou decat baza. **Si o regula pentru dupa migrare, mai importanta decat pare:** odata ce baza veche revine pe clona, nucleul 7.1.4 va cere din nou upgrade-ul bazei. Azi l-am rulat fara grija, fiindca baza aceea se rescria oricum in minutele urmatoare. **Dupa migrare nu mai e la fel:** acolo e exact baza din care extragem comenzile, iar un upgrade pornit atunci lasa WordPress si WooCommerce sa umble la datele pe care venim sa le citim. Deci dupa ce migrarea se termina: clona se deschide doar la citire, iar dacă wp-admin cere „Update WordPress Database", nu se apasa — eu citesc oricum prin SQL, nu prin wp-admin.
+
+De verificat dupa migrare si **dacă Migrate Guru a rescris `wp-config.php`**: in iulie migrarea a adus prefixul sursei (`43lz2ypq8_`), deci pune mana pe fisier — adica si lacatul, dacă ar fi rămas, ar fi putut dispărea singur.
+
+### Sheet
+
+Randul **„Curățenie pe staging" era nebifat**, desi lucrarea e facuta de ieri seara — Doru avea dreptate. Acum e `✅ Facut (6 nov)`, cu rezultatele in celula (baza 840 MB → 114 MB, docroot 3,6 GB → 1,2 GB, ce s-a sters si ce s-a pastrat intentionat). Am completat si randul de 05:10 cu starea destinatiei si cu cele trei capcane de mai sus, si am marcat `✖ INLOCUIT` cele doua randuri vechi care spun sa creez un site gol in hPanel — nu se poate, si nu vrem sa fie urmate azi din greseala.
+
+## Stare la 2026-11-07 (dimineata lansarii)
+
+- **Faza 1 GATA (05:00):** `ef-close-shop` activat pe site-ul vechi si toate metodele de plata oprite; Doru a verificat ca nu se mai adauga in coş.
+- **Clona e DESCHISA si pregatita ca destinatie (intrarea 100):** lacatul cu token scos din `wp-config.php` — era obligatoriu, altfel Migrate Guru primea 403; `/wp-admin/` si `/wp-login.php` merg (iThemes „Hide Backend" dezactivat, loginul ascuns era `/ecofridge-login`); upgrade de baza rulat, deci wp-admin se deschide fara erori fatale; pagina de migrare e `admin.php?page=migrateguru`. Rămâne neindexabila: `blog_public = 0`, robots.txt `Disallow: /`.
+- **Urmeaza:** Faza 2, cheia Migrate Guru generata pe clona si migrarea pornita IMEDIAT (traieste 30 de minute). Apoi Faza 3, importul in staging cu uneltele din `~/f15`.
+- **Dupa migrare, de refacut pe clona:** „Hide Backend" si blocarea loginului revin odata cu baza veche; de verificat si dacă Migrate Guru a rescris `wp-config.php`.
+
 ## Stare la 2026-11-03 (dimineata)
 
 - **Git:** `main` cu PR #16–#55 unite. **PR #56 e deschis si neunit** — conține intrarile 69–72 din jurnal si pluginul `tools/ecofridge-tls-fix/`; merge-ul mi-a fost blocat de modul auto, deci il face Doru.
