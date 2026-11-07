@@ -2706,6 +2706,17 @@ Rezultatele lui Doru, PageSpeed mobil: **`?efcc_test=nooverlay` → 96**; `?efcc
 
 **Ramas deschis:** si fara banner deloc (`nobanner`) PageSpeed da `NO_LCP` — deci pentru vizitatorii care au ales deja, Chromium 157 tot nu gaseste un LCP pe prima pagina. Nu afecteaza scorul (PageSpeed testeaza mereu ca vizitator nou), dar merita inteles; parametrul de test ramane pana atunci.
 
+## 129. Pluginul de cookies, editie generala O2 Digital, in `WP Plugins` (2026-11-07, ~10:00 UK)
+
+Doru: „actualizeaza si ef-cookie-consent.zip din folderul C:\Users\doruh\Downloads\WP Plugins dar lasa-l general pentru orice site facut de O2 Digital cu link de autor catre https://seo2agency.com/".
+
+**Construit cu un script pastrat in repo**, `tools/build-generic-cookie-consent.py`, din `ef-cookie-consent/` (copia de pe eco-fridge.co.uk, care ramane neschimbata). Rezultat: `../WP Plugins/ef-cookie-consent.zip`, 12 fisiere, versiunea 1.1.1.
+- Nume **„O2 Cookie Consent"**, `Author: O2 Digital`, `Author URI` si `Plugin URI`: **https://seo2agency.com/**.
+- Fara urme Eco-Fridge: scoasa intrarea `efb_*` (cookie-ul pluginului ECO-Fridge Blocks) din biblioteca de cookie-uri; culoarea principala implicita e un albastru neutru (`#2563eb`, contrast bun cu text alb) in loc de verdele Eco-Fridge, si in CSS-ul de rezerva; fara parametrul temporar `?efcc_test`. Scriptul se opreste cu eroare dacă ramane vreo mentiune „eco-fridge", `efcc_test` sau culoarea veche.
+- Folderul, text domain-ul, numele optiunilor si prefixele PHP raman `ef-cookie-consent` / `efcc`, ca instalarea peste o copie existenta sa o actualizeze pe loc, cu setarile pastrate.
+
+**Verificat:** toate fisierele PHP trec `php -l`; instalat si activat pe instanta de test locala (`localhost:8889`, separata de copia Eco-Fridge): apare ca „O2 Cookie Consent 1.1.1 — O2 Digital", bannerul se afiseaza, valorile implicite Consent Mode sunt trimise inaintea GTM, culoarea e `#2563eb`, suprafata gri oprita. Dezactivat dupa test.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
