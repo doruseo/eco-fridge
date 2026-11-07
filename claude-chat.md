@@ -2672,6 +2672,24 @@ Am inregistrat, pe un telefon emulat cu procesor 4× mai lent si 4G lent, LCP-ul
 
 **Alte imbunatatiri, in ordinea castigului si fara risc pentru design:** `fetchpriority="high"` pe imaginea primului card de oferta; CSS-ul SMS Alert (`intlTelInput.min.css`, blocant) incarcat doar unde e campul de telefon; legatura Google Ads scoasa din Google tag (mai putin JavaScript de la Google). Pentru Core Web Vitals din teren nu exista scurtatura: fereastra de 28 de zile se umple cu vizitele site-ului nou.
 
+## 126. Viteza pe mobil: ce a mers, ce a stricat header-ul si a fost anulat imediat (2026-11-07, ~09:00 UK)
+
+Doru: „pe desktop scorul de page speed este 100%, iar pe mobile 74%"; a aprobat pasii 1, 2 si 3 propusi. In timpul lucrului: „s-a stricat meniul comercial", „cosul din header este stricat", plus captura „header stricat".
+
+**Corectura la intrarea 125:** sticky-ul Astra **nu** era cauza „!"-ului din PageSpeed. Dupa ce l-am oprit, mutarile header-ului ascuns au disparut, dar traseul avea aceleasi 5 evenimente „LCP Invalidate" si acelasi scor — evenimentele acelea apar normal la orice navigare. „!"-ul a fost o rulare esuata izolata; PageSpeed masoara acum (74 pe mobil, 100 pe desktop).
+
+**Ce a ramas aplicat (pe live si pe staging, md5 identic cu repo-ul):**
+- **Imaginea primului card de oferta primeste `fetchpriority="high"`** (elementul LCP pe prima pagina), iar logo-ul primeste explicit `fetchpriority="auto"` — fara asta, WordPress il promova singur pe „high", fiind prima imagine mare (sursa de 1920 px). Se aplica pe `<img>`, deci browserul o foloseste pentru formatul pe care il alege din `<picture>` (AVIF, WebP sau JPG).
+- **SMS Alert doar pe checkout** (`ecofridge-blocks/includes/asset-trim.php`): 2 CSS-uri blocante si 4 scripturi nu se mai incarca pe celelalte pagini; OTP-ul e oprit si campul de telefon cu prefix de tara exista doar pe checkout.
+
+**Ce a stricat header-ul si a fost anulat:** scoaterea celor trei CSS-uri WooCommerce ale Astra (`woocommerce-layout`, `-smallscreen`, `-general`) de pe paginile fara produse. Ele stilizeaza si **cosul din header** si **mega-meniul comercial**, pe toate paginile: fara ele, dropdown-ul cosului s-a intins peste bara verde, iar CLS a sarit de la 0 la 0,134. Repus imediat (CSS-ul la loc, cache golit), apoi scos definitiv din cod; fisierul explica acum de ce nu se taie. **Sticky-ul Astra** — repus si el din backup, ca sa nu raman cu doua schimbari neclare pe header.
+
+**Verificat dupa revenire:** capturi desktop — mega-meniul „Display Cabinets" si dropdown-ul cosului corecte; telefon — header, cos, meniu si banner corecte; pagina publica servita din cache are cele 3 CSS-uri WooCommerce si nu are fisierele SMS Alert.
+
+**Rezultat masurat (Lighthouse 13.6, mobil):** **76** (fata de 72–75 inainte), CLS 0, TBT ~150 ms, FCP 1,8 s, LCP observat ~1,4 s, LCP simulat 5,7–5,9 s. Castigul e mic; restul ramane in simularea Lighthouse, pe care date reale (LCP ~1,4–2,2 s) nu o confirma.
+
+**Lectie:** inainte de a scoate un CSS „nefolosit", verificat cu capturi si cu dropdown-urile deschise (cos, mega-meniu), nu doar pagina statica — si testat intai pe staging, nu direct pe live.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.

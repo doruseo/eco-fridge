@@ -29,15 +29,28 @@ $efb_wrapper = get_block_wrapper_attributes(
 );
 ?>
 <div <?php echo $efb_wrapper; // phpcs:ignore WordPress.Security.EscapeOutput ?>>
-	<?php foreach ( $efb_items as $efb_item ) : ?>
-		<?php $efb_url = $efb_item['url'] ?? ''; ?>
+	<?php foreach ( $efb_items as $efb_i => $efb_item ) : ?>
+		<?php
+		$efb_url = $efb_item['url'] ?? '';
+		// Offers open the page: no lazy loading, a ~300px file.
+		$efb_img_attrs = array(
+			'loading' => 'eager',
+			'sizes'   => '(max-width: 767px) 70vw, 300px',
+		);
+		// The first card of the first offer block on the page is its largest early
+		// image (the LCP element on the home page), so the browser fetches it first.
+		if ( 0 === $efb_i && empty( $GLOBALS['efb_offer_priority_done'] ) ) {
+			$efb_img_attrs['fetchpriority']      = 'high';
+			$GLOBALS['efb_offer_priority_done'] = true;
+		}
+		?>
 		<div class="efb-offer">
 			<a class="efb-offer__link" href="<?php echo esc_url( $efb_url ); ?>">
 				<?php if ( ! empty( $efb_item['label'] ) ) : ?>
 					<span class="efb-offer__label"><?php echo esc_html( $efb_item['label'] ); ?></span>
 				<?php endif; ?>
 				<span class="efb-offer__image">
-					<?php echo efb_image( $efb_item['imageId'] ?? 0, $efb_item['imageUrl'] ?? '', $efb_item['imageAlt'] ?? '', 'medium_large', array( 'loading' => 'eager', 'sizes' => '(max-width: 767px) 70vw, 300px' ) ); // offers open the page: no lazy loading, a ~300px file // phpcs:ignore WordPress.Security.EscapeOutput ?>
+					<?php echo efb_image( $efb_item['imageId'] ?? 0, $efb_item['imageUrl'] ?? '', $efb_item['imageAlt'] ?? '', 'medium_large', $efb_img_attrs ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 				</span>
 			</a>
 			<div class="efb-offer__footer">
