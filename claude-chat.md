@@ -2621,6 +2621,16 @@ Doru: „verifica setarile din pluginul de cache LiteSpeed si bifeaza ce trebuie
 
 **„Mobile cache trebuie bifat?" — Nu, verificat.** Singura diferenta de HTML intre desktop si telefon e o clasa pe `<body>` pusa de Astra prin `wp_is_mobile()` (`ast-desktop` / `ast-header-break-point`); doua cereri de desktop dau HTML identic, deci nu e alt continut. Am servit unui telefon emulat complet (390 px, touch, user-agent iPhone) copia din cache generata pentru desktop si, separat, o pagina proaspata: JavaScript-ul Astra corecteaza clasa la incarcare (`ast-header-break-point` in ambele cazuri), pagina nu iese din ecran, iar capturile sunt identice pixel cu pixel. Header-ul nostru e acelasi pe ambele dispozitive. Un cache separat pentru mobil ar dubla cache-ul fara niciun castig, iar pe acest server s-ar baza pe reguli din `.htaccess` pe care serverul nu le respecta.
 
+## 122. Object Cache nu porneste din hPanel: setarile curatate pentru o noua incercare; o garda la redirectul canonic (2026-11-07, ~08:40)
+
+Doru: „nu pot activa Object Cache din hPanel, dau click si nu se muta pe enabled".
+
+**Ce am gasit:** la primul click (07:53) Hostinger a scris in setarile LiteSpeed un utilizator Redis pentru contul nou (`u510186744_PNxOJBHKQ`), o parola si baza `4327`, si a creat drop-in-ul `object-cache.php`. Dar Redis respinge exact acele date (`WRONGPASS`), deci testul de conexiune al panoului esueaza si comutatorul revine pe „disabled". Pe staging Object Cache n-a fost pornit niciodata, deci nu e o setare mostenita de la clona. Pe cont nu exista alt fisier sau variabila cu date Redis.
+
+**Ce am facut:** am curatat starea lasata de incercarea esuata — `object` = 0, utilizator si parola goale, baza 0, drop-in-ul `object-cache.php` sters, fisierul `.litespeed_conf.php` aliniat — ca hPanel sa porneasca de la zero la urmatorul click. Copii de siguranta in `/tmp` pe server. Site 200, wp-admin redirecteaza la login, ca inainte. Dacă si a doua incercare cade, e o problema de alocare Redis pe partea Hostinger (contul de Redis al site-ului nu exista sau nu are parola pe care o scrie panoul): de cerut suportului lor, cu mesajul `WRONGPASS invalid username-password pair` pe `/run/redis-object-cache/redis.sock`. Site-ul nu depinde de el — cache-ul de pagini face deja diferenta mare.
+
+**Garda adaugata la redirectul canonic:** jurnalul de erori PHP al site-ului avea, o singura data la 07:09, „Cannot modify header information - headers already sent" pe linia 14 din `wp-config.php` — chiar `header()`-ul redirectului canonic, intr-o cerere in care ceva trimisese deja continut. Conditia redirectului cere acum si `! headers_sent()`, deci intr-un asemenea caz nu mai incearca. Retestat: apex, `http://`, parametri, wp-admin — identic cu inainte. Copia locala a `wp-config.php` actualizata.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
