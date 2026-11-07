@@ -2362,6 +2362,22 @@ Doru: „asigura-te ca SSL este neinstalat (…) apoi verifica tot site-ul sa fi
 
 **Verdict: site-ul nou e gata pentru A @.**
 
+## 106. DNS mutat, SSL instalat, HTTPS fortat din PHP, paginile vechi de atasament reparate (2026-11-07, ~06:20–06:45)
+
+**Faza 7 (Doru):** `A @` → `148.230.121.74`. Verificat imediat: toate cele patru nameservere IONOS, Google si Cloudflare raspund cu IP-ul nou; `www` urmeaza prin CNAME; MX (`mx00`/`mx01.ionos.co.uk`) neatins.
+
+**Faza 8 (Doru):** SSL instalat din hPanel. Certificatul: **Google Trust Services (WR1), `CN=eco-fridge.co.uk`, SAN pe ambele nume, valid pana pe 5 februarie 2027**, validat fara erori. Optiunea „Force HTTPS" nu exista in panoul acestui site.
+
+**Ce a iesit la verificare, si e important de stiut pentru acest tip de hosting:** regula de canonic din `.htaccess` **nu e aplicata deloc** de serverul acestui plan (`Server: hws`) — un PDF de pe `eco-fridge.co.uk` se deschidea direct, iar redirecturile vazute pana atunci veneau de la WordPress (`X-Redirect-By: WordPress`). Pe `http://www…` paginile raspundeau **200 pe http**, fara HTTPS. E aceeasi familie de comportament ca pe backup, unde parola si antetele din `.htaccess` erau ignorate. Doar `Require all denied` si regulile WordPress functioneaza.
+
+**Reparatia:** inainte de orice altceva in `wp-config.php`, o regula in PHP — orice cerere care nu e `https://www.eco-fridge.co.uk` primeste **un singur 301** spre adresa canonica, cu calea si parametrii pastrati; `/.well-known/` si WP-CLI scutite. Inainte am verificat cu o sonda PHP (stearsa imediat) ce raporteaza serverul: `HTTPS=on` si port 443 pe https, nimic pe http — deci detectia e sigura, fara risc de bucla. Testat: apex http/https, `http://www`, cu parametri, domeniul temporar — toate un singur 301 spre `https://www`; `/wp-admin/` duce corect la login; `/.well-known/` neatins. Fisierele statice nu trec prin PHP, dar **HSTS** (`max-age=31536000`) e trimis de codul nostru acum ca mediul e `production`, deci browserul trece singur pe https dupa prima vizita. Regula din `.htaccess` ramane, in caz ca serverul o va respecta vreodata.
+
+**Pe DNS-ul real, cu certificatul validat:** 428/428 de URL-uri din sitemap 200, zero continut mixt, zero urme de staging, zero erori PHP. `noindex` ramane, intentionat, pana la Faza 9.
+
+**Cele 279 de 404-uri din paritate, reparate:** toate erau pagini `/?attachment_id=N` ale site-ului vechi; sitemap-ul lui avea in total **298** de ID-uri (preluate direct de pe serverul vechi, inca accesibil pe IP). Media a fost reimportata in iulie cu ID-uri noi, deci ID-urile vechi nu mai gaseau nimic. Acum `ecofridge-blocks/includes/legacy-attachment-ids.php` (ID vechi → fisier, construit din harta migrarii 04 si rezolvat pe baza live) plus `legacy-attachment-redirects.php` (301 doar cand cererea ar fi 404): **298/298 ajung la 200**; poza adaugata dupa iulie (#14567) duce la produsul ei; un ID necunoscut ramane 404. Urcat pe live si pe staging, md5 identic cu repo-ul, PR #84.
+
+**Copia locala actualizata** (regula din intrarea 105): `source-dump/final-2026-11-07/live-files-after-ssl-0645.tar.gz` cu `wp-config.php`, `.htaccess` si fisierele de plugin schimbate azi; baza nu s-a schimbat de la dump-ul de dupa Faza 6.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
@@ -2369,6 +2385,7 @@ Doru: „asigura-te ca SSL este neinstalat (…) apoi verifica tot site-ul sa fi
 - **Faza 3 GATA (intrarea 101):** 86 de comenzi importate, #14517–#14638, reconciliere 6.017 = 6.017, urmatorul numar #14658; rapoarte reconstruite; stocul preluat; nimic nou la produse, categorii, pagini, media, redirecturi sau SEO; regula care pastreaza cele 5 comenzi pending (PR #78); tabelele clonei sterse din staging. Punct de revenire: `source-dump/db/staging-before-f15-2026-11-07.sql.gz`.
 - **Produsele verificate si pe continut (intrarea 102):** la zi pe preturi (18), stoc (10), SKU, manual PDF si poza noua; zero modificari de text. **Staging e GATA de clonare.**
 - **Faza 6, in plus:** `WP_ENVIRONMENT_TYPE` → `production` (altfel nu pleaca emailurile de recenzii si nu se aplica protectia HTTPS), blocul no-cache scos, LiteSpeed pornit dupa verificari.
+- **LIVE pe serverul nou (intrarea 106):** DNS mutat, SSL Google Trust Services pe ambele nume, HTTPS + www fortate din `wp-config.php` (serverul ignora `.htaccess`), 298 de pagini vechi de atasament redirectate. **Urmeaza Faza 9:** licente, GTM, noindex scos, comanda reala.
 - **REGULA (Doru, 7 nov): copia locala din laptop a site-ului live se actualizeaza MEREU** — baza si fisierele, in `source-dump/` (intrarea 105).
 - **Verificare finala (intrarea 105):** 428/428 URL-uri 200, paritate cu site-ul vechi fara 404 in afara de 279 de `?attachment_id=` (de reparat dupa A @), SSL neinstalat confirmat, nicio CAA. GO pentru A @.
 - **Faza 6 GATA (intrarea 104):** site-ul nou pe www, production, canonic, testat pe domeniul real. **Doru poate schimba A @.**
