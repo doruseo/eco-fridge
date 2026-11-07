@@ -2631,6 +2631,20 @@ Doru: „nu pot activa Object Cache din hPanel, dau click si nu se muta pe enabl
 
 **Garda adaugata la redirectul canonic:** jurnalul de erori PHP al site-ului avea, o singura data la 07:09, „Cannot modify header information - headers already sent" pe linia 14 din `wp-config.php` — chiar `header()`-ul redirectului canonic, intr-o cerere in care ceva trimisese deja continut. Conditia redirectului cere acum si `! headers_sent()`, deci intr-un asemenea caz nu mai incearca. Retestat: apex, `http://`, parametri, wp-admin — identic cu inainte. Copia locala a `wp-config.php` actualizata.
 
+## 123. De ce PageSpeed arata „Failed": date vechi de teren si o rulare esuata, nu un site lent (2026-11-07, ~08:55)
+
+Doru a pus doua capturi: Core Web Vitals „Failed" (LCP 4 s, INP 84 ms, CLS 0,01, FCP 3,8 s, TTFB 3,1 s) si PageSpeed cu Performance „!" (Accessibility, Best Practices, SEO = 100). „Site-ul este live, index, follow, ar trebui sa aiba scor bun."
+
+**1. „Core Web Vitals assessment: Failed" = date de teren de la utilizatori reali, ultimele 28 de zile** (scrie in captura: „Latest 28-day period", Chrome UX Report). Sunt aproape in totalitate vizitele **site-ului vechi**: TTFB 3,1 s e serverul lui Ambrit; site-ul nou raspunde in **0,06–0,18 s** (masurat azi, cu cache). Site-ul nou e live de cateva ore, deci cifrele se schimba treptat, pe masura ce intra vizite noi in fereastra de 28 de zile. Nu se poate „repara" azi si nu indica o problema a site-ului nou. INP 84 ms si CLS 0,01 sunt deja bune.
+
+**2. Performance „!" nu e un scor, e o rulare esuata** a testului de laborator la Google (cand Lighthouse nu termina sau da eroare, PageSpeed afiseaza „!" in loc de numar). API-ul public PageSpeed avea cota epuizata, asa ca am rulat **acelasi Lighthouse 13.6, pe telefon emulat, pe site-ul live**, de patru ori: **72–76, fara nicio eroare**. CLS 0, TBT 70–160 ms, FCP 1,8–2,1 s, Speed Index 2,3–2,9 s. LCP estimat de simulare: 6–7 s; **LCP observat in aceeasi rulare: 1,5–2,5 s**. Inregistrat separat, cu procesor 4× mai lent si 4G lent: LCP **2,2 s** = imaginea primului card de oferta (ECO-P6090), adica sub pragul „good" de 2,5 s.
+
+**Ce NU e cauza, verificat:** bannerul de cookies (fara banner, cu acordul deja dat: 72, practic acelasi scor); formatul imaginilor (prima pagina are 73 de `<picture>`, telefonul descarca AVIF); cache-ul (pagina vine din cache in 0,06 s).
+
+**De ce simularea e pesimista:** in trace, Chrome **invalideaza de mai multe ori candidatul LCP** (ultima data la ~1,6 s), iar Lighthouse nu mai poate lega LCP de o resursa anume — insight-urile de LCP ies „not applicable" — si estimeaza din tot lantul de incarcare.
+
+**Ce se poate imbunatati fara risc pentru design (propus, neaplicat):** `fetchpriority="high"` pe imaginea primului card de pe prima pagina (azi doar logo-ul il are); CSS-ul campului de telefon al SMS Alert incarcat doar unde e formularul (acum pe toate paginile, blocheaza randarea); greutatea GTM (327 KB transfer; legatura Google Ads ramasa pe Google tag adauga incarcari). Minificarea/combinarea si „unused CSS" din LiteSpeed raman oprite — castig estimat ~0,2–0,35 s, risc real pe design.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
