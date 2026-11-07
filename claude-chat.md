@@ -2586,6 +2586,17 @@ Doru: un rand pentru stergerea produsului de test, unul pentru verificarea GA4 s
 
 **Checklist eco-fridge:** faza noua **„17. Dupa lansare"**: F17-01 cron real, F17-02 dump-ul de pe staging, F17-03 HPOS (cu trimitere la F4-14).
 
+## 120. LiteSpeed pornit de Doru: ce merge si ce nu, Object Cache si CDN (2026-11-07, ~08:15)
+
+Doru: a pornit LiteSpeed; intreaba dacă porneste si „Object Cache — Recommended" si CDN-ul.
+
+**Masurat dupa pornire:**
+- **Redirecturile canonice merg in continuare** (testat de trei ori pe fiecare, ca sa prind si raspunsuri din cache): `http://eco-fridge.co.uk/`, `http://www…`, `https://eco-fridge.co.uk/…` → un singur 301 spre `https://www.eco-fridge.co.uk/…`. Cosul si checkout-ul raspund cu `Cache-Control: no-cache, private`, corect.
+- **Cache-ul de pagini NU e activ inca:** prima pagina raspunde in ~1,0 s la fiecare cerere, fara niciun antet `x-litespeed-cache`, iar subsolul spune „Page supported by LiteSpeed Cache", cu ora curenta, nu „cached". In plugin, `litespeed.conf.cache` e gol (oprit). Serverul acestui plan raspunde ca `hws`, nu ca LiteSpeed, si ignora regulile din `.htaccess` (intrarea 106), deci nu e sigur ca plugin-ul poate face cache de pagini aici; se verifica pornindu-l si masurand.
+- **Object Cache: configurat in plugin, dar nefolosit.** Setarile LiteSpeed (venite cu clona) au Redis pe socket-ul `/run/redis-object-cache/…`, iar drop-in-ul `object-cache.php` exista, dar `wp_using_ext_object_cache()` = false si o valoare scrisa nu supravietuieste pana la cererea urmatoare. Redis-ul pentru contul nou se activeaza din hPanel — exact butonul „Object Cache".
+
+**Recomandari:** **Object Cache — da**, il porneste Doru, apoi verific ca valorile persista intre cereri. **CDN — nu azi:** schimba stratul din fata site-ului (certificat, cache la margine, cereri catre webhook-ul Lloyds), iar azi abia am dovedit plata, redirecturile si GTM; serverul e in UK, la fel ca clientii, deci castigul e mic. De incercat dupa o saptamana linistita, cu reverificarea redirecturilor si a unei comenzi cu cardul.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
