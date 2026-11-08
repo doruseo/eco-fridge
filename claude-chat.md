@@ -2784,6 +2784,12 @@ Doru a scris suportului Hostinger despre `WRONGPASS`; ei au propus reactivarea O
 - Testat in wp-env pe ambele valori (setarea locala readusa la `external`). Zip-ul general `o2-cookie-consent.zip` refacut (1.2.1).
 - Urcat pe live si pe staging dupa „da" de la Doru (backup `/tmp/efcc-before-121.tar.gz` pe ambele): versiunea 1.2.1 activa, md5 class-efcc-admin.php `b25624e5daa7` identic cu repo-ul; setarea pe live ramane `external`. Verificat: home, shop si cart 200, cu GTM, consent default si banner. Copia locala: `source-dump/final-2026-11-07/live-plugin-efcc-121.tar.gz`.
 
+## 138. Google Ads AW-1015171724 — unde e conexiunea si de ce n-am putut-o scoate (2026-11-08)
+
+- AW-1015171724 NU e in containerul GTM (v23 nu-l contine) si nici in GA4 → Product links → Google Ads links (0 linkuri). E o **destinatie a Google tag-ului G-CTLE1GYXKG** („Eco Fridge"), adaugata pe 06/02/2023: gtag/js?id=G-CTLE1GYXKG o incarca automat, de aici cererile ccm/collect si viewthroughconversion.
+- In Chrome (contul lui Doru): GA4 → Admin → Data streams → stream → Configure tag settings → Admin → Manage Google tag → Destinations: panoul e „Read-only mode"; la „Choose who can administer this tag": „You are a read-only user of this tag". Nu exista buton de eliminare pentru randul AW. Nimic modificat.
+- De facut: cineva cu drept de administrator pe Google tag (de obicei adminul contului Google Ads 1015171724 — Mads / agentia veche) il scoate din Destinations, sau ii da lui Doru acces de administrator pe tag.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
