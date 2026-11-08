@@ -2782,7 +2782,7 @@ Doru a scris suportului Hostinger despre `WRONGPASS`; ei au propus reactivarea O
 - Intrebarea lui Doru: mai e nevoie de GTM4WP? Da — EF Cookie Consent incarca doar containerul; evenimentele de ecommerce, datele de pagina / `visitorType` si filtrele din `ecofridge-blocks/includes/analytics.php` vin din GTM4WP.
 - Cerinta: optiunea ramane, dar cu avertisment. Facut (PR #123): „By another plugin or the theme (recommended: GTM4WP, which also sends the WooCommerce eCommerce data)" primul, „By this plugin (not recommended - WARNING: does not load eCommerce!)", text de ajutor sub select si un rand galben de avertizare cat timp e selectat „By this plugin" (mentioneaza WooCommerce cand e activ). Default-ul pentru instalari noi devine `external`. Versiunea 1.2.1.
 - Testat in wp-env pe ambele valori (setarea locala readusa la `external`). Zip-ul general `o2-cookie-consent.zip` refacut (1.2.1).
-- Urcarea pe live (3 fisiere: ef-cookie-consent.php, class-efcc-admin.php, class-efcc-settings.php) a fost blocata de clasificator — astept „da" de la Doru. Pe live setarea salvata e deja `external`, deci schimbarea default-ului nu afecteaza nimic.
+- Urcat pe live si pe staging dupa „da" de la Doru (backup `/tmp/efcc-before-121.tar.gz` pe ambele): versiunea 1.2.1 activa, md5 class-efcc-admin.php `b25624e5daa7` identic cu repo-ul; setarea pe live ramane `external`. Verificat: home, shop si cart 200, cu GTM, consent default si banner. Copia locala: `source-dump/final-2026-11-07/live-plugin-efcc-121.tar.gz`.
 
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
