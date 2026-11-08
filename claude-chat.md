@@ -2777,6 +2777,13 @@ Doru a scris suportului Hostinger despre `WRONGPASS`; ei au propus reactivarea O
 - Feed-ul se genereaza la fiecare cerere (129 produse), dar LiteSpeed il tinea in cache pana la 7 zile (`cache-ttl_feed` = 604800) → risc de pret/stoc vechi la Google. Cu acordul lui Doru: `wp litespeed-option set cache-exc "/feed/google-merchant/"` (inainte: gol) + purge pe URL. Verificat: feed-ul raspunde `no-cache`, 129 produse, ~1,3 s; home, shop, produs si /feed/ raman hit.
 - Copia locala: `source-dump/final-2026-11-07/live-db-1500-feedexc.sql.gz`.
 
+## 137. EF Cookie Consent 1.2.1: „Load GTM — By this plugin" marcat nerecomandat (2026-11-08)
+
+- Intrebarea lui Doru: mai e nevoie de GTM4WP? Da — EF Cookie Consent incarca doar containerul; evenimentele de ecommerce, datele de pagina / `visitorType` si filtrele din `ecofridge-blocks/includes/analytics.php` vin din GTM4WP.
+- Cerinta: optiunea ramane, dar cu avertisment. Facut (PR #123): „By another plugin or the theme (recommended: GTM4WP, which also sends the WooCommerce eCommerce data)" primul, „By this plugin (not recommended - WARNING: does not load eCommerce!)", text de ajutor sub select si un rand galben de avertizare cat timp e selectat „By this plugin" (mentioneaza WooCommerce cand e activ). Default-ul pentru instalari noi devine `external`. Versiunea 1.2.1.
+- Testat in wp-env pe ambele valori (setarea locala readusa la `external`). Zip-ul general `o2-cookie-consent.zip` refacut (1.2.1).
+- Urcarea pe live (3 fisiere: ef-cookie-consent.php, class-efcc-admin.php, class-efcc-settings.php) a fost blocata de clasificator — astept „da" de la Doru. Pe live setarea salvata e deja `external`, deci schimbarea default-ului nu afecteaza nimic.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
