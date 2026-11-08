@@ -375,7 +375,21 @@ class EFCC_Admin {
 		echo '<table class="form-table" role="presentation">';
 		self::row_check( 'gcm', 'enabled', 'Consent Mode v2', 'Send consent defaults and updates to Google tags (required for Google Ads / GA4 audiences in the UK and EEA)' );
 		self::row_text( 'gcm', 'gtm_id', 'GTM container ID', 'e.g. GTM-ABC1234' );
-		self::row_select( 'gcm', 'gtm_load', 'Load GTM', array( 'plugin' => 'By this plugin (recommended: right after the consent defaults)', 'external' => 'By another plugin or the theme (make sure it loads after this plugin\'s <head> script)', 'none' => 'Not used' ) );
+		self::row_select(
+			'gcm',
+			'gtm_load',
+			'Load GTM',
+			array(
+				'external' => 'By another plugin or the theme (recommended: GTM4WP, which also sends the WooCommerce eCommerce data)',
+				'plugin'   => 'By this plugin (not recommended - WARNING: does not load eCommerce!)',
+				'none'     => 'Not used',
+			),
+			'This plugin only loads the GTM container: it sends no eCommerce events (view_item, add_to_cart, begin_checkout, purchase...) and no page / visitor data. Let GTM4WP load GTM and keep this on "By another plugin"; it must load after the &lt;head&gt; script of this plugin.'
+		);
+		if ( 'plugin' === EFCC_Settings::get( 'gcm', 'gtm_load' ) ) {
+			// A shop loading GTM from here loses every eCommerce event in GA4 / Google Ads.
+			echo '<tr><th scope="row"></th><td><p class="efcc-warn">WARNING: GTM is loaded by this plugin, so no eCommerce data reaches GA4 or Google Ads' . ( class_exists( 'WooCommerce' ) ? ' (WooCommerce is active on this site)' : '' ) . '. Let GTM4WP load GTM and set "Load GTM" to "By another plugin". If GTM4WP also outputs the container, GTM loads twice.</p></td></tr>';
+		}
 		self::row_select( 'gcm', 'mode', 'Mode', array(
 			'advanced' => 'Advanced – GTM always loads; Google tags send cookieless pings until consent',
 			'basic'    => 'Basic – GTM loads only after Statistics or Marketing consent',

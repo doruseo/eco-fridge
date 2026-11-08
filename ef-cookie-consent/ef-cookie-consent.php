@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       EF Cookie Consent
  * Description:       UK cookie consent (PECR / UK GDPR): banner with Accept all / Reject all / Manage options, per-category and per-service choices, Google Consent Mode v2 for Google Tag Manager, script and iframe blocking, cookie scanner, automatic cookie tables for the cookie policy, consent log.
- * Version:           1.2.0
+ * Version:           1.2.1
  * Requires at least: 6.5
  * Requires PHP:      8.1
  * Author:            O2 Digital
@@ -14,7 +14,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'EFCC_VERSION', '1.2.0' );
+define( 'EFCC_VERSION', '1.2.1' );
 define( 'EFCC_FILE', __FILE__ );
 define( 'EFCC_DIR', plugin_dir_path( __FILE__ ) );
 define( 'EFCC_URL', plugin_dir_url( __FILE__ ) );
