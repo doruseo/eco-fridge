@@ -96,7 +96,7 @@ class EFCC_Settings {
 			'gcm'        => array(
 				'enabled'      => 1,
 				'gtm_id'       => '',
-				'gtm_load'     => 'plugin', // plugin | external | none.
+				'gtm_load'     => 'external', // external (GTM4WP or the theme) | plugin (no eCommerce data) | none.
 				'mode'         => 'advanced', // advanced | basic.
 				'wait'         => 500,
 				'redaction'    => 1,
