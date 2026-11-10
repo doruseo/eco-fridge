@@ -2820,6 +2820,16 @@ Doru a marit Large la 1000×1000 in Media Settings, dar imaginile din articole r
 - Copia locala: `live-posts-after-large1000-2026-11-10.sql.gz` + `live-uploads-large1000-2026-11-10.tar.gz` (10.901 fisiere noi/atinse) in `source-dump/final-2026-11-07/`.
 - Uploadurile viitoare primesc automat Large 1000px.
 
+## 142. Backup-ul Ambrit din 9 nov comparat cu ce avem pe live (2026-11-10)
+
+Doru: „verifica baza de date din backup-11.9.2026_13-02-39_ecofridgeco.zip de la Ambrit si vezi daca pe site avem totul preluat".
+
+- Arhiva (2,46 GB) e un backup cPanel complet al site-ului vechi, facut pe 9 nov 13:02. Baza activa: `mysql/ecofridgeco_db.sql` (prefix `43lz2ypq8_`, conform wp-config); `ecofridgeco_db2.sql` e o copie veche. Convertite in SQLite (scratchpad, `dump2sqlite.py`), alaturi de clona din 7 nov 04:32 (`source-dump/db/backup-clone-2026-11-07.sql.gz`, sursa importului) si de baza live de azi (posts + postmeta).
+- **Ambrit 9 nov = clona 7 nov**, dupa normalizarea domeniilor rescrise: aceleasi randuri la posts (10.469), postmeta, comentarii, termeni, linii de comanda, utilizatori; zero noi/sterse/modificate la continut, produse, comenzi, meta. Ultima activitate reala pe site-ul vechi: comanda #14638, 5 nov 21:13 (si ultima tranzactie Lloyds, 4.021). Diferente doar tehnice: un `amp_validated_url`, sesiuni/last-seen ale staff-ului, cron, transient-uri, optiuni de pluginuri.
+- **Pe live:** toate cele **6.017 comenzi** vechi gasite dupa `_order_key`, cu acelasi numar si status (live are 6.020: + #14658 neplatita, #14664, #14667). **Produse:** 135/135 gasite dupa SKU; pret efectiv identic; o singura diferenta, SD75/120SH outofstock → instock, editata pe live pe 9 nov 11:30 de un utilizator al magazinului (dupa lansare, deci intentionata).
+- Ramas pe live: produsul de test **#14659** „Live payment test – do not buy" — publicat, ascuns din catalog, dar cumparabil la £1 de oricine are adresa. De decis cu Doru.
+- Backup-ul `/tmp/backup-posts-before-large1000.sql.gz` de pe server a fost sters (copia de pe laptop din intrarea 141 ramane).
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
