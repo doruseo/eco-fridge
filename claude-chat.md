@@ -2790,6 +2790,13 @@ Doru a scris suportului Hostinger despre `WRONGPASS`; ei au propus reactivarea O
 - In Chrome (contul lui Doru): GA4 → Admin → Data streams → stream → Configure tag settings → Admin → Manage Google tag → Destinations: panoul e „Read-only mode"; la „Choose who can administer this tag": „You are a read-only user of this tag". Nu exista buton de eliminare pentru randul AW. Nimic modificat.
 - De facut: cineva cu drept de administrator pe Google tag (de obicei adminul contului Google Ads 1015171724 — Mads / agentia veche) il scoate din Destinations, sau ii da lui Doru acces de administrator pe tag.
 
+## 140. Jetpack Connection: `xmlrpc.php` deschis doar pentru cererile semnate de WordPress.com (2026-11-10)
+
+- Site Health: „WordPress.com reached your site but the request was blocked (HTTP 403)". **Cauza era la noi:** `ecofridge-blocks/includes/security.php` raspundea 403 la orice cerere catre `xmlrpc.php`, iar Jetpack Connection (inclus in WooCommerce Analytics) foloseste exact acest fisier.
+- **Reparat (cu „da" de la Doru):** cererile cu `?for=jetpack` + token, timestamp, nonce si signature trec; restul primesc tot 403. Verificarea se face pe `plugins_loaded`, fiindca ecofridge-blocks se incarca inaintea WooCommerce Analytics. Backup pe server: `/tmp/security.php.before-jetpack`. Copia locala: `source-dump/final-2026-11-07/live-security-php-jetpack-2026-11-10.php`.
+- **Verificat pe live:** `xmlrpc.php` normal si `wp.getUsersBlogs` → 403; o cerere Jetpack cu semnatura falsa primeste doar metodele publice ale Jetpack (system.*, jetpack.verifyRegistration / remoteRegister / remoteAuthorize), iar multicall catre `wp.getUsersBlogs` da „method does not exist" — ghicitul de parole ramane imposibil. Home, shop, wp-login 200; checkout 302 (cos gol, normal).
+- **Urmeaza (Doru):** Site Health reverificat, apoi conectarea cu un cont WordPress.com. Dupa conectare: de verificat ce scripturi/cookie-uri adauga WooCommerce Analytics pe frontend (Cookie Policy + consimtamant).
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
