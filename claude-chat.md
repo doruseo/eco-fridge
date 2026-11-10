@@ -2809,6 +2809,17 @@ Doru: pe dashboard-ul SMS Alert nu apar SMS-uri; crede ca stergerea staging-ului
 - **Urmeaza (Doru):** Site Health reverificat, apoi conectarea cu un cont WordPress.com. Dupa conectare: de verificat ce scripturi/cookie-uri adauga WooCommerce Analytics pe frontend (Cookie Policy + consimtamant).
 - **Confirmat de Doru:** totul e in regula pe site. PR #127 merge-uit in `main`.
 
+## 141. Imaginile „Large" din articole: 1000px pe tot site-ul (2026-11-10)
+
+Doru a marit Large la 1000×1000 in Media Settings, dar imaginile din articole ramaneau mici (ex. `cleaning-the-restaurant-fridge` in /commercial-refrigeration-maintenance-guide/). **Cauza:** setarea se aplica doar la uploaduri noi; copiile Large existente erau facute cu vechiul 600px (`-600x335`), iar continutul articolelor indica spre ele. Coloana articolului (`.ef-post-body`) are max 780px.
+
+- Backup inainte: tabelele posts + postmeta → `source-dump/final-2026-11-07/live-posts-before-large1000-2026-11-10.sql.gz` (si `/tmp/backup-posts-before-large1000.sql.gz` pe server). Continutul vechi al fiecarui articol schimbat e si in meta `_ef_content_before_large1000`.
+- **383 de imagini** (din 882) cu Large sub ce permite setarea: `wp media regenerate <ids> --image_size=large --skip-delete` (fisierele vechi raman pe disc, nicio adresa nu se rupe), in loturi in prim-plan — **pe acest server procesele lasate in fundal (nohup/setsid) sunt oprite**. WebP/AVIF: O2IO a convertit fisierele noi; regenerarea a pus in plus ~440 de conversii in coada Action Scheduler (`o2io_process_one`, mod „background"), rulate pana la 0 pending, 0 failed. O singura imagine cu eroare de conversie: #921 (commercial-display-freezer, „empty output"), se serveste ca JPG.
+- **Continut:** in figurile `size-large`, `src` mutat pe fisierul Large nou doar daca e mai lat decat cel folosit (niciodata in jos): **21 de imagini** schimbate; 10 sarite, fiindca folosesc deja fisiere 1024px de pe vechiul site (afisate oricum pe toata coloana). Simularea dupa: 0 de schimbat.
+- Verificat: articolul din exemplu are `width="1000"`, srcset cu 1000w, `.avif` servit; home, shop, blog, articol 200; LiteSpeed purge all.
+- Copia locala: `live-posts-after-large1000-2026-11-10.sql.gz` + `live-uploads-large1000-2026-11-10.tar.gz` (10.901 fisiere noi/atinse) in `source-dump/final-2026-11-07/`.
+- Uploadurile viitoare primesc automat Large 1000px.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
