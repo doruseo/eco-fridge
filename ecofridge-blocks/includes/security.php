@@ -40,14 +40,46 @@ if ( ! defined( 'DISALLOW_FILE_EDIT' ) ) {
 /* ---------------------------------------------------------------------------
  * XML-RPC and pingbacks.
  * ------------------------------------------------------------------------- */
-// xmlrpc.php still answers system.multicall with XML-RPC "disabled", so the
-// whole endpoint is closed.
-if ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) {
-	status_header( 403 );
-	exit;
+/**
+ * Whether this is a signed Jetpack Connection request from WordPress.com.
+ *
+ * The Jetpack Connection package (bundled with WooCommerce Analytics) talks to
+ * the site through xmlrpc.php with ?for=jetpack plus a token, timestamp, nonce
+ * and signature. The package itself verifies the signature against the site's
+ * secret and rejects anything forged, so letting these requests through does
+ * not reopen XML-RPC for password guessing: only Jetpack's own signed methods
+ * are served, never wp.* or system.multicall with a username and password.
+ *
+ * @return bool
+ */
+function efb_is_jetpack_xmlrpc_request() {
+	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- signed by WordPress.com, verified by the Jetpack Connection package.
+	return isset( $_GET['for'], $_GET['token'], $_GET['signature'], $_GET['timestamp'], $_GET['nonce'] )
+		&& 'jetpack' === $_GET['for']
+		&& class_exists( 'Automattic\Jetpack\Connection\Manager' );
+	// phpcs:enable
 }
-add_filter( 'xmlrpc_enabled', '__return_false' );
-add_filter( 'xmlrpc_methods', '__return_empty_array' );
+
+// xmlrpc.php still answers system.multicall with XML-RPC "disabled", so the
+// whole endpoint is closed, except for signed Jetpack Connection requests.
+// Checked on plugins_loaded: this plugin loads before WooCommerce Analytics,
+// so the Jetpack classes are not autoloadable yet when this file runs. The
+// XML-RPC server only starts after wp-settings.php, so nothing is served earlier.
+add_action(
+	'plugins_loaded',
+	static function () {
+		if ( efb_is_jetpack_xmlrpc_request() ) {
+			return;
+		}
+		if ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) {
+			status_header( 403 );
+			exit;
+		}
+		add_filter( 'xmlrpc_enabled', '__return_false' );
+		add_filter( 'xmlrpc_methods', '__return_empty_array' );
+	},
+	0
+);
 add_filter( 'pings_open', '__return_false', 99 );
 add_filter(
 	'wp_headers',
