@@ -2799,6 +2799,8 @@ Doru: pe dashboard-ul SMS Alert nu apar SMS-uri; crede ca stergerea staging-ului
 - **Check & Log Email e INACTIV** pe live (instalat, dezactivat dupa 7 nov 07:42, ultima intrare in jurnal) — de aceea emailurile comenzilor noi nu apar in jurnalul de email. Propus: reactivare.
 - **Mesajul WordPress.com** vine din pachetul Jetpack Connection inclus in **WooCommerce Analytics** (`woocommerce-analytics/vendor/automattic/jetpack-connection/src/class-error-handler.php`). Pluginul nu e conectat si nu trimite nimic (intrarea 37/842). Propus: dezactivarea lui → mesajul dispare; rapoartele WooCommerce (Analytics din WooCommerce) raman.
 - Nimic modificat pe live (doar citire; scripturile temporare din /tmp sterse).
+- **Decizia lui Doru (acelasi zi):** Check & Log Email reactivat de el (verificat: activ, 2.0.17). **WooCommerce Analytics ramane** (il foloseste pentru Order Attribution si rapoartele lunare); mesajul WordPress.com se ignora. De stiut: Order Attribution (`woocommerce_feature_order_attribution_enabled` = yes) si rapoartele WooCommerce → Analytics vin din WooCommerce, nu din pluginul Automattic, deci functioneaza oricum.
+
 ## 140. Jetpack Connection: `xmlrpc.php` deschis doar pentru cererile semnate de WordPress.com (2026-11-10)
 
 - Site Health: „WordPress.com reached your site but the request was blocked (HTTP 403)". **Cauza era la noi:** `ecofridge-blocks/includes/security.php` raspundea 403 la orice cerere catre `xmlrpc.php`, iar Jetpack Connection (inclus in WooCommerce Analytics) foloseste exact acest fisier.
