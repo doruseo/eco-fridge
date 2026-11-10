@@ -2790,6 +2790,15 @@ Doru a scris suportului Hostinger despre `WRONGPASS`; ei au propus reactivarea O
 - In Chrome (contul lui Doru): GA4 → Admin → Data streams → stream → Configure tag settings → Admin → Manage Google tag → Destinations: panoul e „Read-only mode"; la „Choose who can administer this tag": „You are a read-only user of this tag". Nu exista buton de eliminare pentru randul AW. Nimic modificat.
 - De facut: cineva cu drept de administrator pe Google tag (de obicei adminul contului Google Ads 1015171724 — Mads / agentia veche) il scoate din Destinations, sau ii da lui Doru acces de administrator pe tag.
 
+## 139. Primele doua comenzi reale: emailuri si SMS trimise; mesajul „WordPress.com requests… blocked" (2026-11-10)
+
+Doru: pe dashboard-ul SMS Alert nu apar SMS-uri; crede ca stergerea staging-ului a rupt conexiunea; plus mesajul din wp-admin „WordPress.com requests to your site are being blocked".
+
+- **#14664** (8 nov, 20:58, transfer bancar, £2.568, On hold) si **#14667** (9 nov, 11:33, card Lloyds, £3.114, Processing, aprobat 051965, webhook confirmat): ambele au notele „Email "New order" sent", emailul catre client („Order on-hold" / „Processing order") si **„SMS Send to buyer Successfully"**. WP Mail SMTP (IONOS) nu are erori in jurnalul de debug.
+- **SMS Alert e conectat de pe live**, nu de pe staging: contul `doru.fridge@gmail.com` + parola in plugin, expeditor ECOFRIDGE, `creditstatus.json` = success. Conexiunea e pe user/parola, nu pe domeniu, deci stergerea staging-ului nu a afectat-o. **Creditele: 4.725 (7 nov) → 4.605 acum = 120 credite ≈ 3 SMS × 40** — mesajele au plecat si au fost taxate. Daca dashboard-ul nu le arata, e alt cont/alt filtru; de verificat Reports / Delivery report in contul doru.fridge@gmail.com.
+- **Check & Log Email e INACTIV** pe live (instalat, dezactivat dupa 7 nov 07:42, ultima intrare in jurnal) — de aceea emailurile comenzilor noi nu apar in jurnalul de email. Propus: reactivare.
+- **Mesajul WordPress.com** vine din pachetul Jetpack Connection inclus in **WooCommerce Analytics** (`woocommerce-analytics/vendor/automattic/jetpack-connection/src/class-error-handler.php`). Pluginul nu e conectat si nu trimite nimic (intrarea 37/842). Propus: dezactivarea lui → mesajul dispare; rapoartele WooCommerce (Analytics din WooCommerce) raman.
+- Nimic modificat pe live (doar citire; scripturile temporare din /tmp sterse).
 ## 140. Jetpack Connection: `xmlrpc.php` deschis doar pentru cererile semnate de WordPress.com (2026-11-10)
 
 - Site Health: „WordPress.com reached your site but the request was blocked (HTTP 403)". **Cauza era la noi:** `ecofridge-blocks/includes/security.php` raspundea 403 la orice cerere catre `xmlrpc.php`, iar Jetpack Connection (inclus in WooCommerce Analytics) foloseste exact acest fisier.
