@@ -2807,6 +2807,7 @@ Doru: pe dashboard-ul SMS Alert nu apar SMS-uri; crede ca stergerea staging-ului
 - **Reparat (cu „da" de la Doru):** cererile cu `?for=jetpack` + token, timestamp, nonce si signature trec; restul primesc tot 403. Verificarea se face pe `plugins_loaded`, fiindca ecofridge-blocks se incarca inaintea WooCommerce Analytics. Backup pe server: `/tmp/security.php.before-jetpack`. Copia locala: `source-dump/final-2026-11-07/live-security-php-jetpack-2026-11-10.php`.
 - **Verificat pe live:** `xmlrpc.php` normal si `wp.getUsersBlogs` → 403; o cerere Jetpack cu semnatura falsa primeste doar metodele publice ale Jetpack (system.*, jetpack.verifyRegistration / remoteRegister / remoteAuthorize), iar multicall catre `wp.getUsersBlogs` da „method does not exist" — ghicitul de parole ramane imposibil. Home, shop, wp-login 200; checkout 302 (cos gol, normal).
 - **Urmeaza (Doru):** Site Health reverificat, apoi conectarea cu un cont WordPress.com. Dupa conectare: de verificat ce scripturi/cookie-uri adauga WooCommerce Analytics pe frontend (Cookie Policy + consimtamant).
+- **Confirmat de Doru:** totul e in regula pe site. PR #127 merge-uit in `main`.
 
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
