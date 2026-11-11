@@ -2830,6 +2830,18 @@ Doru: „verifica baza de date din backup-11.9.2026_13-02-39_ecofridgeco.zip de 
 - Ramas pe live: produsul de test **#14659** „Live payment test – do not buy" — publicat, ascuns din catalog, dar cumparabil la £1 de oricine are adresa. De decis cu Doru.
 - Backup-ul `/tmp/backup-posts-before-large1000.sql.gz` de pe server a fost sters (copia de pe laptop din intrarea 141 ramane).
 
+## 143. Linkuri interne in toate articolele de blog (2026-11-11)
+
+Doru: „pune internal linking la toate articolele de blog de pe site atat catre alte articole din site cat mai ales catre categoriile comerciale" + „pune internal linking pe ancore relevante din continutul articolelor".
+
+- **Pe live, 104 din 105 articole** (singurul fara link nou: un anunt scurt fara expresii potrivite), **534 de linkuri noi**: 333 spre categorii de produse, 58 spre pagini de piata (cel mult una pe articol), 143 spre alte articole. Fiecare din cele 61 de tinte raspunde 200.
+- **Ancore din textul existent**, cu formularea si majusculele originale (ex. „multideck fridge", „Ice Cream Freezer", „food safety"); textul vizibil al articolelor e identic, verificat fara taguri. Reguli: doar in `<p>` si `<li>` (niciodata titluri, imagini, butoane), niciodata in alt link, maxim un link nou pe paragraf, o singura data aceeasi tinta pe articol, nimic spre o tinta deja legata din articol, niciodata spre el insusi. Categoriile cele mai specifice inainte de cele generale (multideck / patisserie / serve over / drinks / beer / wine / bar inainte de „display fridge" si „commercial fridge"); maxim 5 categorii+piata si 3 articole pe articol; linkurile spre articole merg intai la articolele cu cele mai putine linkuri primite. Doar categorii cu produse.
+- Unealta: `migration/tools/internal-links/` (`export.php` → `build_links.py` → `apply.php`), raportul complet articol / ancora / tinta in `report-2026-11-11.tsv`. `apply.php` scrie doar daca md5-ul continutului e cel exportat (niciun articol editat intre timp: 104 actualizate, 0 sarite).
+- **Revenire:** continutul vechi al fiecarui articol e in meta `_ef_content_before_internal_links`; exportul de dinainte e si pe laptop (`source-dump/final-2026-11-07/live-posts-before-internal-links-2026-11-11.json`).
+- LiteSpeed purge all facut; `wp cache flush` raspunde cu eroare, dar live nu are cache de obiecte persistent („Default"), deci nu conteaza. Verificat in pagini: 3 articole, toate linkurile asteptate prezente.
+- Copia locala: `source-dump/final-2026-11-07/live-posts-after-internal-links-2026-11-11.sql.gz` (wp_posts + wp_postmeta de pe live).
+- Git: `gh pr merge 129` (intrarea 141/142) a fost blocat de permisiunile Claude Code, deci PR #129 ramane deschis; ramura noua porneste din el.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
