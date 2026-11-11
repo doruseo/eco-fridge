@@ -2809,6 +2809,39 @@ Doru: pe dashboard-ul SMS Alert nu apar SMS-uri; crede ca stergerea staging-ului
 - **Urmeaza (Doru):** Site Health reverificat, apoi conectarea cu un cont WordPress.com. Dupa conectare: de verificat ce scripturi/cookie-uri adauga WooCommerce Analytics pe frontend (Cookie Policy + consimtamant).
 - **Confirmat de Doru:** totul e in regula pe site. PR #127 merge-uit in `main`.
 
+## 141. Imaginile „Large" din articole: 1000px pe tot site-ul (2026-11-10)
+
+Doru a marit Large la 1000×1000 in Media Settings, dar imaginile din articole ramaneau mici (ex. `cleaning-the-restaurant-fridge` in /commercial-refrigeration-maintenance-guide/). **Cauza:** setarea se aplica doar la uploaduri noi; copiile Large existente erau facute cu vechiul 600px (`-600x335`), iar continutul articolelor indica spre ele. Coloana articolului (`.ef-post-body`) are max 780px.
+
+- Backup inainte: tabelele posts + postmeta → `source-dump/final-2026-11-07/live-posts-before-large1000-2026-11-10.sql.gz` (si `/tmp/backup-posts-before-large1000.sql.gz` pe server). Continutul vechi al fiecarui articol schimbat e si in meta `_ef_content_before_large1000`.
+- **383 de imagini** (din 882) cu Large sub ce permite setarea: `wp media regenerate <ids> --image_size=large --skip-delete` (fisierele vechi raman pe disc, nicio adresa nu se rupe), in loturi in prim-plan — **pe acest server procesele lasate in fundal (nohup/setsid) sunt oprite**. WebP/AVIF: O2IO a convertit fisierele noi; regenerarea a pus in plus ~440 de conversii in coada Action Scheduler (`o2io_process_one`, mod „background"), rulate pana la 0 pending, 0 failed. O singura imagine cu eroare de conversie: #921 (commercial-display-freezer, „empty output"), se serveste ca JPG.
+- **Continut:** in figurile `size-large`, `src` mutat pe fisierul Large nou doar daca e mai lat decat cel folosit (niciodata in jos): **21 de imagini** schimbate; 10 sarite, fiindca folosesc deja fisiere 1024px de pe vechiul site (afisate oricum pe toata coloana). Simularea dupa: 0 de schimbat.
+- Verificat: articolul din exemplu are `width="1000"`, srcset cu 1000w, `.avif` servit; home, shop, blog, articol 200; LiteSpeed purge all.
+- Copia locala: `live-posts-after-large1000-2026-11-10.sql.gz` + `live-uploads-large1000-2026-11-10.tar.gz` (10.901 fisiere noi/atinse) in `source-dump/final-2026-11-07/`.
+- Uploadurile viitoare primesc automat Large 1000px.
+
+## 142. Backup-ul Ambrit din 9 nov comparat cu ce avem pe live (2026-11-10)
+
+Doru: „verifica baza de date din backup-11.9.2026_13-02-39_ecofridgeco.zip de la Ambrit si vezi daca pe site avem totul preluat".
+
+- Arhiva (2,46 GB) e un backup cPanel complet al site-ului vechi, facut pe 9 nov 13:02. Baza activa: `mysql/ecofridgeco_db.sql` (prefix `43lz2ypq8_`, conform wp-config); `ecofridgeco_db2.sql` e o copie veche. Convertite in SQLite (scratchpad, `dump2sqlite.py`), alaturi de clona din 7 nov 04:32 (`source-dump/db/backup-clone-2026-11-07.sql.gz`, sursa importului) si de baza live de azi (posts + postmeta).
+- **Ambrit 9 nov = clona 7 nov**, dupa normalizarea domeniilor rescrise: aceleasi randuri la posts (10.469), postmeta, comentarii, termeni, linii de comanda, utilizatori; zero noi/sterse/modificate la continut, produse, comenzi, meta. Ultima activitate reala pe site-ul vechi: comanda #14638, 5 nov 21:13 (si ultima tranzactie Lloyds, 4.021). Diferente doar tehnice: un `amp_validated_url`, sesiuni/last-seen ale staff-ului, cron, transient-uri, optiuni de pluginuri.
+- **Pe live:** toate cele **6.017 comenzi** vechi gasite dupa `_order_key`, cu acelasi numar si status (live are 6.020: + #14658 neplatita, #14664, #14667). **Produse:** 135/135 gasite dupa SKU; pret efectiv identic; o singura diferenta, SD75/120SH outofstock → instock, editata pe live pe 9 nov 11:30 de un utilizator al magazinului (dupa lansare, deci intentionata).
+- Ramas pe live: produsul de test **#14659** „Live payment test – do not buy" — publicat, ascuns din catalog, dar cumparabil la £1 de oricine are adresa. De decis cu Doru.
+- Backup-ul `/tmp/backup-posts-before-large1000.sql.gz` de pe server a fost sters (copia de pe laptop din intrarea 141 ramane).
+
+## 143. Linkuri interne in toate articolele de blog (2026-11-11)
+
+Doru: „pune internal linking la toate articolele de blog de pe site atat catre alte articole din site cat mai ales catre categoriile comerciale" + „pune internal linking pe ancore relevante din continutul articolelor".
+
+- **Pe live, 104 din 105 articole** (singurul fara link nou: un anunt scurt fara expresii potrivite), **534 de linkuri noi**: 333 spre categorii de produse, 58 spre pagini de piata (cel mult una pe articol), 143 spre alte articole. Fiecare din cele 61 de tinte raspunde 200.
+- **Ancore din textul existent**, cu formularea si majusculele originale (ex. „multideck fridge", „Ice Cream Freezer", „food safety"); textul vizibil al articolelor e identic, verificat fara taguri. Reguli: doar in `<p>` si `<li>` (niciodata titluri, imagini, butoane), niciodata in alt link, maxim un link nou pe paragraf, o singura data aceeasi tinta pe articol, nimic spre o tinta deja legata din articol, niciodata spre el insusi. Categoriile cele mai specifice inainte de cele generale (multideck / patisserie / serve over / drinks / beer / wine / bar inainte de „display fridge" si „commercial fridge"); maxim 5 categorii+piata si 3 articole pe articol; linkurile spre articole merg intai la articolele cu cele mai putine linkuri primite. Doar categorii cu produse.
+- Unealta: `migration/tools/internal-links/` (`export.php` → `build_links.py` → `apply.php`), raportul complet articol / ancora / tinta in `report-2026-11-11.tsv`. `apply.php` scrie doar daca md5-ul continutului e cel exportat (niciun articol editat intre timp: 104 actualizate, 0 sarite).
+- **Revenire:** continutul vechi al fiecarui articol e in meta `_ef_content_before_internal_links`; exportul de dinainte e si pe laptop (`source-dump/final-2026-11-07/live-posts-before-internal-links-2026-11-11.json`).
+- LiteSpeed purge all facut; `wp cache flush` raspunde cu eroare, dar live nu are cache de obiecte persistent („Default"), deci nu conteaza. Verificat in pagini: 3 articole, toate linkurile asteptate prezente.
+- Copia locala: `source-dump/final-2026-11-07/live-posts-after-internal-links-2026-11-11.sql.gz` (wp_posts + wp_postmeta de pe live).
+- Git: `gh pr merge 129` (intrarea 141/142) a fost blocat de permisiunile Claude Code, deci PR #129 ramane deschis; ramura noua porneste din el.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
