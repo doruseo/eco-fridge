@@ -96,6 +96,8 @@ class EFCC_Cookies {
 	 */
 	public static function grouped() {
 		$days = (int) EFCC_Settings::get( 'general', 'consent_days' );
+		$sbjs = (int) EFCC_Settings::get( 'blocking', 'woo_lifetime_days' );
+		$sbjs = $sbjs > 0 ? $sbjs . ' days' : 'Session';
 		$list = array();
 
 		// 1. Necessary cookies of the site itself (always there, even if a scan
@@ -118,6 +120,12 @@ class EFCC_Cookies {
 				);
 			}
 		}
+		// The entry page kept in sessionStorage until the choice (not a cookie, so
+		// no scan or service pattern lists it).
+		if ( EFCC_Settings::get( 'blocking', 'woo_attribution' ) && EFCC_Settings::get( 'blocking', 'woo_landing' ) && isset( $list['sbjs_*'] ) ) {
+			$k = EFCC_Library::match_cookie( 'efcc_landing' );
+			if ( $k ) { $list['efcc_landing'] = $k; }
+		}
 		// 3. The register (scan + manual), which wins: it may hold edits.
 		foreach ( self::register() as $n => $c ) {
 			if ( ! empty( $c['hidden'] ) ) { unset( $list[ $n ] ); continue; }
@@ -133,7 +141,7 @@ class EFCC_Cookies {
 		$out = array_fill_keys( array_keys( EFCC_Settings::categories() ), array() );
 		foreach ( $list as $c ) {
 			$cat = isset( $out[ $c['category'] ] ) ? $c['category'] : 'necessary';
-			$c['duration'] = str_replace( '%days%', (string) $days, (string) ( $c['duration'] ?? '' ) );
+			$c['duration'] = str_replace( array( '%days%', '%sbjs%' ), array( (string) $days, $sbjs ), (string) ( $c['duration'] ?? '' ) );
 			$out[ $cat ][] = $c;
 		}
 		foreach ( $out as $k => $rows ) {

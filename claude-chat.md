@@ -2852,6 +2852,23 @@ Doru: la urcarea a doua poze JPEG (1800×853 si 1800×1005, ~400 KB) din editoru
 - **Daca reapare:** intai purge cache + reincarcarea editorului; daca tot nu merge, F12 → Network → codul de stare al cererii `async-upload.php`, inainte de orice altceva.
 - De retinut: pe live logul PHP e `~/websites/PNxOJBHKQ/.h5g/php_error.log`. Modul auto al Claude Code a blocat SSH-ul catre live si uploadul de test din browser; verificarile au fost rulate de Doru cu `!`, din scripturi numai-citire.
 
+## 145. Toate comenzile apar „Direct": sursa se pierdea la acordul dat tarziu (2026-11-12)
+
+Doru: cele 6 comenzi de dupa lansare au toate Origin „Direct"; greu de crezut. Cerere: de gasit eroarea si de aflat cum au descoperit clientii site-ul.
+
+- **Cauza (confirmata):** atribuirea WooCommerce (sourcebuster, cookie-urile `sbjs_*`) porneste abia la acordul pentru Statistics si citeste referrerul paginii pe care porneste. Acord pe prima pagina → sursa corecta; acord pe pagina 2+ → referrerul e deja eco-fridge → „typein" (Direct); fara acord → nimic („Unknown"). In plus, cookie-urile erau de sesiune: cine revine alta zi tastand adresa e tot „Direct".
+- **Dovezi:** pe comenzi, `referrer` e o pagina interna la 4 din cele 5 comenzi reale (#14667, #14777, #14819, #14820), cu „sesiune" inceputa cu 2–8 minute inainte de comanda si `session_entry` = cos / produs; #14664 nu are referrer (posibil direct real, client cu 2 comenzi anterioare); #14658 e testul lui Doru (`gtm_debug`). Reprodus cu un vizitator curat (Playwright, pe live): venit din Google + Accept pe a doua pagina → `typein`; Accept pe prima → `organic / google`.
+- **Decizia lui Doru:** (1) se retine sursa pana la alegere; (2) prima sursa pastrata 90 de zile. Varianta cu banner blocant si intrebarea „How did you hear about us?" la checkout: nu acum.
+- **ef-cookie-consent 1.3.0**, doua setari noi in Blocking (ambele oprite implicit, pornite pe eco-fridge):
+  - `woo_landing` — pana la alegere, `efcc.js` tine in `sessionStorage` (`efcc_landing`) doar pagina de intrare si referrerul ei. La Accept pe o pagina ulterioara, sourcebuster e pornit ca pe pagina de intrare (referrer + URL cu utm/gclid, schimbat o clipa cu un `history.replaceState` neatins, luat dintr-un iframe gol, ca GA4 sa nu numere un page_view). La Reject se sterge. **Juridic e zona gri** (tot stocare inainte de acord, chiar daca nu pleaca nicaieri) — spus lui Doru, el a ales; apare in tabelul din Cookie Policy.
+  - `woo_lifetime_days` = 90 — cookie-urile `sbjs_*` tin 90 de zile (filtrul `wc_order_attribution_cookie_lifetime_months`); tabelul de cookies arata durata automat. Efect: „Origin" devine ultima sursa cunoscuta care nu e Direct, in 90 de zile.
+- **ecofridge-blocks (`analytics.php`):** 7 campuri noi salvate pe comanda prin `wc_order_attribution_tracking_fields` — `_wc_order_attribution_first_source_type / first_utm_source / first_utm_medium / first_utm_campaign / first_referrer / first_entry / first_visit_time`; afisate in comanda („First known visit: …") si puse in dataLayer la purchase (`order_details.first_*`; in GTM inca nemapate).
+- **Teste:** 6 scenarii × Chrome, Firefox, WebKit pe paginile live cu `efcc.js` nou injectat (Google, utm, alt site, direct, Reject, Accept pe prima pagina) — toate corecte; niciun page_view GA4 in plus; cookie 90,0 zile. Local: comanda prin Store API cu toate cele 7 campuri salvate.
+- **Greseala mea la testul local:** comanda locala #14654 (BACS, `attribution-test@example.com`) a trimis emailul real „You've got a new order: #14654" catre cele doua adrese ale magazinului — copia locala are WP Mail SMTP pe SMTP-ul real. Comanda locala e stearsa; emailul nu poate fi retras. Doru anuntat, sa-i spuna lui Mads sa-l ignore. Regula noua in memorie: mailul se blocheaza inainte de orice test local.
+- **Comenzile vechi** nu pot fi reparate din Woo (sursa nu a fost salvata). In GA4: Explore cu Transaction ID + „First user source / medium" si „Session source / medium" — proprietatea e aceeasi ca pe site-ul vechi, deci la clientii care acceptasera cookies acolo se poate vedea prima sursa.
+- **GA4 are aceeasi slabiciune** la acordul dat tarziu (referrerul paginii de intrare nu mai e disponibil); reparatia de azi priveste doar datele din WooCommerce.
+- **Punere pe live:** cu scriptul din scratchpad rulat de Doru (SSH-ul meu e blocat de modul auto); vezi starea in mesajul de final al sesiunii.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.

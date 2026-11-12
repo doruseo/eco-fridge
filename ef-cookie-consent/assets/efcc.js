@@ -76,6 +76,68 @@
 		});
 	}
 
+	/* —— WooCommerce order attribution —— */
+
+	// The source tracker (sourcebuster) starts only after consent and reads the
+	// referrer and URL of the page it starts on. A visitor who makes the choice on
+	// a later page would be recorded as "direct", so the entry page and its
+	// referrer are kept in sessionStorage (this tab only, never sent anywhere)
+	// until the choice, then dropped.
+	var LANDING = 'efcc_landing';
+
+	function landingRead() {
+		try { return JSON.parse(sessionStorage.getItem(LANDING)); } catch (e) { return null; }
+	}
+
+	function landingForget() {
+		try { sessionStorage.removeItem(LANDING); } catch (e) { /* storage unavailable */ }
+	}
+
+	function landingRemember() {
+		if (!c.wooAttr || !c.wooLanding) { return; }
+		try {
+			if (!sessionStorage.getItem(LANDING)) {
+				sessionStorage.setItem(LANDING, JSON.stringify({ rf: d.referrer, url: location.href }));
+			}
+		} catch (e) { /* storage unavailable: the choice page is recorded instead */ }
+	}
+
+	function setAttribution(allow) {
+		var oa = window.wc_order_attribution;
+		if (!c.wooAttr || !oa || !oa.setOrderTracking) { return; }
+		var land = allow && c.wooLanding ? landingRead() : null;
+		landingForget();
+		// Nothing to restore: same page, or the tracker already has its cookies.
+		if (!land || !land.url || land.url === location.href || /(?:^|; )sbjs_current=/.test(d.cookie)) {
+			oa.setOrderTracking(allow);
+			return;
+		}
+		// Start the tracker as if on the entry page: its referrer, and its URL for
+		// the utm_* / gclid parameters and the entry page. The URL is swapped with
+		// an untouched history.replaceState from an empty frame (analytics tags
+		// wrap the page's own one to count page views) and put back at once.
+		var here = location.href;
+		var frame = null;
+		var replace = null;
+		var swapped = false;
+		try {
+			Object.defineProperty(d, 'referrer', { configurable: true, get: function () { return land.rf || ''; } });
+			try {
+				frame = d.createElement('iframe');
+				frame.hidden = true;
+				d.documentElement.appendChild(frame);
+				replace = frame.contentWindow.history.replaceState;
+				replace.call(history, history.state, '', land.url);
+				swapped = true;
+			} catch (e) { /* the referrer alone still tells search and referral traffic apart */ }
+			oa.setOrderTracking(true);
+		} finally {
+			if (swapped) { try { replace.call(history, history.state, '', here); } catch (e) { /* URL stays the entry page */ } }
+			try { delete d.referrer; } catch (e) { /* not shadowed */ }
+			if (frame && frame.parentNode) { frame.parentNode.removeChild(frame); }
+		}
+	}
+
 	/* —— applying a choice —— */
 
 	function loadGtm() {
@@ -121,9 +183,7 @@
 			if (granted(k)) { window.dataLayer.push({ event: 'efcc_' + k + '_granted' }); }
 		});
 		if (c.gtmMode === 'basic' && (granted('statistics') || granted('marketing'))) { loadGtm(); }
-		if (c.wooAttr && window.wc_order_attribution && window.wc_order_attribution.setOrderTracking) {
-			window.wc_order_attribution.setOrderTracking(serviceAllowed('woocommerce-attribution', 'statistics'));
-		}
+		setAttribution(serviceAllowed('woocommerce-attribution', 'statistics'));
 		unblock();
 		d.dispatchEvent(new CustomEvent('efcc:consent', { detail: state }));
 
@@ -306,10 +366,10 @@
 		// Global Privacy Control: the browser already says "do not sell / share".
 		var none = allCats(0);
 		save('gpc', none, allServices(none));
-	} else if (!c.hide) {
-		showBanner();
 	} else {
-		showFloat();
+		// No choice yet: remember how the visitor arrived.
+		landingRemember();
+		if (!c.hide) { showBanner(); } else { showFloat(); }
 	}
 	if (c.preview) { showBanner(); }
 })();
