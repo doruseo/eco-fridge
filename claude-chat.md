@@ -2867,7 +2867,11 @@ Doru: cele 6 comenzi de dupa lansare au toate Origin „Direct"; greu de crezut.
 - **Greseala mea la testul local:** comanda locala #14654 (BACS, `attribution-test@example.com`) a trimis emailul real „You've got a new order: #14654" catre cele doua adrese ale magazinului — copia locala are WP Mail SMTP pe SMTP-ul real. Comanda locala e stearsa; emailul nu poate fi retras. Doru anuntat, sa-i spuna lui Mads sa-l ignore. Regula noua in memorie: mailul se blocheaza inainte de orice test local.
 - **Comenzile vechi** nu pot fi reparate din Woo (sursa nu a fost salvata). In GA4: Explore cu Transaction ID + „First user source / medium" si „Session source / medium" — proprietatea e aceeasi ca pe site-ul vechi, deci la clientii care acceptasera cookies acolo se poate vedea prima sursa.
 - **GA4 are aceeasi slabiciune** la acordul dat tarziu (referrerul paginii de intrare nu mai e disponibil); reparatia de azi priveste doar datele din WooCommerce.
-- **Punere pe live:** cu scriptul din scratchpad rulat de Doru (SSH-ul meu e blocat de modul auto); vezi starea in mesajul de final al sesiunii.
+- **Pe live din 2026-11-12 seara** (scriptul `attr-deploy.sh` rulat de Doru; SSH-ul meu e blocat de modul auto): cele 8 fisiere erau identice cu depozitul inainte de copiere; backup in `/tmp/attr-backup-2026-11-12` (fisiere + `efcc_settings-before.json`); `woo_landing` = 1, `woo_lifetime_days` = 90; LiteSpeed purge all; home, shop, cart 200, checkout 302.
+- **Verificat pe live cu vizitator curat:** venit din Google + Accept pe a doua pagina → `organic / google`, pagina de intrare corecta (inainte: `typein`); Accept pe prima pagina si link cu utm: corecte.
+- **Tabelul de cookies:** randurile `sbjs_*` salvate separat in registrul de pe live ramasesera pe „Session"; reparat in commit-ul urmator (durata urmeaza setarea), de pus pe live cu `attr-deploy2.sh`.
+- **Copia locala:** aceleasi fisiere si aceleasi doua setari ca pe live.
+- **GitHub:** push refuzat (403) — `gh` e pe contul `doruhanganu`, fara drept de scriere in `doruseo/eco-fridge`; ramura `fix/order-attribution-late-consent` e doar local pana schimba Doru contul.
 
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
