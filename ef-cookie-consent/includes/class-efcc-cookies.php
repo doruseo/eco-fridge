@@ -141,6 +141,12 @@ class EFCC_Cookies {
 		$out = array_fill_keys( array_keys( EFCC_Settings::categories() ), array() );
 		foreach ( $list as $c ) {
 			$cat = isset( $out[ $c['category'] ] ) ? $c['category'] : 'necessary';
+			// Order attribution cookies saved in the register (scan or by hand) while
+			// the library still said "Session": they follow the lifetime setting too.
+			if ( 'Session' === ( $c['duration'] ?? '' ) ) {
+				$k = EFCC_Library::match_cookie( $c['name'] );
+				if ( $k && '%sbjs%' === $k['duration'] ) { $c['duration'] = '%sbjs%'; }
+			}
 			$c['duration'] = str_replace( array( '%days%', '%sbjs%' ), array( (string) $days, $sbjs ), (string) ( $c['duration'] ?? '' ) );
 			$out[ $cat ][] = $c;
 		}
