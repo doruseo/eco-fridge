@@ -2842,6 +2842,16 @@ Doru: „pune internal linking la toate articolele de blog de pe site atat catre
 - Copia locala: `source-dump/final-2026-11-07/live-posts-after-internal-links-2026-11-11.sql.gz` (wp_posts + wp_postmeta de pe live).
 - Git: `gh pr merge 129` (intrarea 141/142) a fost blocat de permisiunile Claude Code, deci PR #129 ramane deschis; ramura noua porneste din el.
 
+## 144. Eroare la upload de imagini in editor: „The server cannot process the image" (2026-11-12)
+
+Doru: la urcarea a doua poze JPEG (1800×853 si 1800×1005, ~400 KB) din editorul unui articol aparea mesajul cu „Suggested maximum size is 2,560 pixels". La inceput doar uneori, apoi la orice imagine.
+
+- **Rezolvat de Doru cu LiteSpeed „purge cache"**; un simplu refresh al editorului (deschis de mult timp) nu a fost de ajuns. Dupa purge, pozele s-au urcat, inclusiv din Media → Add New (async-upload.php 200, ~3 s procesare).
+- **Cauza exacta nu e stabilita**: raspunsul serverului din momentele cu eroare nu a fost prins. Mesajul e cel generic afisat de WordPress cand uploadul primeste un raspuns 5xx.
+- **Ce am exclus:** pozele (JPEG baseline, RGB, 8 biti); Imagick (toate dimensiunile generate pe server din aceeasi poza in sub 1 s); spatiul pe disc (42%, inode 25%); erori PHP (`.h5g/php_error.log` fara nimic in orele respective); coada O2IO (mod „background", 0 actiuni blocate); codul din `ecofridge-blocks`; primirea fisierului de catre server (POST neautentificat → 302 / 401 normal).
+- **Daca reapare:** intai purge cache + reincarcarea editorului; daca tot nu merge, F12 → Network → codul de stare al cererii `async-upload.php`, inainte de orice altceva.
+- De retinut: pe live logul PHP e `~/websites/PNxOJBHKQ/.h5g/php_error.log`. Modul auto al Claude Code a blocat SSH-ul catre live si uploadul de test din browser; verificarile au fost rulate de Doru cu `!`, din scripturi numai-citire.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
