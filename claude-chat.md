@@ -2869,7 +2869,7 @@ Doru: cele 6 comenzi de dupa lansare au toate Origin „Direct"; greu de crezut.
 - **GA4 are aceeasi slabiciune** la acordul dat tarziu (referrerul paginii de intrare nu mai e disponibil); reparatia de azi priveste doar datele din WooCommerce.
 - **Pe live din 2026-11-12 seara** (scriptul `attr-deploy.sh` rulat de Doru; SSH-ul meu e blocat de modul auto): cele 8 fisiere erau identice cu depozitul inainte de copiere; backup in `/tmp/attr-backup-2026-11-12` (fisiere + `efcc_settings-before.json`); `woo_landing` = 1, `woo_lifetime_days` = 90; LiteSpeed purge all; home, shop, cart 200, checkout 302.
 - **Verificat pe live cu vizitator curat:** venit din Google + Accept pe a doua pagina → `organic / google`, pagina de intrare corecta (inainte: `typein`); Accept pe prima pagina si link cu utm: corecte.
-- **Tabelul de cookies:** randurile `sbjs_*` salvate separat in registrul de pe live ramasesera pe „Session"; reparat in commit-ul urmator (durata urmeaza setarea), de pus pe live cu `attr-deploy2.sh`.
+- **Tabelul de cookies:** randurile `sbjs_*` salvate separat in registrul de pe live ramasesera pe „Session"; reparat in commit-ul urmator (durata urmeaza setarea) si pus pe live pe 2026-11-13 cu `attr-deploy2.sh` (un fisier, backup in `/tmp/attr-backup-2026-11-12/step2`): toate randurile `sbjs_*` arata 90 de zile, `sbjs_session` 30 de minute.
 - **Copia locala:** aceleasi fisiere si aceleasi doua setari ca pe live.
 - **GitHub:** push refuzat (403) — `gh` e pe contul `doruhanganu`, fara drept de scriere in `doruseo/eco-fridge`; ramura `fix/order-attribution-late-consent` e doar local pana schimba Doru contul.
 
