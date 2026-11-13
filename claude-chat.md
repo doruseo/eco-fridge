@@ -2871,7 +2871,7 @@ Doru: cele 6 comenzi de dupa lansare au toate Origin „Direct"; greu de crezut.
 - **Verificat pe live cu vizitator curat:** venit din Google + Accept pe a doua pagina → `organic / google`, pagina de intrare corecta (inainte: `typein`); Accept pe prima pagina si link cu utm: corecte.
 - **Tabelul de cookies:** randurile `sbjs_*` salvate separat in registrul de pe live ramasesera pe „Session"; reparat in commit-ul urmator (durata urmeaza setarea) si pus pe live pe 2026-11-13 cu `attr-deploy2.sh` (un fisier, backup in `/tmp/attr-backup-2026-11-12/step2`): toate randurile `sbjs_*` arata 90 de zile, `sbjs_session` 30 de minute.
 - **Copia locala:** aceleasi fisiere si aceleasi doua setari ca pe live.
-- **GitHub:** push refuzat (403) — `gh` e pe contul `doruhanganu`, fara drept de scriere in `doruseo/eco-fridge`; ramura `fix/order-attribution-late-consent` e doar local pana schimba Doru contul.
+- **GitHub:** push refuzat (403) — `gh` e pe contul `doruhanganu`, fara drept de scriere in `doruseo/eco-fridge`; rezolvat pe 2026-11-13 dupa `gh auth switch --user doruhanganubusiness` (contul cu drept de scriere); ramura `fix/order-attribution-late-consent` e urcata, **PR #131** deschis (contine si commit-urile din #129 si #130, inca nemerge-uite).
 
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
