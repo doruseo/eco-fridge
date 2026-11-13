@@ -428,6 +428,8 @@ class EFCC_Admin {
 		self::row_check( 'blocking', 'auto_block', 'Scripts', 'Block the scripts of enabled services (matched by their patterns) until their category is allowed' );
 		self::row_check( 'blocking', 'iframes', 'Embeds', 'Replace YouTube, Vimeo, Google Maps… iframes with a placeholder until their category is allowed' );
 		self::row_check( 'blocking', 'woo_attribution', 'WooCommerce order attribution', 'Set the sbjs_* source-tracking cookies only after Statistics consent' );
+		self::row_check( 'blocking', 'woo_landing', 'Order attribution: entry page', 'Remember the entry page and its referrer until the visitor chooses', 'Without this, a visitor who accepts on a later page is recorded as "Direct". The two values stay in the browser tab (sessionStorage), are sent nowhere, and are deleted at the choice. This is still storage before consent: decide with your privacy adviser.' );
+		self::row_text( 'blocking', 'woo_lifetime_days', 'Order attribution: cookie lifetime (days)', '0 keeps WooCommerce\'s default: the source cookies end with the browser session, so a customer who comes back another day is recorded as "Direct". With 90, the first and the last known source are kept for 90 days after consent. The Cookie Policy table follows this value.', 'number', 'small-text' );
 		self::row_textarea( 'blocking', 'exclude', 'Never block', 'One per line: text in a script or iframe that must never be blocked.' );
 		echo '</table><p class="description">Scripts can also be blocked by hand: <code>&lt;script type="text/plain" data-efcc-category="marketing"&gt;…&lt;/script&gt;</code> runs only after Marketing consent (add <code>data-efcc-service="id"</code> to tie it to a service).</p>';
 		submit_button();

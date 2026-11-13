@@ -107,6 +107,8 @@ class EFCC_Settings {
 				'auto_block'   => 1,
 				'iframes'      => 1,
 				'woo_attribution' => 1,
+				'woo_landing'  => 0, // Keep the entry page and referrer in sessionStorage until the choice.
+				'woo_lifetime_days' => 0, // 0 = WooCommerce's default (browser session).
 				'exclude'      => '',
 			),
 			'scan'       => array(
@@ -314,6 +316,7 @@ class EFCC_Settings {
 		if ( isset( $out['consent_days'] ) ) { $out['consent_days'] = max( 1, min( 395, $out['consent_days'] ) ); }
 		if ( isset( $out['log_days'] ) ) { $out['log_days'] = max( 30, min( 3650, $out['log_days'] ) ); }
 		if ( isset( $out['version'] ) ) { $out['version'] = max( 1, $out['version'] ); }
+		if ( isset( $out['woo_lifetime_days'] ) ) { $out['woo_lifetime_days'] = max( 0, min( 395, $out['woo_lifetime_days'] ) ); }
 		if ( isset( $out['wait'] ) ) { $out['wait'] = max( 0, min( 5000, $out['wait'] ) ); }
 		if ( isset( $out['radius'] ) ) { $out['radius'] = max( 0, min( 40, $out['radius'] ) ); }
 		if ( isset( $out['font_size'] ) ) { $out['font_size'] = max( 11, min( 22, $out['font_size'] ) ); }

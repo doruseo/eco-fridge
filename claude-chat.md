@@ -2809,6 +2809,70 @@ Doru: pe dashboard-ul SMS Alert nu apar SMS-uri; crede ca stergerea staging-ului
 - **Urmeaza (Doru):** Site Health reverificat, apoi conectarea cu un cont WordPress.com. Dupa conectare: de verificat ce scripturi/cookie-uri adauga WooCommerce Analytics pe frontend (Cookie Policy + consimtamant).
 - **Confirmat de Doru:** totul e in regula pe site. PR #127 merge-uit in `main`.
 
+## 141. Imaginile „Large" din articole: 1000px pe tot site-ul (2026-11-10)
+
+Doru a marit Large la 1000×1000 in Media Settings, dar imaginile din articole ramaneau mici (ex. `cleaning-the-restaurant-fridge` in /commercial-refrigeration-maintenance-guide/). **Cauza:** setarea se aplica doar la uploaduri noi; copiile Large existente erau facute cu vechiul 600px (`-600x335`), iar continutul articolelor indica spre ele. Coloana articolului (`.ef-post-body`) are max 780px.
+
+- Backup inainte: tabelele posts + postmeta → `source-dump/final-2026-11-07/live-posts-before-large1000-2026-11-10.sql.gz` (si `/tmp/backup-posts-before-large1000.sql.gz` pe server). Continutul vechi al fiecarui articol schimbat e si in meta `_ef_content_before_large1000`.
+- **383 de imagini** (din 882) cu Large sub ce permite setarea: `wp media regenerate <ids> --image_size=large --skip-delete` (fisierele vechi raman pe disc, nicio adresa nu se rupe), in loturi in prim-plan — **pe acest server procesele lasate in fundal (nohup/setsid) sunt oprite**. WebP/AVIF: O2IO a convertit fisierele noi; regenerarea a pus in plus ~440 de conversii in coada Action Scheduler (`o2io_process_one`, mod „background"), rulate pana la 0 pending, 0 failed. O singura imagine cu eroare de conversie: #921 (commercial-display-freezer, „empty output"), se serveste ca JPG.
+- **Continut:** in figurile `size-large`, `src` mutat pe fisierul Large nou doar daca e mai lat decat cel folosit (niciodata in jos): **21 de imagini** schimbate; 10 sarite, fiindca folosesc deja fisiere 1024px de pe vechiul site (afisate oricum pe toata coloana). Simularea dupa: 0 de schimbat.
+- Verificat: articolul din exemplu are `width="1000"`, srcset cu 1000w, `.avif` servit; home, shop, blog, articol 200; LiteSpeed purge all.
+- Copia locala: `live-posts-after-large1000-2026-11-10.sql.gz` + `live-uploads-large1000-2026-11-10.tar.gz` (10.901 fisiere noi/atinse) in `source-dump/final-2026-11-07/`.
+- Uploadurile viitoare primesc automat Large 1000px.
+
+## 142. Backup-ul Ambrit din 9 nov comparat cu ce avem pe live (2026-11-10)
+
+Doru: „verifica baza de date din backup-11.9.2026_13-02-39_ecofridgeco.zip de la Ambrit si vezi daca pe site avem totul preluat".
+
+- Arhiva (2,46 GB) e un backup cPanel complet al site-ului vechi, facut pe 9 nov 13:02. Baza activa: `mysql/ecofridgeco_db.sql` (prefix `43lz2ypq8_`, conform wp-config); `ecofridgeco_db2.sql` e o copie veche. Convertite in SQLite (scratchpad, `dump2sqlite.py`), alaturi de clona din 7 nov 04:32 (`source-dump/db/backup-clone-2026-11-07.sql.gz`, sursa importului) si de baza live de azi (posts + postmeta).
+- **Ambrit 9 nov = clona 7 nov**, dupa normalizarea domeniilor rescrise: aceleasi randuri la posts (10.469), postmeta, comentarii, termeni, linii de comanda, utilizatori; zero noi/sterse/modificate la continut, produse, comenzi, meta. Ultima activitate reala pe site-ul vechi: comanda #14638, 5 nov 21:13 (si ultima tranzactie Lloyds, 4.021). Diferente doar tehnice: un `amp_validated_url`, sesiuni/last-seen ale staff-ului, cron, transient-uri, optiuni de pluginuri.
+- **Pe live:** toate cele **6.017 comenzi** vechi gasite dupa `_order_key`, cu acelasi numar si status (live are 6.020: + #14658 neplatita, #14664, #14667). **Produse:** 135/135 gasite dupa SKU; pret efectiv identic; o singura diferenta, SD75/120SH outofstock → instock, editata pe live pe 9 nov 11:30 de un utilizator al magazinului (dupa lansare, deci intentionata).
+- Ramas pe live: produsul de test **#14659** „Live payment test – do not buy" — publicat, ascuns din catalog, dar cumparabil la £1 de oricine are adresa. De decis cu Doru.
+- Backup-ul `/tmp/backup-posts-before-large1000.sql.gz` de pe server a fost sters (copia de pe laptop din intrarea 141 ramane).
+
+## 143. Linkuri interne in toate articolele de blog (2026-11-11)
+
+Doru: „pune internal linking la toate articolele de blog de pe site atat catre alte articole din site cat mai ales catre categoriile comerciale" + „pune internal linking pe ancore relevante din continutul articolelor".
+
+- **Pe live, 104 din 105 articole** (singurul fara link nou: un anunt scurt fara expresii potrivite), **534 de linkuri noi**: 333 spre categorii de produse, 58 spre pagini de piata (cel mult una pe articol), 143 spre alte articole. Fiecare din cele 61 de tinte raspunde 200.
+- **Ancore din textul existent**, cu formularea si majusculele originale (ex. „multideck fridge", „Ice Cream Freezer", „food safety"); textul vizibil al articolelor e identic, verificat fara taguri. Reguli: doar in `<p>` si `<li>` (niciodata titluri, imagini, butoane), niciodata in alt link, maxim un link nou pe paragraf, o singura data aceeasi tinta pe articol, nimic spre o tinta deja legata din articol, niciodata spre el insusi. Categoriile cele mai specifice inainte de cele generale (multideck / patisserie / serve over / drinks / beer / wine / bar inainte de „display fridge" si „commercial fridge"); maxim 5 categorii+piata si 3 articole pe articol; linkurile spre articole merg intai la articolele cu cele mai putine linkuri primite. Doar categorii cu produse.
+- Unealta: `migration/tools/internal-links/` (`export.php` → `build_links.py` → `apply.php`), raportul complet articol / ancora / tinta in `report-2026-11-11.tsv`. `apply.php` scrie doar daca md5-ul continutului e cel exportat (niciun articol editat intre timp: 104 actualizate, 0 sarite).
+- **Revenire:** continutul vechi al fiecarui articol e in meta `_ef_content_before_internal_links`; exportul de dinainte e si pe laptop (`source-dump/final-2026-11-07/live-posts-before-internal-links-2026-11-11.json`).
+- LiteSpeed purge all facut; `wp cache flush` raspunde cu eroare, dar live nu are cache de obiecte persistent („Default"), deci nu conteaza. Verificat in pagini: 3 articole, toate linkurile asteptate prezente.
+- Copia locala: `source-dump/final-2026-11-07/live-posts-after-internal-links-2026-11-11.sql.gz` (wp_posts + wp_postmeta de pe live).
+- Git: `gh pr merge 129` (intrarea 141/142) a fost blocat de permisiunile Claude Code, deci PR #129 ramane deschis; ramura noua porneste din el.
+
+## 144. Eroare la upload de imagini in editor: „The server cannot process the image" (2026-11-12)
+
+Doru: la urcarea a doua poze JPEG (1800×853 si 1800×1005, ~400 KB) din editorul unui articol aparea mesajul cu „Suggested maximum size is 2,560 pixels". La inceput doar uneori, apoi la orice imagine.
+
+- **Rezolvat de Doru cu LiteSpeed „purge cache"**; un simplu refresh al editorului (deschis de mult timp) nu a fost de ajuns. Dupa purge, pozele s-au urcat, inclusiv din Media → Add New (async-upload.php 200, ~3 s procesare).
+- **Cauza exacta nu e stabilita**: raspunsul serverului din momentele cu eroare nu a fost prins. Mesajul e cel generic afisat de WordPress cand uploadul primeste un raspuns 5xx.
+- **Ce am exclus:** pozele (JPEG baseline, RGB, 8 biti); Imagick (toate dimensiunile generate pe server din aceeasi poza in sub 1 s); spatiul pe disc (42%, inode 25%); erori PHP (`.h5g/php_error.log` fara nimic in orele respective); coada O2IO (mod „background", 0 actiuni blocate); codul din `ecofridge-blocks`; primirea fisierului de catre server (POST neautentificat → 302 / 401 normal).
+- **Daca reapare:** intai purge cache + reincarcarea editorului; daca tot nu merge, F12 → Network → codul de stare al cererii `async-upload.php`, inainte de orice altceva.
+- De retinut: pe live logul PHP e `~/websites/PNxOJBHKQ/.h5g/php_error.log`. Modul auto al Claude Code a blocat SSH-ul catre live si uploadul de test din browser; verificarile au fost rulate de Doru cu `!`, din scripturi numai-citire.
+
+## 145. Toate comenzile apar „Direct": sursa se pierdea la acordul dat tarziu (2026-11-12)
+
+Doru: cele 6 comenzi de dupa lansare au toate Origin „Direct"; greu de crezut. Cerere: de gasit eroarea si de aflat cum au descoperit clientii site-ul.
+
+- **Cauza (confirmata):** atribuirea WooCommerce (sourcebuster, cookie-urile `sbjs_*`) porneste abia la acordul pentru Statistics si citeste referrerul paginii pe care porneste. Acord pe prima pagina → sursa corecta; acord pe pagina 2+ → referrerul e deja eco-fridge → „typein" (Direct); fara acord → nimic („Unknown"). In plus, cookie-urile erau de sesiune: cine revine alta zi tastand adresa e tot „Direct".
+- **Dovezi:** pe comenzi, `referrer` e o pagina interna la 4 din cele 5 comenzi reale (#14667, #14777, #14819, #14820), cu „sesiune" inceputa cu 2–8 minute inainte de comanda si `session_entry` = cos / produs; #14664 nu are referrer (posibil direct real, client cu 2 comenzi anterioare); #14658 e testul lui Doru (`gtm_debug`). Reprodus cu un vizitator curat (Playwright, pe live): venit din Google + Accept pe a doua pagina → `typein`; Accept pe prima → `organic / google`.
+- **Decizia lui Doru:** (1) se retine sursa pana la alegere; (2) prima sursa pastrata 90 de zile. Varianta cu banner blocant si intrebarea „How did you hear about us?" la checkout: nu acum.
+- **ef-cookie-consent 1.3.0**, doua setari noi in Blocking (ambele oprite implicit, pornite pe eco-fridge):
+  - `woo_landing` — pana la alegere, `efcc.js` tine in `sessionStorage` (`efcc_landing`) doar pagina de intrare si referrerul ei. La Accept pe o pagina ulterioara, sourcebuster e pornit ca pe pagina de intrare (referrer + URL cu utm/gclid, schimbat o clipa cu un `history.replaceState` neatins, luat dintr-un iframe gol, ca GA4 sa nu numere un page_view). La Reject se sterge. **Juridic e zona gri** (tot stocare inainte de acord, chiar daca nu pleaca nicaieri) — spus lui Doru, el a ales; apare in tabelul din Cookie Policy.
+  - `woo_lifetime_days` = 90 — cookie-urile `sbjs_*` tin 90 de zile (filtrul `wc_order_attribution_cookie_lifetime_months`); tabelul de cookies arata durata automat. Efect: „Origin" devine ultima sursa cunoscuta care nu e Direct, in 90 de zile.
+- **ecofridge-blocks (`analytics.php`):** 7 campuri noi salvate pe comanda prin `wc_order_attribution_tracking_fields` — `_wc_order_attribution_first_source_type / first_utm_source / first_utm_medium / first_utm_campaign / first_referrer / first_entry / first_visit_time`; afisate in comanda („First known visit: …") si puse in dataLayer la purchase (`order_details.first_*`; in GTM inca nemapate).
+- **Teste:** 6 scenarii × Chrome, Firefox, WebKit pe paginile live cu `efcc.js` nou injectat (Google, utm, alt site, direct, Reject, Accept pe prima pagina) — toate corecte; niciun page_view GA4 in plus; cookie 90,0 zile. Local: comanda prin Store API cu toate cele 7 campuri salvate.
+- **Greseala mea la testul local:** comanda locala #14654 (BACS, `attribution-test@example.com`) a trimis emailul real „You've got a new order: #14654" catre cele doua adrese ale magazinului — copia locala are WP Mail SMTP pe SMTP-ul real. Comanda locala e stearsa; emailul nu poate fi retras. Doru anuntat, sa-i spuna lui Mads sa-l ignore. Regula noua in memorie: mailul se blocheaza inainte de orice test local.
+- **Comenzile vechi** nu pot fi reparate din Woo (sursa nu a fost salvata). In GA4: Explore cu Transaction ID + „First user source / medium" si „Session source / medium" — proprietatea e aceeasi ca pe site-ul vechi, deci la clientii care acceptasera cookies acolo se poate vedea prima sursa.
+- **GA4 are aceeasi slabiciune** la acordul dat tarziu (referrerul paginii de intrare nu mai e disponibil); reparatia de azi priveste doar datele din WooCommerce.
+- **Pe live din 2026-11-12 seara** (scriptul `attr-deploy.sh` rulat de Doru; SSH-ul meu e blocat de modul auto): cele 8 fisiere erau identice cu depozitul inainte de copiere; backup in `/tmp/attr-backup-2026-11-12` (fisiere + `efcc_settings-before.json`); `woo_landing` = 1, `woo_lifetime_days` = 90; LiteSpeed purge all; home, shop, cart 200, checkout 302.
+- **Verificat pe live cu vizitator curat:** venit din Google + Accept pe a doua pagina → `organic / google`, pagina de intrare corecta (inainte: `typein`); Accept pe prima pagina si link cu utm: corecte.
+- **Tabelul de cookies:** randurile `sbjs_*` salvate separat in registrul de pe live ramasesera pe „Session"; reparat in commit-ul urmator (durata urmeaza setarea) si pus pe live pe 2026-11-13 cu `attr-deploy2.sh` (un fisier, backup in `/tmp/attr-backup-2026-11-12/step2`): toate randurile `sbjs_*` arata 90 de zile, `sbjs_session` 30 de minute.
+- **Copia locala:** aceleasi fisiere si aceleasi doua setari ca pe live.
+- **GitHub:** push refuzat (403) — `gh` e pe contul `doruhanganu`, fara drept de scriere in `doruseo/eco-fridge`; rezolvat pe 2026-11-13 dupa `gh auth switch --user doruhanganubusiness` (contul cu drept de scriere); ramura `fix/order-attribution-late-consent` e urcata, **PR #131** deschis (contine si commit-urile din #129 si #130, inca nemerge-uite).
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.

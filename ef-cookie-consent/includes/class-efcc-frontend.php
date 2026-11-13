@@ -27,6 +27,29 @@ class EFCC_Frontend {
 			// sbjs_* cookies only after consent: the banner script turns tracking on.
 			add_filter( 'wc_order_attribution_allow_tracking', '__return_false' );
 		}
+		if ( self::attribution_days() > 0 ) {
+			// WooCommerce keeps the source cookies for the browser session only;
+			// the filter takes months (sourcebuster counts a month as 30 days).
+			add_filter( 'wc_order_attribution_cookie_lifetime_months', array( __CLASS__, 'attribution_months' ) );
+		}
+	}
+
+	/**
+	 * Days the order attribution cookies are kept (0 = browser session).
+	 *
+	 * @return int
+	 */
+	public static function attribution_days() {
+		return (int) EFCC_Settings::get( 'blocking', 'woo_lifetime_days' );
+	}
+
+	/**
+	 * The same lifetime in sourcebuster months.
+	 *
+	 * @return float
+	 */
+	public static function attribution_months() {
+		return self::attribution_days() / 30;
 	}
 
 	/** Whether this is a normal front-end page view. */
@@ -86,6 +109,7 @@ class EFCC_Frontend {
 			'gpc'         => (bool) $g['gpc'],
 			'reload'      => (bool) $g['reload_on_revoke'],
 			'wooAttr'     => (bool) EFCC_Settings::get( 'blocking', 'woo_attribution' ),
+			'wooLanding'  => (bool) EFCC_Settings::get( 'blocking', 'woo_landing' ),
 			'scan'        => self::is_scan(),
 			'preview'     => isset( $_GET['efcc_preview'] ) && current_user_can( 'manage_options' ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			'hide'        => self::banner_hidden_here(),
