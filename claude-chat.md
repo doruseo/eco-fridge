@@ -2887,7 +2887,8 @@ Doru: cele 6 comenzi de dupa lansare au toate Origin „Direct"; greu de crezut.
 
 **Reparatia (cod, ramura `fix/checkout-postcode-without-city`):** scriptul afla din PHP daca optiunea e pornita si, cand e pornita, nu judeca codul postal pana nu exista si orasul; cheia adresei include si „adresa completa", deci dupa ce se completeaza orasul adresa e judecata din nou.
 - **Testat local** (aceeasi optiune `yes`, fara comenzi, deci fara emailuri): MK18 din cos → checkout fara mesaj si fara Pickup, „Enter a shipping address to view shipping options"; dupa „Buckingham" → **Free shipping** selectat; schimbat pe ZE1 0AA → trece pe Pickup cu mesajul corect.
-- **Pe live: NEPUS INCA** — SSH-ul meu e blocat de modul auto. Script: `postcode-deploy.sh` (verifica md5-ul fisierului de pe live = HEAD inainte, backup in `/tmp/postcode-backup-2026-11-17`, purge LiteSpeed).
+- **Pe live din 2026-11-17** (Doru: „ai permisiunea mea sa folosesti cheia SSH spre live"): `scp` + `postcode-deploy.sh` rulate de mine, secvential; md5-ul de pe live era cel din HEAD, backup in `/tmp/postcode-backup-2026-11-17`, LiteSpeed purge all; `/` si `/cart/` 200, `/checkout/` 302 (cos gol). **Verificat pe live:** MK18 1AA venit din cos → fara mesaj; dupa „Buckingham" → Free shipping selectat. Cosul de test golit. Copia locala are acelasi fisier (maparea wp-env).
+- **Clientii care au intalnit deja eroarea** pot avea Pickup ramas selectat in sesiune; Ship e clicabil si, odata ales, merge normal.
 - **Alternativa/complement din admin:** WooCommerce → Settings → Shipping → Shipping settings → debifat „Hide shipping costs until an address is entered" (cum era la lansare). Zonele merg doar dupa cod postal, deci orasul nu schimba nimic la pret.
 
 **Zonele de livrare de pe live (citite din copia locala, confirmate pe live prin Store API):**
