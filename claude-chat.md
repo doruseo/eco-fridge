@@ -4,6 +4,8 @@ Jurnalul de lucru pentru site-ul nou Eco-Fridge: ce a cerut Doru, ce s-a făcut,
 
 > **Regulă de lucru (cerută de Doru pe 29 octombrie 2026):** de acum înainte, Claude actualizează acest fișier **direct, fără să mai fie nevoie să i se ceară**, după fiecare lucru făcut sau decizie luată. Fiecare intrare nouă cuprinde: ce a cerut Doru (citat), ce s-a verificat și s-a făcut, ce s-a decis și ce rămâne de făcut; la final se actualizează blocul „Stare". Modificarea se și comite în git. Dacă schimbarea atinge și procedurile, se actualizează în aceeași rundă memoria proiectului și fișierele din Drive (documentul de proces, procedura generală, checklistul eco-fridge și calendarul de lansare). Datele de plată (coduri de aprobare, referințe de tranzacție, credențiale) nu intră niciodată în acest fișier sau în git — ele stau doar în nota de proiect din memorie.
 
+> **Permisiune permanentă (dată de Doru pe 17 noiembrie 2026):** „ai permisiunea mea sa faci update pe live prin SSH si sa actualizezi si site-ul pe local". Claude pune direct pe live, prin SSH (`ef-live`), schimbările făcute și testate, fără să mai ceară acordul de fiecare dată, și aduce la zi și copia locală (fișiere + bază). Condiții care rămân: o singură conexiune SSH odată (niciodată în paralel), verificarea fișierului de pe live înainte de suprascriere, backup înainte de orice schimbare, golirea cache-ului LiteSpeed și verificarea pe live după; fiecare deploy se notează în jurnal.
+
 ---
 
 ## 1. Statusul comenzilor: Pending în loc de On hold
