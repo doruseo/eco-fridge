@@ -2906,6 +2906,25 @@ Plus: Collection/Pickup activ peste tot; „hide rates when free" = yes; free sh
 
 **Altceva observat:** produsul „Live payment test – do not buy" (#14659, £1) e inca public in shop (trebuia sters pe 7 nov, intrarea 117).
 
+## 147. Cosul pe mobil compact si checkout-ul cu margini (2026-11-17)
+
+**Doru:**
+> acum observ ca pe mobile la /cart apare imaginea uriasa a produsului si apoi restul de detalii. [...] imagine mica cu titlul produsului alaturi, apoi subtotalurile [...] ca i Order Summary din /checkout. Iar /checkout pe mobile este prea lipit de partea stanga a ecranului, ar merge un 10 poate 20 px
+
+**Ce era:**
+- **Cos (<=768px):** tabelul responsive WooCommerce punea fiecare celula pe rand: imagine pe toata latimea (~350px), apoi „Product: / Price: / Quantity: / Subtotal:" — ~730px pe produs.
+- **Checkout (<=1200px):** Astra da blocurilor `alignwide` margini de -20px stanga-dreapta, care anulau padding-ul de 20px al paginii, deci checkout-ul atingea marginea ecranului. In plus, pe mobil caseta „Order summary" nu avea padding interior.
+
+**Ce am facut (`astra-child/style.css`, commit 95f55eb):**
+- Cos pe mobil: fiecare produs e un rand in grila — imagine 72px stanga, titlul (si bifele de add-on) alaturi, X sus-dreapta, cantitatea si subtotalul sub titlu; pretul unitar ascuns pe mobil (subtotalul = pret x cantitate); stepper-ul de cantitate mai mic. Inaltime: ~170–230px pe produs in loc de ~730px. Totalurile raman sub lista, neschimbate.
+- Checkout: margini 0 pentru blocul `alignwide` sub 1201px → 20px fata de ambele margini, aliniat cu titlul „Checkout"; padding 16px in caseta „Order summary" (titlu si continut).
+- Desktop (>1200px) neschimbat.
+- **Testat** pe live prin injectarea CSS-ului doar in browserul meu, intr-un cadru de 390px, cu doua produse in cos (cosul de test golit dupa).
+- **Pe live: NEPUS** — fisierul e urcat in `/tmp/ef-style.css` pe server, dar rularea `cart-css-deploy.sh` (md5 verificat, backup in `/tmp/cart-css-backup-2026-11-17`, purge LiteSpeed) a fost blocata de modul auto; astept acordul explicit al lui Doru. `style.css` e versionat cu `filemtime`, deci browserele il iau nou imediat dupa deploy.
+- **Corectura in jurnal:** la scrierea intrarii 146 stersesem din greseala titlul „## Stare la 2026-11-07 (dimineata lansarii, ~05:00)"; pus la loc.
+
+## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
+
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
 - **Faza 2 GATA (04:11–04:28):** copia finala pe clona; clona reinchisa la indexare (`blog_public = 0`, `robots.txt` `Disallow: /`). Wp-admin-ul ei NU se deschide si nu trebuie deschis — upgrade-ul bazei nu se ruleaza.
 - **Faza 3 GATA (intrarea 101):** 86 de comenzi importate, #14517–#14638, reconciliere 6.017 = 6.017, urmatorul numar #14658; rapoarte reconstruite; stocul preluat; nimic nou la produse, categorii, pagini, media, redirecturi sau SEO; regula care pastreaza cele 5 comenzi pending (PR #78); tabelele clonei sterse din staging. Punct de revenire: `source-dump/db/staging-before-f15-2026-11-07.sql.gz`.
