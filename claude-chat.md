@@ -2873,7 +2873,36 @@ Doru: cele 6 comenzi de dupa lansare au toate Origin „Direct"; greu de crezut.
 - **Copia locala:** aceleasi fisiere si aceleasi doua setari ca pe live.
 - **GitHub:** push refuzat (403) — `gh` e pe contul `doruhanganu`, fara drept de scriere in `doruseo/eco-fridge`; rezolvat pe 2026-11-13 dupa `gh auth switch --user doruhanganubusiness` (contul cu drept de scriere); ramura `fix/order-attribution-late-consent` e urcata, **PR #131** deschis (contine si commit-urile din #129 si #130, inca nemerge-uite).
 
-## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
+## 146. „Nu ne accepta codul postal" la checkout pe mobil — cauza gasita si reparata in cod (2026-11-17)
+
+**Doru:**
+> mai multi clienti au spus ca nu le accepta codul postal la checkout sau la cos pe mobil. Tu verifica atat pe desktop cat si pe mobil, atat la cos cat si la checkout
+> trebuie sa fie livrare gratuita pe toata Anglia, plus ce alte setari sunt in shipping
+
+**Cauza (reprodusa pe live, 400px si desktop — logica nu depinde de ecran):**
+- Pe live, optiunea WooCommerce **„Hide shipping costs until an address is entered"** (`woocommerce_shipping_cost_requires_address`) e **`yes`**. Migrarea 23 o pusese pe `no`; cineva a pornit-o din admin (nu stim cand). Copia locala are tot `yes`.
+- Cu ea pornita, Store API (cel folosit de checkout-ul pe blocuri) da **doar „Collection/Pickup"** cat timp lipseste orasul (`ShippingController` + `WC_Customer::has_full_shipping_address()` cer tara, orasul si codul postal). Cosul clasic nu are problema (calculatorul marcheaza adresa ca „calculata").
+- Scriptul nostru din `astra-child/inc/cart-checkout.php` vedea „are cod postal + doar pickup" si concluziona **„We don't deliver to this postcode"**: trecea comanda pe Pickup, marca Ship „Not available for this address".
+- **Drumul cel mai des:** clientul pune codul postal in cos (calculatorul cere DOAR codul postal) → la checkout ajunge cu cod postal fara oras → mesajul apare imediat, chiar si pentru Londra sau MK18. Reprodus pe live cu MK18 1AA: `prefersCollection = true` + mesajul.
+
+**Reparatia (cod, ramura `fix/checkout-postcode-without-city`):** scriptul afla din PHP daca optiunea e pornita si, cand e pornita, nu judeca codul postal pana nu exista si orasul; cheia adresei include si „adresa completa", deci dupa ce se completeaza orasul adresa e judecata din nou.
+- **Testat local** (aceeasi optiune `yes`, fara comenzi, deci fara emailuri): MK18 din cos → checkout fara mesaj si fara Pickup, „Enter a shipping address to view shipping options"; dupa „Buckingham" → **Free shipping** selectat; schimbat pe ZE1 0AA → trece pe Pickup cu mesajul corect.
+- **Pe live: NEPUS INCA** — SSH-ul meu e blocat de modul auto. Script: `postcode-deploy.sh` (verifica md5-ul fisierului de pe live = HEAD inainte, backup in `/tmp/postcode-backup-2026-11-17`, purge LiteSpeed).
+- **Alternativa/complement din admin:** WooCommerce → Settings → Shipping → Shipping settings → debifat „Hide shipping costs until an address is entered" (cum era la lansare). Zonele merg doar dupa cod postal, deci orasul nu schimba nimic la pret.
+
+**Zonele de livrare de pe live (citite din copia locala, confirmate pe live prin Store API):**
+
+| Zona (ordine) | Coduri | Metoda |
+|---|---|---|
+| £150 | CA, DH, DL, LA, NE, SR, TR, TS | Flat rate £150 (+TVA) |
+| £400 | DG, EH, FK, G, KA, KY, ML, TD | Flat rate £400 (+TVA) |
+| Exclusions | AB, BT, DD, GY, HS, IM, IV, JE, KW, PA, PH, ZE | nicio livrare, doar ridicare |
+| UK Mainland | restul GB | Free shipping |
+| Rest of the world | — | metode dezactivate |
+
+Plus: Collection/Pickup activ peste tot; „hide rates when free" = yes; free shipping „cu cupon" in zonele £150/£400 dezactivat. **Ce nu e „livrare gratuita in toata Anglia":** zona £150 are opt prefixe englezesti (Cumbria, Durham, Darlington, Lancaster, Newcastle, Sunderland, Cornwall + Scilly, Teesside), iar TD15 (Berwick, Anglia) cade in zona £400. Textul din cos spune la fel („Deliveries above York, Leeds, Blackpool… incur an extra charge"). **Nu am schimbat preturile** — astept confirmarea lui Doru (eventual a lui Mads).
+
+**Altceva observat:** produsul „Live payment test – do not buy" (#14659, £1) e inca public in shop (trebuia sters pe 7 nov, intrarea 117).
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
 - **Faza 2 GATA (04:11–04:28):** copia finala pe clona; clona reinchisa la indexare (`blog_public = 0`, `robots.txt` `Disallow: /`). Wp-admin-ul ei NU se deschide si nu trebuie deschis — upgrade-ul bazei nu se ruleaza.

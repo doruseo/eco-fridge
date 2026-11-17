@@ -112,6 +112,7 @@ add_action( 'wp_footer', function () {
 	var msgCountry = <?php echo wp_json_encode( __( 'We only deliver within the UK. You can collect your order from our warehouse, or call us on 01280 811411.', 'eco-fridge-child' ) ); ?>;
 	var notAvailable = <?php echo wp_json_encode( __( 'Not available for this address', 'eco-fridge-child' ) ); ?>;
 	var pickupIds = [ 'pickup_location', 'local_pickup' ];
+	var requiresAddress = <?php echo wp_json_encode( 'yes' === get_option( 'woocommerce_shipping_cost_requires_address' ) ); ?>;
 	var state = { key: '', reason: '' }; // last address checked in "Ship" mode, and why it has no delivery
 	var busy = false;
 
@@ -134,11 +135,17 @@ add_action( 'wp_footer', function () {
 			var a = ( packages[0] && packages[0].destination ) || cart.shippingAddress || {};
 			var country = ( a.country || '' ).toUpperCase();
 			var postcode = ( a.postcode || '' ).trim();
-			var key = country + '|' + postcode.toUpperCase().replace( /\s+/g, '' );
+			var city = ( a.city || '' ).trim();
+			// With "Hide shipping costs until an address is entered" on, the Store API
+			// returns only the pickup rate until the city is filled in too – that means
+			// "address not complete yet", not "we don't deliver there" (a postcode typed
+			// in the cart calculator arrives here without a city).
+			var addressComplete = ! requiresAddress || '' !== city;
+			var key = country + '|' + postcode.toUpperCase().replace( /\s+/g, '' ) + '|' + ( addressComplete ? '1' : '0' );
 			var reason = '';
 			if ( country && 'GB' !== country ) {
 				reason = 'country';
-			} else if ( postcode && packages.length && packages.every( function ( p ) { return ( p.shipping_rates || [] ).every( isPickup ); } ) ) {
+			} else if ( postcode && addressComplete && packages.length && packages.every( function ( p ) { return ( p.shipping_rates || [] ).every( isPickup ); } ) ) {
 				reason = 'postcode';
 			}
 			if ( key !== state.key ) {
