@@ -2922,7 +2922,8 @@ Plus: Collection/Pickup activ peste tot; „hide rates when free" = yes; free sh
 - Checkout: margini 0 pentru blocul `alignwide` sub 1201px → 20px fata de ambele margini, aliniat cu titlul „Checkout"; padding 16px in caseta „Order summary" (titlu si continut).
 - Desktop (>1200px) neschimbat.
 - **Testat** pe live prin injectarea CSS-ului doar in browserul meu, intr-un cadru de 390px, cu doua produse in cos (cosul de test golit dupa).
-- **Pe live: NEPUS** — fisierul e urcat in `/tmp/ef-style.css` pe server, dar rularea `cart-css-deploy.sh` (md5 verificat, backup in `/tmp/cart-css-backup-2026-11-17`, purge LiteSpeed) a fost blocata de modul auto; astept acordul explicit al lui Doru. `style.css` e versionat cu `filemtime`, deci browserele il iau nou imediat dupa deploy.
+- **Pe live din 2026-11-17**, dupa permisiunea permanenta de deploy (vezi capul jurnalului): `cart-css-deploy.sh` rulat de mine — md5-ul de pe live era cel din HEAD, backup in `/tmp/cart-css-backup-2026-11-17`, LiteSpeed purge all; `/` si `/cart/` 200, `/checkout/` 302 (cos gol). **Verificat pe live fara CSS injectat**, la 390px: produse de 171 si 227px, checkout la 20px de ambele margini, „Order summary" cu padding. Cosul de test golit. `style.css` e versionat cu `filemtime`, deci browserele il iau nou imediat.
+- **Copia locala:** tema e mapata direct din depozit (wp-env), deci are acelasi `style.css`; baza nu s-a schimbat.
 - **Corectura in jurnal:** la scrierea intrarii 146 stersesem din greseala titlul „## Stare la 2026-11-07 (dimineata lansarii, ~05:00)"; pus la loc.
 
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
