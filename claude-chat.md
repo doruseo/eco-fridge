@@ -2926,6 +2926,25 @@ Plus: Collection/Pickup activ peste tot; „hide rates when free" = yes; free sh
 - **Copia locala:** tema e mapata direct din depozit (wp-env), deci are acelasi `style.css`; baza nu s-a schimbat.
 - **Corectura in jurnal:** la scrierea intrarii 146 stersesem din greseala titlul „## Stare la 2026-11-07 (dimineata lansarii, ~05:00)"; pus la loc.
 
+## 148. Mega-meniul Display Cabinets: imaginile dispareau la hover pe Mac (2026-11-18)
+
+**Doru:**
+> Kass si Mads au laptop Mac. La mega-meniul din top al display-cabinets, cand mergi cu mouse pe elementele din acest mega-meniu, imaginile dispar la hover, dar numai pe laptop Mac [...] Sa fie oare o problema de conversie a imaginilor in AVIF? Sau o problema de CSS [...]? Si de ce doar la mega-meniul Display Cabinets?
+
+**Nu e AVIF:** imaginile din mega-meniu sunt JPG/PNG (150 de variante JPG + 3 PNG in srcset, fara `<picture>`), iar serverul raspunde `image/jpeg` si la o cerere cu `Accept: image/avif`.
+
+**Cauza (CSS + felul in care Safari pe macOS deseneaza):**
+- Imaginea avea `mix-blend-mode: multiply` (ca fundalul alb al pozei sa se topeasca in patratul verde-pal), iar la hover patratul ei primea `transform: scale(1.04)`.
+- Panoul are `max-height` + `overflow-y: auto`. Pe macOS, Safari (si Chrome) deseneaza separat, pe placa grafica, panourile care se deruleaza; o imagine cu blend-mode al carei parinte devine strat separat la hover nu mai e desenata. Pe Windows desenarea e altfel, de aceea nu apare.
+- **De ce Display Cabinets:** are 22 de tile-uri — panoul are 984px, deci pe orice ecran de laptop se deruleaza. Storage Cabinets (13 tile-uri, 747px) se deruleaza doar pe ecrane mai mici, deci poate aparea si acolo, mai rar. Fridges/Freezers nu au imagini in mega-meniu.
+- WebKit pe Windows (Playwright, 1440x790 @2x) **nu** reproduce problema — confirma ca tine de desenarea pe macOS; n-am avut un Mac pe care s-o reproduc direct.
+
+**Reparatia (`astra-child/style.css`, commit 1d266bc):** fara `mix-blend-mode`; patratul imaginii e alb cu o linie fina (`inset 0 0 0 1px`), la hover linia devine verde deschis si patratul se mareste ca inainte. Pozele au fundal alb, deci arata la fel ca inainte, fara dreptunghiuri vizibile.
+- **Pe live din 2026-11-18** (permisiunea permanenta de deploy): md5 verificat, backup in `/tmp/mega-css-backup-2026-11-18`, LiteSpeed purge all, `/` si `/cart/` 200. Verificat dupa: in WebKit `mix-blend-mode: normal`, fundal alb, hover cu imaginea vizibila.
+- **De confirmat de Kass/Mads** pe Mac, dupa un refresh (style.css e versionat cu `filemtime`, deci nu trebuie golit cache-ul browserului).
+- **Copia locala:** tema e mapata din depozit, are acelasi fisier.
+- Mai exista un `mix-blend-mode: multiply` in `ecofridge-blocks/assets/search.css` (`.efb-search__noimg`, placeholder-ul fara imagine din cautare) — nu e intr-un panou cu transform la hover; lasat asa.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
