@@ -2958,7 +2958,9 @@ Plus: Collection/Pickup activ peste tot; „hide rates when free" = yes; free sh
 
 **Unde sunt notate:** memoria acestui proiect (`woo-site-rules-blend-delivery-checkout`), memoria proiectului Display-Fridge (creata acum, era goala) si `claude-chat.md` din `Display-Fridge - noul site` (intrarea din 2026-11-18, la final).
 
-**Gasit pe Display-Fridge (doar notat, nereparat):** acelasi tipar de la regula 1 in mega-meniu (`theme.css`: `.dfn-mega` cu `overflow-y: auto`, imaginile `.dfn-mega-*__img img` cu multiply, `scale(1.03)` / `translateY(-2px)` la hover) si in carusel (`df-carousel.css`, `.dfc-card__img`). `checkout.php` de acolo nu are scriptul de comutare pe Pickup, dar are acelasi mesaj „We don't deliver to this postcode" si acelasi calculator doar cu cod postal.
+**Gasit pe Display-Fridge:** acelasi tipar de la regula 1 in mega-meniu (`theme.css`: `.dfn-mega` cu `overflow-y: auto`, imaginile `.dfn-mega-*__img img` cu multiply, `scale(1.03)` / `translateY(-2px)` la hover) si in carusel (`df-carousel.css`, `.dfc-card__img`). `checkout.php` de acolo nu are scriptul de comutare pe Pickup, dar are acelasi mesaj „We don't deliver to this postcode" si acelasi calculator doar cu cod postal.
+
+- **Doru, in timpul lucrului:** „noteaza si fa modificarea si acolo sa nu apara aceste probleme acolo asa cum au aparut aici". **Facut pe copia locala Display-Fridge** (commit 51a5b41 in `new-site`; site-ul nou nu e lansat): fara `multiply` in mega-meniu si carusel (patrate albe cu linie fina), protectie in `dfb_package_without_delivery()` pentru adresa fara oras, cos pe mobil compact (217px/produs in loc de ~450px); checkout-ul de acolo e clasic si avea deja 20px de margini. Pe drum: copia locala era pe Twenty Twenty-Five, fiindca folderul fusese redenumit si containerul `dfn-wp` pastra caile vechi — recreat si tema reactivata. Detalii in jurnalul Display-Fridge.
 
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
