@@ -2945,6 +2945,21 @@ Plus: Collection/Pickup activ peste tot; „hide rates when free" = yes; free sh
 - **Copia locala:** tema e mapata din depozit, are acelasi fisier.
 - Mai exista un `mix-blend-mode: multiply` in `ecofridge-blocks/assets/search.css` (`.efb-search__noimg`, placeholder-ul fara imagine din cautare) — nu e intr-un panou cu transform la hover; lasat asa.
 
+## 149. Regulile din 146–148, retinute si duse in proiectul Display-Fridge (2026-11-18)
+
+**Doru:**
+> retine regula asta de background color-mix (mix-blend-mode: multiply) plus regula de livrare din cart si checkout cat si CSS-ul din checkout si noteaza toate acestea inclusiv in proiectul de dezvoltare al site-ului pentru Display-Fridge [...] inclusiv in fisierul claude-chat.md.
+
+**Regulile (pentru ambele site-uri):**
+1. Fara `mix-blend-mode: multiply` pe imagini intr-un panou derulabil sau cu `transform` la hover — pe macOS dispar (intrarea 148). Patrat alb + linie fina in loc de tinta + multiply. WebKit pe Windows nu reproduce.
+2. Livrarea se judeca doar cu adresa completa (tara + oras + cod postal); testele Store API se fac cu oras (intrarea 146).
+3. Cosul pe mobil: un rand compact pe produs, ca Order Summary (intrarea 147).
+4. Checkout pe mobil: 20px fata de margini, „Order summary" cu padding interior (intrarea 147).
+
+**Unde sunt notate:** memoria acestui proiect (`woo-site-rules-blend-delivery-checkout`), memoria proiectului Display-Fridge (creata acum, era goala) si `claude-chat.md` din `Display-Fridge - noul site` (intrarea din 2026-11-18, la final).
+
+**Gasit pe Display-Fridge (doar notat, nereparat):** acelasi tipar de la regula 1 in mega-meniu (`theme.css`: `.dfn-mega` cu `overflow-y: auto`, imaginile `.dfn-mega-*__img img` cu multiply, `scale(1.03)` / `translateY(-2px)` la hover) si in carusel (`df-carousel.css`, `.dfc-card__img`). `checkout.php` de acolo nu are scriptul de comutare pe Pickup, dar are acelasi mesaj „We don't deliver to this postcode" si acelasi calculator doar cu cod postal.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
