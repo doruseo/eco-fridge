@@ -594,10 +594,13 @@ html.ef-drawer-open { overflow: hidden; }
 .ef-cat-nav .ef-mega-tile-img {
   flex: 0 0 58px; width: 58px; height: 58px;
   display: flex; align-items: center; justify-content: center;
-  border-radius: 10px; background: var(--ef-mega-tint);
-  transition: background .18s ease, transform .2s ease;
+  /* white square with a thin line: the product photos have white backgrounds.
+     No mix-blend-mode on the image: in Safari on macOS a blended image inside
+     the scrolling panel vanished while its square was scaled on hover. */
+  border-radius: 10px; background: #fff; box-shadow: inset 0 0 0 1px var(--ef-mega-line);
+  transition: box-shadow .18s ease, transform .2s ease;
 }
-.ef-cat-nav .ef-mega-tile-img img { max-width: 46px; max-height: 50px; width: auto; height: auto; object-fit: contain; mix-blend-mode: multiply; }
+.ef-cat-nav .ef-mega-tile-img img { max-width: 46px; max-height: 50px; width: auto; height: auto; object-fit: contain; }
 .ef-cat-nav .ef-mega-tile-name {
   font-family: var(--ef-font-head); font-size: .84rem; line-height: 1.3;
   letter-spacing: .02em; text-transform: uppercase; color: var(--ef-text);
@@ -613,7 +616,7 @@ html.ef-drawer-open { overflow: hidden; }
 }
 .ef-cat-nav .ef-mega-tile:hover,
 .ef-cat-nav .ef-mega-tile:focus-visible { background: var(--ef-mega-tint); color: var(--ef-text); }
-.ef-cat-nav .ef-mega-tile:hover .ef-mega-tile-img { background: #fff; transform: scale(1.04); }
+.ef-cat-nav .ef-mega-tile:hover .ef-mega-tile-img { box-shadow: inset 0 0 0 1px var(--ef-brand-light); transform: scale(1.04); }
 .ef-cat-nav .ef-mega-tile:hover .ef-mega-tile-name { color: var(--ef-brand); }
 .ef-cat-nav .ef-mega-tile:hover::after,
 .ef-cat-nav .ef-mega-tile:focus-visible::after { opacity: 1; transform: none; }
