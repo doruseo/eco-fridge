@@ -298,7 +298,7 @@ function efb_security_headers() {
 	header( 'Referrer-Policy: strict-origin-when-cross-origin' );
 	header( 'Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()' );
 	if ( is_ssl() && 'production' === wp_get_environment_type() ) {
-		header( 'Strict-Transport-Security: max-age=31536000' );
+		header( 'Strict-Transport-Security: max-age=31536000; includeSubDomains' );
 	}
 }
 add_action( 'send_headers', 'efb_security_headers' );

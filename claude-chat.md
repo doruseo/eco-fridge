@@ -3009,3 +3009,103 @@ Plus: Collection/Pickup activ peste tot; „hide rates when free" = yes; free sh
 - **Procedura completa pentru sambata:** intrarea 72, de citit de la cap la coada inainte de orice clic.
 - **De la Ambrit/Mads: textul final al celor trei cereri e in intrarea 92**, gata de trimis. Context si ce a ieșit din lista: intrarea 91.
 - **Context (intrarea 91):** confirmarea ca nu umbla la zona DNS RAMANE valabila (zona e la IONOS, in contul clientului, dar ei pot avea credentiale vechi); mai importante acum: sa nu opreasca gazduirea veche inainte de 30 de zile si ingheţ pe site-ul vechi de vineri seara. Cererile de acces FTP/dump si de `ca-certificates` NU mai sunt necesare.
+
+---
+
+## HSTS și IPv6 – verificare după auditul O2X (22 noiembrie 2026)
+
+**Doru:**
+> La bune practici din SEO CRM observ că HSTS este respins – eu știu că am HSTS la site-ul eco-fridge.co.uk... la fel IPV6 (AAAA record) – chiar așa să nu-l am?
+
+**Ce am verificat (Claude), din exterior și prin SSH pe `ef-live`, doar citire:**
+- **HSTS există:** `https://www.eco-fridge.co.uk/` trimite `Strict-Transport-Security: max-age=31536000`, din `ecofridge-blocks/includes/security.php`, linia 301.
+- Lipseau două lucruri:
+  - `includeSubDomains`;
+  - header-ul HSTS pe redirectul 301 de pe `https://eco-fridge.co.uk/`. Redirectul e făcut în `wp-config.php`, înainte să se încarce pluginul.
+- **IPv6:** DNS-ul (IONOS) nu are înregistrare AAAA, nici pe apex, nici pe www. Serverul Hostinger servește însă site-ul corect pe IPv6: `2a02:4780:a:1234::73` răspunde HTTP/2 200, cu certificat valid.
+- Niciunul dintre ele nu e o problemă SEO. În O2X și SEO CRM ambele apar acum ca **„Informativ / opțional”**, nu ca „Respins”.
+
+**Decizii:**
+- Doru a confirmat că site-ul nu are alte subdomenii în afară de www, deci `includeSubDomains` e sigur.
+- AAAA: recomandarea e să **nu** fie adăugat. Adresa IPv6 a unui plan Hostinger partajat nu e garantat fixă, iar o adresă greșită ar face site-ul inaccesibil pe IPv6.
+
+**De făcut (Doru):** modificarea pe live a fost blocată de protecția automată a Claude Code. Scriptul pregătit e `tools/hsts-harden.sh`: face backup (`*.bak-20261122-hsts`), modifică cele două fișiere, verifică sintaxa PHP (cu revenire automată la backup dacă apare o eroare), golește cache-ul LiteSpeed și verifică header-ele din exterior. Se rulează cu:
+`! bash "/c/Users/doruh/Downloads/eco-fridge noul site/tools/hsts-harden.sh"`
+
+După rulare trebuie adusă la zi și copia locală a `security.php`, la aceeași linie.
+
+**Prima rulare a scriptului (Doru, 22.11.2026):** s-a oprit la `wp-config.php`, cu `sed: cannot rename ./sedXXXX: Device or resource busy`. Pe Hostinger, `wp-config.php` nu poate fi înlocuit prin redenumire. Starea verificată după oprire, doar cu citire:
+- `security.php` avea deja `includeSubDomains`, iar sintaxa PHP era OK;
+- `wp-config.php` a rămas neatins, cu sintaxa OK;
+- backup-urile `*.bak-20261122-hsts` există;
+- site-ul răspundea 200;
+- cache-ul LiteSpeed nu fusese golit, așa că din exterior se vedea încă header-ul vechi.
+
+**Scriptul a fost corectat** (`tools/hsts-harden.sh`):
+- fișierele se rescriu direct (`cat tmp > fișier`), fără redenumire;
+- inserția în `wp-config.php` se face cu `awk`. Varianta cu `sed i\` lăsa un „t” în plus în față, eroare prinsă la testul local;
+- fiecare pas verifică întâi dacă modificarea există deja, deci scriptul poate fi rulat din nou;
+- a fost testat local pe copii ale fișierelor, de două ori.
+
+**A doua rulare:** s-a oprit cu `awk: command not found`, pentru că serverul nu are awk. `wp-config.php` a rămas neschimbat (identic cu backup-ul, sintaxa OK); s-a creat doar fișierul temporar gol `.hsts-hJRwnm`. Scriptul folosește acum **PHP** pentru ambele modificări: rescrie fișierele direct, fără redenumire și fără fișiere temporare, iar la pornire șterge fișierul temporar rămas. Codul PHP a fost testat pe server pe o copie a `wp-config.php` din `/tmp`, apoi ștearsă: linia apare corect, sintaxa e OK.
+
+**A treia rulare – reușită (22.11.2026):**
+- `wp-config.php` a fost actualizat (linia 21), iar sintaxa PHP e OK;
+- cache-urile LiteSpeed au fost golite.
+
+**Verificat din exterior:**
+- `https://eco-fridge.co.uk/` → 301, cu `Strict-Transport-Security: max-age=31536000; includeSubDomains`;
+- `https://www.eco-fridge.co.uk/` (inclusiv cu un parametru de ocolire a cache-ului și pe `wp-login.php`) → 200, cu același header. Prima verificare prinsese o pagină încă servită din cache.
+
+**Copia locală:** `ecofridge-blocks/includes/security.php` a fost adusă la zi, iar md5 e identic cu live-ul. Backup-urile de pe server: `wp-config.php.bak-20261122-hsts` și `security.php.bak-20261122-hsts`.
+
+**De luat în calcul ulterior (opțional):** cu HSTS acum complet pe ambele hostname-uri, se poate adăuga `preload` și trimite domeniul pe hstspreload.org. Pasul e greu de anulat, deci doar la cererea lui Doru.
+
+---
+
+## Tag-urile de produs noindex și paginile lor 2–3 (22 noiembrie 2026)
+
+**Doru:**
+> Verifică dacă într-adevăr sunt vechi, nu din planul noului site, și șterge-le – trash cu redirect către categoria aferentă fiecărui tag.
+
+URL-urile întrebate: `/product-tag/multideck-fridges/page/2/`, `/product-tag/patisserie-display-fridges/page/2/` și `/page/3/`.
+
+**Verificat (Claude), fără nicio modificare pe live:**
+- Tag-urile **nu sunt vechi**. Sunt din planul noului site: migrarea 64 (`migration/64-product-type-tags.php`), cu 21 de tag-uri „de tip” folosite de filtrul „Type” din bara de produse, toate `noindex` intenționat (Rank Math, per termen). Ștergerea lor ar strica filtrul, așa că **nu s-au șters**.
+- Fiecare tag dublează o categorie (grab-and-go, multideck-fridge, patisserie-fridge). Recomandarea: să rămână noindex. La patisserie, tag-ul are 27 de produse, iar categoria 9; soluția e o categorie completă, nu indexarea tag-ului.
+- Tag-urile vechi (cele 164 cu sufixul `-tag`, neimportate) au deja 301 într-un singur pas spre categoria corespunzătoare, care răspunde 200. Exemple: `multideck-tag`, `commercial-refrigeration-tag`, `counter-fridge-tag`. Nu e nimic de adăugat.
+- Paginile 2–3 moștenesc noindex-ul tag-ului, ceea ce e corect. O2X a fost reparat să nu le mai raporteze; nu mai apar nici la „Pagini importante excluse din index”.
+
+**Doru:**
+> Pune-le redirect.
+
+**Deploy live (Claude), 22 noiembrie 2026:** `ecofridge-blocks/includes/tag-redirects.php`, cu `efb_type_tag_redirects()`. Cele 3 tag-uri de tip care dublează o categorie primesc 301 spre categorie, pe toate paginile lor (`/page/N/`):
+- `grab-and-go-fridges` → `/product-category/commercial-display-fridge/grab-and-go/`
+- `multideck-fridges` → `…/multideck-fridge/`
+- `patisserie-display-fridges` → `…/patisserie-fridge/`
+
+Tag-urile nu sunt șterse, pentru că filtrul „Type” le folosește în continuare (`?filter_type=multideck-fridges` merge: 200, verificat). Vizualizările filtrate (cu query string) nu se redirecționează. Un filtru `term_link` face ca orice link către aceste tag-uri să ducă direct la categorie, deci niciun link intern nu trece prin redirect (verificat pe o pagină de produs).
+
+Cum s-a făcut deploy-ul:
+- Live era identic cu git, doar cu terminații CRLF (verificat după normalizare); fișierul nou a fost urcat tot cu CRLF.
+- Backup: `tag-redirects.php.bak-20261122-typetags`. `php -l` OK, LiteSpeed golit.
+- Verificat din exterior: 301 într-un singur pas, categoriile răspund 200, tag-urile vechi `-tag` neschimbate.
+- Copia locală e actualizată (necomisă).
+
+---
+
+## Curățare post-lansare: cupon 100% și produs de test (27 noiembrie 2026)
+
+### Cuponul de reducere 100%
+
+**Doru:** Sterge cuponul de reducere 100%.
+
+Cuponul nu era în cod (WooCommerce stochează cupoanele ca post-uri de tip `shop_coupon` în baza de date). **Doru l-a șters manual** din WP Admin → Marketing → Cupoane.
+
+### Produs de test #14659 „Live payment test – do not buy"
+
+Produs creat pe 27.11.2026 pentru o comandă reală cu cardul (#14660, ștearsă după verificarea plății). Produsul e ascuns peste tot (catalog, căutare, sitemap, feed Merchant, noindex), deci nu deranjează.
+
+**Produs șters definitiv (27.11.2026):** testul GA4 nu a mai fost necesar (site-ul are comenzi reale). Produsul a fost șters cu `wp post delete 14659 --force`; `wp_wc_order_product_lookup` — 0 rânduri pentru product_id 14659; cache LiteSpeed golit.
+
+**Alias SSH `ef-live` restaurat** în `~/.ssh/config` (lipsea după compactarea sesiunii precedente). Cheia `o2dev` a fost re-autorizată în Hostinger pe 27.11.2026.
