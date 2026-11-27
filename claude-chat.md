@@ -4,6 +4,8 @@ Jurnalul de lucru pentru site-ul nou Eco-Fridge: ce a cerut Doru, ce s-a făcut,
 
 > **Regulă de lucru (cerută de Doru pe 29 octombrie 2026):** de acum înainte, Claude actualizează acest fișier **direct, fără să mai fie nevoie să i se ceară**, după fiecare lucru făcut sau decizie luată. Fiecare intrare nouă cuprinde: ce a cerut Doru (citat), ce s-a verificat și s-a făcut, ce s-a decis și ce rămâne de făcut; la final se actualizează blocul „Stare". Modificarea se și comite în git. Dacă schimbarea atinge și procedurile, se actualizează în aceeași rundă memoria proiectului și fișierele din Drive (documentul de proces, procedura generală, checklistul eco-fridge și calendarul de lansare). Datele de plată (coduri de aprobare, referințe de tranzacție, credențiale) nu intră niciodată în acest fișier sau în git — ele stau doar în nota de proiect din memorie.
 
+> **Permisiune permanentă (dată de Doru pe 17 noiembrie 2026):** „ai permisiunea mea sa faci update pe live prin SSH si sa actualizezi si site-ul pe local". Claude pune direct pe live, prin SSH (`ef-live`), schimbările făcute și testate, fără să mai ceară acordul de fiecare dată, și aduce la zi și copia locală (fișiere + bază). Condiții care rămân: o singură conexiune SSH odată (niciodată în paralel), verificarea fișierului de pe live înainte de suprascriere, backup înainte de orice schimbare, golirea cache-ului LiteSpeed și verificarea pe live după; fiecare deploy se notează în jurnal.
+
 ---
 
 ## 1. Statusul comenzilor: Pending în loc de On hold
@@ -2809,6 +2811,157 @@ Doru: pe dashboard-ul SMS Alert nu apar SMS-uri; crede ca stergerea staging-ului
 - **Urmeaza (Doru):** Site Health reverificat, apoi conectarea cu un cont WordPress.com. Dupa conectare: de verificat ce scripturi/cookie-uri adauga WooCommerce Analytics pe frontend (Cookie Policy + consimtamant).
 - **Confirmat de Doru:** totul e in regula pe site. PR #127 merge-uit in `main`.
 
+## 141. Imaginile „Large" din articole: 1000px pe tot site-ul (2026-11-10)
+
+Doru a marit Large la 1000×1000 in Media Settings, dar imaginile din articole ramaneau mici (ex. `cleaning-the-restaurant-fridge` in /commercial-refrigeration-maintenance-guide/). **Cauza:** setarea se aplica doar la uploaduri noi; copiile Large existente erau facute cu vechiul 600px (`-600x335`), iar continutul articolelor indica spre ele. Coloana articolului (`.ef-post-body`) are max 780px.
+
+- Backup inainte: tabelele posts + postmeta → `source-dump/final-2026-11-07/live-posts-before-large1000-2026-11-10.sql.gz` (si `/tmp/backup-posts-before-large1000.sql.gz` pe server). Continutul vechi al fiecarui articol schimbat e si in meta `_ef_content_before_large1000`.
+- **383 de imagini** (din 882) cu Large sub ce permite setarea: `wp media regenerate <ids> --image_size=large --skip-delete` (fisierele vechi raman pe disc, nicio adresa nu se rupe), in loturi in prim-plan — **pe acest server procesele lasate in fundal (nohup/setsid) sunt oprite**. WebP/AVIF: O2IO a convertit fisierele noi; regenerarea a pus in plus ~440 de conversii in coada Action Scheduler (`o2io_process_one`, mod „background"), rulate pana la 0 pending, 0 failed. O singura imagine cu eroare de conversie: #921 (commercial-display-freezer, „empty output"), se serveste ca JPG.
+- **Continut:** in figurile `size-large`, `src` mutat pe fisierul Large nou doar daca e mai lat decat cel folosit (niciodata in jos): **21 de imagini** schimbate; 10 sarite, fiindca folosesc deja fisiere 1024px de pe vechiul site (afisate oricum pe toata coloana). Simularea dupa: 0 de schimbat.
+- Verificat: articolul din exemplu are `width="1000"`, srcset cu 1000w, `.avif` servit; home, shop, blog, articol 200; LiteSpeed purge all.
+- Copia locala: `live-posts-after-large1000-2026-11-10.sql.gz` + `live-uploads-large1000-2026-11-10.tar.gz` (10.901 fisiere noi/atinse) in `source-dump/final-2026-11-07/`.
+- Uploadurile viitoare primesc automat Large 1000px.
+
+## 142. Backup-ul Ambrit din 9 nov comparat cu ce avem pe live (2026-11-10)
+
+Doru: „verifica baza de date din backup-11.9.2026_13-02-39_ecofridgeco.zip de la Ambrit si vezi daca pe site avem totul preluat".
+
+- Arhiva (2,46 GB) e un backup cPanel complet al site-ului vechi, facut pe 9 nov 13:02. Baza activa: `mysql/ecofridgeco_db.sql` (prefix `43lz2ypq8_`, conform wp-config); `ecofridgeco_db2.sql` e o copie veche. Convertite in SQLite (scratchpad, `dump2sqlite.py`), alaturi de clona din 7 nov 04:32 (`source-dump/db/backup-clone-2026-11-07.sql.gz`, sursa importului) si de baza live de azi (posts + postmeta).
+- **Ambrit 9 nov = clona 7 nov**, dupa normalizarea domeniilor rescrise: aceleasi randuri la posts (10.469), postmeta, comentarii, termeni, linii de comanda, utilizatori; zero noi/sterse/modificate la continut, produse, comenzi, meta. Ultima activitate reala pe site-ul vechi: comanda #14638, 5 nov 21:13 (si ultima tranzactie Lloyds, 4.021). Diferente doar tehnice: un `amp_validated_url`, sesiuni/last-seen ale staff-ului, cron, transient-uri, optiuni de pluginuri.
+- **Pe live:** toate cele **6.017 comenzi** vechi gasite dupa `_order_key`, cu acelasi numar si status (live are 6.020: + #14658 neplatita, #14664, #14667). **Produse:** 135/135 gasite dupa SKU; pret efectiv identic; o singura diferenta, SD75/120SH outofstock → instock, editata pe live pe 9 nov 11:30 de un utilizator al magazinului (dupa lansare, deci intentionata).
+- Ramas pe live: produsul de test **#14659** „Live payment test – do not buy" — publicat, ascuns din catalog, dar cumparabil la £1 de oricine are adresa. De decis cu Doru.
+- Backup-ul `/tmp/backup-posts-before-large1000.sql.gz` de pe server a fost sters (copia de pe laptop din intrarea 141 ramane).
+
+## 143. Linkuri interne in toate articolele de blog (2026-11-11)
+
+Doru: „pune internal linking la toate articolele de blog de pe site atat catre alte articole din site cat mai ales catre categoriile comerciale" + „pune internal linking pe ancore relevante din continutul articolelor".
+
+- **Pe live, 104 din 105 articole** (singurul fara link nou: un anunt scurt fara expresii potrivite), **534 de linkuri noi**: 333 spre categorii de produse, 58 spre pagini de piata (cel mult una pe articol), 143 spre alte articole. Fiecare din cele 61 de tinte raspunde 200.
+- **Ancore din textul existent**, cu formularea si majusculele originale (ex. „multideck fridge", „Ice Cream Freezer", „food safety"); textul vizibil al articolelor e identic, verificat fara taguri. Reguli: doar in `<p>` si `<li>` (niciodata titluri, imagini, butoane), niciodata in alt link, maxim un link nou pe paragraf, o singura data aceeasi tinta pe articol, nimic spre o tinta deja legata din articol, niciodata spre el insusi. Categoriile cele mai specifice inainte de cele generale (multideck / patisserie / serve over / drinks / beer / wine / bar inainte de „display fridge" si „commercial fridge"); maxim 5 categorii+piata si 3 articole pe articol; linkurile spre articole merg intai la articolele cu cele mai putine linkuri primite. Doar categorii cu produse.
+- Unealta: `migration/tools/internal-links/` (`export.php` → `build_links.py` → `apply.php`), raportul complet articol / ancora / tinta in `report-2026-11-11.tsv`. `apply.php` scrie doar daca md5-ul continutului e cel exportat (niciun articol editat intre timp: 104 actualizate, 0 sarite).
+- **Revenire:** continutul vechi al fiecarui articol e in meta `_ef_content_before_internal_links`; exportul de dinainte e si pe laptop (`source-dump/final-2026-11-07/live-posts-before-internal-links-2026-11-11.json`).
+- LiteSpeed purge all facut; `wp cache flush` raspunde cu eroare, dar live nu are cache de obiecte persistent („Default"), deci nu conteaza. Verificat in pagini: 3 articole, toate linkurile asteptate prezente.
+- Copia locala: `source-dump/final-2026-11-07/live-posts-after-internal-links-2026-11-11.sql.gz` (wp_posts + wp_postmeta de pe live).
+- Git: `gh pr merge 129` (intrarea 141/142) a fost blocat de permisiunile Claude Code, deci PR #129 ramane deschis; ramura noua porneste din el.
+
+## 144. Eroare la upload de imagini in editor: „The server cannot process the image" (2026-11-12)
+
+Doru: la urcarea a doua poze JPEG (1800×853 si 1800×1005, ~400 KB) din editorul unui articol aparea mesajul cu „Suggested maximum size is 2,560 pixels". La inceput doar uneori, apoi la orice imagine.
+
+- **Rezolvat de Doru cu LiteSpeed „purge cache"**; un simplu refresh al editorului (deschis de mult timp) nu a fost de ajuns. Dupa purge, pozele s-au urcat, inclusiv din Media → Add New (async-upload.php 200, ~3 s procesare).
+- **Cauza exacta nu e stabilita**: raspunsul serverului din momentele cu eroare nu a fost prins. Mesajul e cel generic afisat de WordPress cand uploadul primeste un raspuns 5xx.
+- **Ce am exclus:** pozele (JPEG baseline, RGB, 8 biti); Imagick (toate dimensiunile generate pe server din aceeasi poza in sub 1 s); spatiul pe disc (42%, inode 25%); erori PHP (`.h5g/php_error.log` fara nimic in orele respective); coada O2IO (mod „background", 0 actiuni blocate); codul din `ecofridge-blocks`; primirea fisierului de catre server (POST neautentificat → 302 / 401 normal).
+- **Daca reapare:** intai purge cache + reincarcarea editorului; daca tot nu merge, F12 → Network → codul de stare al cererii `async-upload.php`, inainte de orice altceva.
+- De retinut: pe live logul PHP e `~/websites/PNxOJBHKQ/.h5g/php_error.log`. Modul auto al Claude Code a blocat SSH-ul catre live si uploadul de test din browser; verificarile au fost rulate de Doru cu `!`, din scripturi numai-citire.
+
+## 145. Toate comenzile apar „Direct": sursa se pierdea la acordul dat tarziu (2026-11-12)
+
+Doru: cele 6 comenzi de dupa lansare au toate Origin „Direct"; greu de crezut. Cerere: de gasit eroarea si de aflat cum au descoperit clientii site-ul.
+
+- **Cauza (confirmata):** atribuirea WooCommerce (sourcebuster, cookie-urile `sbjs_*`) porneste abia la acordul pentru Statistics si citeste referrerul paginii pe care porneste. Acord pe prima pagina → sursa corecta; acord pe pagina 2+ → referrerul e deja eco-fridge → „typein" (Direct); fara acord → nimic („Unknown"). In plus, cookie-urile erau de sesiune: cine revine alta zi tastand adresa e tot „Direct".
+- **Dovezi:** pe comenzi, `referrer` e o pagina interna la 4 din cele 5 comenzi reale (#14667, #14777, #14819, #14820), cu „sesiune" inceputa cu 2–8 minute inainte de comanda si `session_entry` = cos / produs; #14664 nu are referrer (posibil direct real, client cu 2 comenzi anterioare); #14658 e testul lui Doru (`gtm_debug`). Reprodus cu un vizitator curat (Playwright, pe live): venit din Google + Accept pe a doua pagina → `typein`; Accept pe prima → `organic / google`.
+- **Decizia lui Doru:** (1) se retine sursa pana la alegere; (2) prima sursa pastrata 90 de zile. Varianta cu banner blocant si intrebarea „How did you hear about us?" la checkout: nu acum.
+- **ef-cookie-consent 1.3.0**, doua setari noi in Blocking (ambele oprite implicit, pornite pe eco-fridge):
+  - `woo_landing` — pana la alegere, `efcc.js` tine in `sessionStorage` (`efcc_landing`) doar pagina de intrare si referrerul ei. La Accept pe o pagina ulterioara, sourcebuster e pornit ca pe pagina de intrare (referrer + URL cu utm/gclid, schimbat o clipa cu un `history.replaceState` neatins, luat dintr-un iframe gol, ca GA4 sa nu numere un page_view). La Reject se sterge. **Juridic e zona gri** (tot stocare inainte de acord, chiar daca nu pleaca nicaieri) — spus lui Doru, el a ales; apare in tabelul din Cookie Policy.
+  - `woo_lifetime_days` = 90 — cookie-urile `sbjs_*` tin 90 de zile (filtrul `wc_order_attribution_cookie_lifetime_months`); tabelul de cookies arata durata automat. Efect: „Origin" devine ultima sursa cunoscuta care nu e Direct, in 90 de zile.
+- **ecofridge-blocks (`analytics.php`):** 7 campuri noi salvate pe comanda prin `wc_order_attribution_tracking_fields` — `_wc_order_attribution_first_source_type / first_utm_source / first_utm_medium / first_utm_campaign / first_referrer / first_entry / first_visit_time`; afisate in comanda („First known visit: …") si puse in dataLayer la purchase (`order_details.first_*`; in GTM inca nemapate).
+- **Teste:** 6 scenarii × Chrome, Firefox, WebKit pe paginile live cu `efcc.js` nou injectat (Google, utm, alt site, direct, Reject, Accept pe prima pagina) — toate corecte; niciun page_view GA4 in plus; cookie 90,0 zile. Local: comanda prin Store API cu toate cele 7 campuri salvate.
+- **Greseala mea la testul local:** comanda locala #14654 (BACS, `attribution-test@example.com`) a trimis emailul real „You've got a new order: #14654" catre cele doua adrese ale magazinului — copia locala are WP Mail SMTP pe SMTP-ul real. Comanda locala e stearsa; emailul nu poate fi retras. Doru anuntat, sa-i spuna lui Mads sa-l ignore. Regula noua in memorie: mailul se blocheaza inainte de orice test local.
+- **Comenzile vechi** nu pot fi reparate din Woo (sursa nu a fost salvata). In GA4: Explore cu Transaction ID + „First user source / medium" si „Session source / medium" — proprietatea e aceeasi ca pe site-ul vechi, deci la clientii care acceptasera cookies acolo se poate vedea prima sursa.
+- **GA4 are aceeasi slabiciune** la acordul dat tarziu (referrerul paginii de intrare nu mai e disponibil); reparatia de azi priveste doar datele din WooCommerce.
+- **Pe live din 2026-11-12 seara** (scriptul `attr-deploy.sh` rulat de Doru; SSH-ul meu e blocat de modul auto): cele 8 fisiere erau identice cu depozitul inainte de copiere; backup in `/tmp/attr-backup-2026-11-12` (fisiere + `efcc_settings-before.json`); `woo_landing` = 1, `woo_lifetime_days` = 90; LiteSpeed purge all; home, shop, cart 200, checkout 302.
+- **Verificat pe live cu vizitator curat:** venit din Google + Accept pe a doua pagina → `organic / google`, pagina de intrare corecta (inainte: `typein`); Accept pe prima pagina si link cu utm: corecte.
+- **Tabelul de cookies:** randurile `sbjs_*` salvate separat in registrul de pe live ramasesera pe „Session"; reparat in commit-ul urmator (durata urmeaza setarea) si pus pe live pe 2026-11-13 cu `attr-deploy2.sh` (un fisier, backup in `/tmp/attr-backup-2026-11-12/step2`): toate randurile `sbjs_*` arata 90 de zile, `sbjs_session` 30 de minute.
+- **Copia locala:** aceleasi fisiere si aceleasi doua setari ca pe live.
+- **GitHub:** push refuzat (403) — `gh` e pe contul `doruhanganu`, fara drept de scriere in `doruseo/eco-fridge`; rezolvat pe 2026-11-13 dupa `gh auth switch --user doruhanganubusiness` (contul cu drept de scriere); ramura `fix/order-attribution-late-consent` e urcata, **PR #131** deschis (contine si commit-urile din #129 si #130, inca nemerge-uite).
+
+## 146. „Nu ne accepta codul postal" la checkout pe mobil — cauza gasita si reparata in cod (2026-11-17)
+
+**Doru:**
+> mai multi clienti au spus ca nu le accepta codul postal la checkout sau la cos pe mobil. Tu verifica atat pe desktop cat si pe mobil, atat la cos cat si la checkout
+> trebuie sa fie livrare gratuita pe toata Anglia, plus ce alte setari sunt in shipping
+
+**Cauza (reprodusa pe live, 400px si desktop — logica nu depinde de ecran):**
+- Pe live, optiunea WooCommerce **„Hide shipping costs until an address is entered"** (`woocommerce_shipping_cost_requires_address`) e **`yes`**. Migrarea 23 o pusese pe `no`; cineva a pornit-o din admin (nu stim cand). Copia locala are tot `yes`.
+- Cu ea pornita, Store API (cel folosit de checkout-ul pe blocuri) da **doar „Collection/Pickup"** cat timp lipseste orasul (`ShippingController` + `WC_Customer::has_full_shipping_address()` cer tara, orasul si codul postal). Cosul clasic nu are problema (calculatorul marcheaza adresa ca „calculata").
+- Scriptul nostru din `astra-child/inc/cart-checkout.php` vedea „are cod postal + doar pickup" si concluziona **„We don't deliver to this postcode"**: trecea comanda pe Pickup, marca Ship „Not available for this address".
+- **Drumul cel mai des:** clientul pune codul postal in cos (calculatorul cere DOAR codul postal) → la checkout ajunge cu cod postal fara oras → mesajul apare imediat, chiar si pentru Londra sau MK18. Reprodus pe live cu MK18 1AA: `prefersCollection = true` + mesajul.
+
+**Reparatia (cod, ramura `fix/checkout-postcode-without-city`):** scriptul afla din PHP daca optiunea e pornita si, cand e pornita, nu judeca codul postal pana nu exista si orasul; cheia adresei include si „adresa completa", deci dupa ce se completeaza orasul adresa e judecata din nou.
+- **Testat local** (aceeasi optiune `yes`, fara comenzi, deci fara emailuri): MK18 din cos → checkout fara mesaj si fara Pickup, „Enter a shipping address to view shipping options"; dupa „Buckingham" → **Free shipping** selectat; schimbat pe ZE1 0AA → trece pe Pickup cu mesajul corect.
+- **Pe live din 2026-11-17** (Doru: „ai permisiunea mea sa folosesti cheia SSH spre live"): `scp` + `postcode-deploy.sh` rulate de mine, secvential; md5-ul de pe live era cel din HEAD, backup in `/tmp/postcode-backup-2026-11-17`, LiteSpeed purge all; `/` si `/cart/` 200, `/checkout/` 302 (cos gol). **Verificat pe live:** MK18 1AA venit din cos → fara mesaj; dupa „Buckingham" → Free shipping selectat. Cosul de test golit. Copia locala are acelasi fisier (maparea wp-env).
+- **Reverificat pe 2026-11-17, inainte de emailul catre Mads:** API cu sesiuni noi — SW1A, MK18, NN13, B1, M1, LS1, CF10 dau Free shipping odata ce exista orasul, ZE1 doar ridicare; drumul complet din interfata (cod postal in cos → checkout → oras) pe desktop (1536px, SW1A/London) si pe mobil (390px, MK18/Buckingham): fara mesaj, Free shipping selectat. Cosul de test golit. Emailul scurt catre Mads redactat in chat (trimis de Doru).
+- **Clientii care au intalnit deja eroarea** pot avea Pickup ramas selectat in sesiune; Ship e clicabil si, odata ales, merge normal.
+- **Alternativa/complement din admin:** WooCommerce → Settings → Shipping → Shipping settings → debifat „Hide shipping costs until an address is entered" (cum era la lansare). Zonele merg doar dupa cod postal, deci orasul nu schimba nimic la pret.
+
+**Zonele de livrare de pe live (citite din copia locala, confirmate pe live prin Store API):**
+
+| Zona (ordine) | Coduri | Metoda |
+|---|---|---|
+| £150 | CA, DH, DL, LA, NE, SR, TR, TS | Flat rate £150 (+TVA) |
+| £400 | DG, EH, FK, G, KA, KY, ML, TD | Flat rate £400 (+TVA) |
+| Exclusions | AB, BT, DD, GY, HS, IM, IV, JE, KW, PA, PH, ZE | nicio livrare, doar ridicare |
+| UK Mainland | restul GB | Free shipping |
+| Rest of the world | — | metode dezactivate |
+
+Plus: Collection/Pickup activ peste tot; „hide rates when free" = yes; free shipping „cu cupon" in zonele £150/£400 dezactivat. **Ce nu e „livrare gratuita in toata Anglia":** zona £150 are opt prefixe englezesti (Cumbria, Durham, Darlington, Lancaster, Newcastle, Sunderland, Cornwall + Scilly, Teesside), iar TD15 (Berwick, Anglia) cade in zona £400. Textul din cos spune la fel („Deliveries above York, Leeds, Blackpool… incur an extra charge"). **Nu am schimbat preturile** — astept confirmarea lui Doru (eventual a lui Mads).
+
+**Altceva observat:** produsul „Live payment test – do not buy" (#14659, £1) e inca public in shop (trebuia sters pe 7 nov, intrarea 117).
+
+## 147. Cosul pe mobil compact si checkout-ul cu margini (2026-11-17)
+
+**Doru:**
+> acum observ ca pe mobile la /cart apare imaginea uriasa a produsului si apoi restul de detalii. [...] imagine mica cu titlul produsului alaturi, apoi subtotalurile [...] ca i Order Summary din /checkout. Iar /checkout pe mobile este prea lipit de partea stanga a ecranului, ar merge un 10 poate 20 px
+
+**Ce era:**
+- **Cos (<=768px):** tabelul responsive WooCommerce punea fiecare celula pe rand: imagine pe toata latimea (~350px), apoi „Product: / Price: / Quantity: / Subtotal:" — ~730px pe produs.
+- **Checkout (<=1200px):** Astra da blocurilor `alignwide` margini de -20px stanga-dreapta, care anulau padding-ul de 20px al paginii, deci checkout-ul atingea marginea ecranului. In plus, pe mobil caseta „Order summary" nu avea padding interior.
+
+**Ce am facut (`astra-child/style.css`, commit 95f55eb):**
+- Cos pe mobil: fiecare produs e un rand in grila — imagine 72px stanga, titlul (si bifele de add-on) alaturi, X sus-dreapta, cantitatea si subtotalul sub titlu; pretul unitar ascuns pe mobil (subtotalul = pret x cantitate); stepper-ul de cantitate mai mic. Inaltime: ~170–230px pe produs in loc de ~730px. Totalurile raman sub lista, neschimbate.
+- Checkout: margini 0 pentru blocul `alignwide` sub 1201px → 20px fata de ambele margini, aliniat cu titlul „Checkout"; padding 16px in caseta „Order summary" (titlu si continut).
+- Desktop (>1200px) neschimbat.
+- **Testat** pe live prin injectarea CSS-ului doar in browserul meu, intr-un cadru de 390px, cu doua produse in cos (cosul de test golit dupa).
+- **Pe live din 2026-11-17**, dupa permisiunea permanenta de deploy (vezi capul jurnalului): `cart-css-deploy.sh` rulat de mine — md5-ul de pe live era cel din HEAD, backup in `/tmp/cart-css-backup-2026-11-17`, LiteSpeed purge all; `/` si `/cart/` 200, `/checkout/` 302 (cos gol). **Verificat pe live fara CSS injectat**, la 390px: produse de 171 si 227px, checkout la 20px de ambele margini, „Order summary" cu padding. Cosul de test golit. `style.css` e versionat cu `filemtime`, deci browserele il iau nou imediat.
+- **Copia locala:** tema e mapata direct din depozit (wp-env), deci are acelasi `style.css`; baza nu s-a schimbat.
+- **Corectura in jurnal:** la scrierea intrarii 146 stersesem din greseala titlul „## Stare la 2026-11-07 (dimineata lansarii, ~05:00)"; pus la loc.
+
+## 148. Mega-meniul Display Cabinets: imaginile dispareau la hover pe Mac (2026-11-18)
+
+**Doru:**
+> Kass si Mads au laptop Mac. La mega-meniul din top al display-cabinets, cand mergi cu mouse pe elementele din acest mega-meniu, imaginile dispar la hover, dar numai pe laptop Mac [...] Sa fie oare o problema de conversie a imaginilor in AVIF? Sau o problema de CSS [...]? Si de ce doar la mega-meniul Display Cabinets?
+
+**Nu e AVIF:** imaginile din mega-meniu sunt JPG/PNG (150 de variante JPG + 3 PNG in srcset, fara `<picture>`), iar serverul raspunde `image/jpeg` si la o cerere cu `Accept: image/avif`.
+
+**Cauza (CSS + felul in care Safari pe macOS deseneaza):**
+- Imaginea avea `mix-blend-mode: multiply` (ca fundalul alb al pozei sa se topeasca in patratul verde-pal), iar la hover patratul ei primea `transform: scale(1.04)`.
+- Panoul are `max-height` + `overflow-y: auto`. Pe macOS, Safari (si Chrome) deseneaza separat, pe placa grafica, panourile care se deruleaza; o imagine cu blend-mode al carei parinte devine strat separat la hover nu mai e desenata. Pe Windows desenarea e altfel, de aceea nu apare.
+- **De ce Display Cabinets:** are 22 de tile-uri — panoul are 984px, deci pe orice ecran de laptop se deruleaza. Storage Cabinets (13 tile-uri, 747px) se deruleaza doar pe ecrane mai mici, deci poate aparea si acolo, mai rar. Fridges/Freezers nu au imagini in mega-meniu.
+- WebKit pe Windows (Playwright, 1440x790 @2x) **nu** reproduce problema — confirma ca tine de desenarea pe macOS; n-am avut un Mac pe care s-o reproduc direct.
+
+**Reparatia (`astra-child/style.css`, commit 1d266bc):** fara `mix-blend-mode`; patratul imaginii e alb cu o linie fina (`inset 0 0 0 1px`), la hover linia devine verde deschis si patratul se mareste ca inainte. Pozele au fundal alb, deci arata la fel ca inainte, fara dreptunghiuri vizibile.
+- **Pe live din 2026-11-18** (permisiunea permanenta de deploy): md5 verificat, backup in `/tmp/mega-css-backup-2026-11-18`, LiteSpeed purge all, `/` si `/cart/` 200. Verificat dupa: in WebKit `mix-blend-mode: normal`, fundal alb, hover cu imaginea vizibila.
+- **De confirmat de Kass/Mads** pe Mac, dupa un refresh (style.css e versionat cu `filemtime`, deci nu trebuie golit cache-ul browserului).
+- **Copia locala:** tema e mapata din depozit, are acelasi fisier.
+- Mai exista un `mix-blend-mode: multiply` in `ecofridge-blocks/assets/search.css` (`.efb-search__noimg`, placeholder-ul fara imagine din cautare) — nu e intr-un panou cu transform la hover; lasat asa.
+
+## 149. Regulile din 146–148, retinute si duse in proiectul Display-Fridge (2026-11-18)
+
+**Doru:**
+> retine regula asta de background color-mix (mix-blend-mode: multiply) plus regula de livrare din cart si checkout cat si CSS-ul din checkout si noteaza toate acestea inclusiv in proiectul de dezvoltare al site-ului pentru Display-Fridge [...] inclusiv in fisierul claude-chat.md.
+
+**Regulile (pentru ambele site-uri):**
+1. Fara `mix-blend-mode: multiply` pe imagini intr-un panou derulabil sau cu `transform` la hover — pe macOS dispar (intrarea 148). Patrat alb + linie fina in loc de tinta + multiply. WebKit pe Windows nu reproduce.
+2. Livrarea se judeca doar cu adresa completa (tara + oras + cod postal); testele Store API se fac cu oras (intrarea 146).
+3. Cosul pe mobil: un rand compact pe produs, ca Order Summary (intrarea 147).
+4. Checkout pe mobil: 20px fata de margini, „Order summary" cu padding interior (intrarea 147).
+
+**Unde sunt notate:** memoria acestui proiect (`woo-site-rules-blend-delivery-checkout`), memoria proiectului Display-Fridge (creata acum, era goala) si `claude-chat.md` din `Display-Fridge - noul site` (intrarea din 2026-11-18, la final).
+
+**Gasit pe Display-Fridge:** acelasi tipar de la regula 1 in mega-meniu (`theme.css`: `.dfn-mega` cu `overflow-y: auto`, imaginile `.dfn-mega-*__img img` cu multiply, `scale(1.03)` / `translateY(-2px)` la hover) si in carusel (`df-carousel.css`, `.dfc-card__img`). `checkout.php` de acolo nu are scriptul de comutare pe Pickup, dar are acelasi mesaj „We don't deliver to this postcode" si acelasi calculator doar cu cod postal.
+
+- **Doru, in timpul lucrului:** „noteaza si fa modificarea si acolo sa nu apara aceste probleme acolo asa cum au aparut aici". **Facut pe copia locala Display-Fridge** (commit 51a5b41 in `new-site`; site-ul nou nu e lansat): fara `multiply` in mega-meniu si carusel (patrate albe cu linie fina), protectie in `dfb_package_without_delivery()` pentru adresa fara oras, cos pe mobil compact (217px/produs in loc de ~450px); checkout-ul de acolo e clasic si avea deja 20px de margini. Pe drum: copia locala era pe Twenty Twenty-Five, fiindca folderul fusese redenumit si containerul `dfn-wp` pastra caile vechi — recreat si tema reactivata. Detalii in jurnalul Display-Fridge.
+
 ## Stare la 2026-11-07 (dimineata lansarii, ~05:00)
 
 - **Faza 1 GATA (05:00):** `ef-close-shop` activ pe site-ul vechi, plati oprite.
@@ -2856,3 +3009,103 @@ Doru: pe dashboard-ul SMS Alert nu apar SMS-uri; crede ca stergerea staging-ului
 - **Procedura completa pentru sambata:** intrarea 72, de citit de la cap la coada inainte de orice clic.
 - **De la Ambrit/Mads: textul final al celor trei cereri e in intrarea 92**, gata de trimis. Context si ce a ieșit din lista: intrarea 91.
 - **Context (intrarea 91):** confirmarea ca nu umbla la zona DNS RAMANE valabila (zona e la IONOS, in contul clientului, dar ei pot avea credentiale vechi); mai importante acum: sa nu opreasca gazduirea veche inainte de 30 de zile si ingheţ pe site-ul vechi de vineri seara. Cererile de acces FTP/dump si de `ca-certificates` NU mai sunt necesare.
+
+---
+
+## HSTS și IPv6 – verificare după auditul O2X (22 noiembrie 2026)
+
+**Doru:**
+> La bune practici din SEO CRM observ că HSTS este respins – eu știu că am HSTS la site-ul eco-fridge.co.uk... la fel IPV6 (AAAA record) – chiar așa să nu-l am?
+
+**Ce am verificat (Claude), din exterior și prin SSH pe `ef-live`, doar citire:**
+- **HSTS există:** `https://www.eco-fridge.co.uk/` trimite `Strict-Transport-Security: max-age=31536000`, din `ecofridge-blocks/includes/security.php`, linia 301.
+- Lipseau două lucruri:
+  - `includeSubDomains`;
+  - header-ul HSTS pe redirectul 301 de pe `https://eco-fridge.co.uk/`. Redirectul e făcut în `wp-config.php`, înainte să se încarce pluginul.
+- **IPv6:** DNS-ul (IONOS) nu are înregistrare AAAA, nici pe apex, nici pe www. Serverul Hostinger servește însă site-ul corect pe IPv6: `2a02:4780:a:1234::73` răspunde HTTP/2 200, cu certificat valid.
+- Niciunul dintre ele nu e o problemă SEO. În O2X și SEO CRM ambele apar acum ca **„Informativ / opțional”**, nu ca „Respins”.
+
+**Decizii:**
+- Doru a confirmat că site-ul nu are alte subdomenii în afară de www, deci `includeSubDomains` e sigur.
+- AAAA: recomandarea e să **nu** fie adăugat. Adresa IPv6 a unui plan Hostinger partajat nu e garantat fixă, iar o adresă greșită ar face site-ul inaccesibil pe IPv6.
+
+**De făcut (Doru):** modificarea pe live a fost blocată de protecția automată a Claude Code. Scriptul pregătit e `tools/hsts-harden.sh`: face backup (`*.bak-20261122-hsts`), modifică cele două fișiere, verifică sintaxa PHP (cu revenire automată la backup dacă apare o eroare), golește cache-ul LiteSpeed și verifică header-ele din exterior. Se rulează cu:
+`! bash "/c/Users/doruh/Downloads/eco-fridge noul site/tools/hsts-harden.sh"`
+
+După rulare trebuie adusă la zi și copia locală a `security.php`, la aceeași linie.
+
+**Prima rulare a scriptului (Doru, 22.11.2026):** s-a oprit la `wp-config.php`, cu `sed: cannot rename ./sedXXXX: Device or resource busy`. Pe Hostinger, `wp-config.php` nu poate fi înlocuit prin redenumire. Starea verificată după oprire, doar cu citire:
+- `security.php` avea deja `includeSubDomains`, iar sintaxa PHP era OK;
+- `wp-config.php` a rămas neatins, cu sintaxa OK;
+- backup-urile `*.bak-20261122-hsts` există;
+- site-ul răspundea 200;
+- cache-ul LiteSpeed nu fusese golit, așa că din exterior se vedea încă header-ul vechi.
+
+**Scriptul a fost corectat** (`tools/hsts-harden.sh`):
+- fișierele se rescriu direct (`cat tmp > fișier`), fără redenumire;
+- inserția în `wp-config.php` se face cu `awk`. Varianta cu `sed i\` lăsa un „t” în plus în față, eroare prinsă la testul local;
+- fiecare pas verifică întâi dacă modificarea există deja, deci scriptul poate fi rulat din nou;
+- a fost testat local pe copii ale fișierelor, de două ori.
+
+**A doua rulare:** s-a oprit cu `awk: command not found`, pentru că serverul nu are awk. `wp-config.php` a rămas neschimbat (identic cu backup-ul, sintaxa OK); s-a creat doar fișierul temporar gol `.hsts-hJRwnm`. Scriptul folosește acum **PHP** pentru ambele modificări: rescrie fișierele direct, fără redenumire și fără fișiere temporare, iar la pornire șterge fișierul temporar rămas. Codul PHP a fost testat pe server pe o copie a `wp-config.php` din `/tmp`, apoi ștearsă: linia apare corect, sintaxa e OK.
+
+**A treia rulare – reușită (22.11.2026):**
+- `wp-config.php` a fost actualizat (linia 21), iar sintaxa PHP e OK;
+- cache-urile LiteSpeed au fost golite.
+
+**Verificat din exterior:**
+- `https://eco-fridge.co.uk/` → 301, cu `Strict-Transport-Security: max-age=31536000; includeSubDomains`;
+- `https://www.eco-fridge.co.uk/` (inclusiv cu un parametru de ocolire a cache-ului și pe `wp-login.php`) → 200, cu același header. Prima verificare prinsese o pagină încă servită din cache.
+
+**Copia locală:** `ecofridge-blocks/includes/security.php` a fost adusă la zi, iar md5 e identic cu live-ul. Backup-urile de pe server: `wp-config.php.bak-20261122-hsts` și `security.php.bak-20261122-hsts`.
+
+**De luat în calcul ulterior (opțional):** cu HSTS acum complet pe ambele hostname-uri, se poate adăuga `preload` și trimite domeniul pe hstspreload.org. Pasul e greu de anulat, deci doar la cererea lui Doru.
+
+---
+
+## Tag-urile de produs noindex și paginile lor 2–3 (22 noiembrie 2026)
+
+**Doru:**
+> Verifică dacă într-adevăr sunt vechi, nu din planul noului site, și șterge-le – trash cu redirect către categoria aferentă fiecărui tag.
+
+URL-urile întrebate: `/product-tag/multideck-fridges/page/2/`, `/product-tag/patisserie-display-fridges/page/2/` și `/page/3/`.
+
+**Verificat (Claude), fără nicio modificare pe live:**
+- Tag-urile **nu sunt vechi**. Sunt din planul noului site: migrarea 64 (`migration/64-product-type-tags.php`), cu 21 de tag-uri „de tip” folosite de filtrul „Type” din bara de produse, toate `noindex` intenționat (Rank Math, per termen). Ștergerea lor ar strica filtrul, așa că **nu s-au șters**.
+- Fiecare tag dublează o categorie (grab-and-go, multideck-fridge, patisserie-fridge). Recomandarea: să rămână noindex. La patisserie, tag-ul are 27 de produse, iar categoria 9; soluția e o categorie completă, nu indexarea tag-ului.
+- Tag-urile vechi (cele 164 cu sufixul `-tag`, neimportate) au deja 301 într-un singur pas spre categoria corespunzătoare, care răspunde 200. Exemple: `multideck-tag`, `commercial-refrigeration-tag`, `counter-fridge-tag`. Nu e nimic de adăugat.
+- Paginile 2–3 moștenesc noindex-ul tag-ului, ceea ce e corect. O2X a fost reparat să nu le mai raporteze; nu mai apar nici la „Pagini importante excluse din index”.
+
+**Doru:**
+> Pune-le redirect.
+
+**Deploy live (Claude), 22 noiembrie 2026:** `ecofridge-blocks/includes/tag-redirects.php`, cu `efb_type_tag_redirects()`. Cele 3 tag-uri de tip care dublează o categorie primesc 301 spre categorie, pe toate paginile lor (`/page/N/`):
+- `grab-and-go-fridges` → `/product-category/commercial-display-fridge/grab-and-go/`
+- `multideck-fridges` → `…/multideck-fridge/`
+- `patisserie-display-fridges` → `…/patisserie-fridge/`
+
+Tag-urile nu sunt șterse, pentru că filtrul „Type” le folosește în continuare (`?filter_type=multideck-fridges` merge: 200, verificat). Vizualizările filtrate (cu query string) nu se redirecționează. Un filtru `term_link` face ca orice link către aceste tag-uri să ducă direct la categorie, deci niciun link intern nu trece prin redirect (verificat pe o pagină de produs).
+
+Cum s-a făcut deploy-ul:
+- Live era identic cu git, doar cu terminații CRLF (verificat după normalizare); fișierul nou a fost urcat tot cu CRLF.
+- Backup: `tag-redirects.php.bak-20261122-typetags`. `php -l` OK, LiteSpeed golit.
+- Verificat din exterior: 301 într-un singur pas, categoriile răspund 200, tag-urile vechi `-tag` neschimbate.
+- Copia locală e actualizată (necomisă).
+
+---
+
+## Curățare post-lansare: cupon 100% și produs de test (27 noiembrie 2026)
+
+### Cuponul de reducere 100%
+
+**Doru:** Sterge cuponul de reducere 100%.
+
+Cuponul nu era în cod (WooCommerce stochează cupoanele ca post-uri de tip `shop_coupon` în baza de date). **Doru l-a șters manual** din WP Admin → Marketing → Cupoane.
+
+### Produs de test #14659 „Live payment test – do not buy"
+
+Produs creat pe 27.11.2026 pentru o comandă reală cu cardul (#14660, ștearsă după verificarea plății). Produsul e ascuns peste tot (catalog, căutare, sitemap, feed Merchant, noindex), deci nu deranjează.
+
+**Produs șters definitiv (27.11.2026):** testul GA4 nu a mai fost necesar (site-ul are comenzi reale). Produsul a fost șters cu `wp post delete 14659 --force`; `wp_wc_order_product_lookup` — 0 rânduri pentru product_id 14659; cache LiteSpeed golit.
+
+**Alias SSH `ef-live` restaurat** în `~/.ssh/config` (lipsea după compactarea sesiunii precedente). Cheia `o2dev` a fost re-autorizată în Hostinger pe 27.11.2026.

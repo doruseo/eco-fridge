@@ -120,3 +120,60 @@ add_action(
 	},
 	4
 );
+
+/**
+ * Type tags (migration 64) that duplicate a product category → that category (301, 2026-11-22).
+ *
+ * The tags stay: the "Type" filter still uses them through the query string on the page being
+ * filtered. Only their own archive (and its /page/N/) redirects, and every link to it points
+ * straight at the category, so no internal link goes through the redirect.
+ *
+ * @return array<string,string> type tag slug => product category slug.
+ */
+function efb_type_tag_redirects() {
+	return array(
+		'grab-and-go-fridges'        => 'grab-and-go',
+		'multideck-fridges'          => 'multideck-fridge',
+		'patisserie-display-fridges' => 'patisserie-fridge',
+	);
+}
+
+/** The category link for a redirected type tag, or '' when the tag is not redirected. */
+function efb_type_tag_target( $slug ) {
+	$map = efb_type_tag_redirects();
+	if ( ! isset( $map[ $slug ] ) ) {
+		return '';
+	}
+	$term = get_term_by( 'slug', $map[ $slug ], 'product_cat' );
+	$link = $term ? get_term_link( $term ) : '';
+	return $link && ! is_wp_error( $link ) ? $link : '';
+}
+
+add_action(
+	'template_redirect',
+	static function () {
+		if ( ! is_tax( 'product_tag' ) || ! empty( $_GET ) ) {
+			return; // Filtered views (?filter_…) are left to the filter bar.
+		}
+		$term = get_queried_object();
+		$link = $term instanceof WP_Term ? efb_type_tag_target( $term->slug ) : '';
+		if ( $link ) {
+			wp_safe_redirect( $link, 301 );
+			exit;
+		}
+	},
+	4
+);
+
+add_filter(
+	'term_link',
+	static function ( $link, $term, $taxonomy ) {
+		if ( 'product_tag' !== $taxonomy || is_admin() ) {
+			return $link;
+		}
+		$target = efb_type_tag_target( $term->slug );
+		return $target ? $target : $link;
+	},
+	10,
+	3
+);

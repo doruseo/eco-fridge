@@ -27,8 +27,9 @@
  *    code, e.g. "MK18" – not the full postcode) and country;
  *  - traffic: WooCommerce order attribution (source type, source, medium,
  *    campaign, content, term, referrer domain, entry page, device, pages and
- *    sessions before the order) – recorded only when the visitor allowed
- *    statistics cookies;
+ *    sessions before the order) and the first known visit (source type,
+ *    source, medium, campaign, entry page, date) – recorded only when the
+ *    visitor allowed statistics cookies;
  * and `user_data` for Google Ads enhanced conversions (SHA-256 email and
  * phone, address), used by Google tags only with ad_user_data consent.
  * No plain email, phone, name or street address is put in the dataLayer (the
@@ -272,6 +273,13 @@ function efb_an_purchase( $data_layer, $order ) {
 		'device_type'          => $meta( 'device_type' ),
 		'session_pages'        => (int) $meta( 'session_pages' ),
 		'session_count'        => (int) $meta( 'session_count' ),
+		// First known visit (see efb_an_first_touch_fields()).
+		'first_source_type'    => $meta( 'first_source_type' ),
+		'first_source'         => $meta( 'first_utm_source' ),
+		'first_medium'         => $meta( 'first_utm_medium' ),
+		'first_campaign'       => $meta( 'first_utm_campaign' ),
+		'first_entry_page'     => $meta( 'first_entry' ) ? (string) wp_parse_url( $meta( 'first_entry' ), PHP_URL_PATH ) : '',
+		'first_visit_date'     => substr( $meta( 'first_visit_time' ), 0, 10 ),
 	);
 
 	// Google Ads enhanced conversions (Google's user_data format).
@@ -298,3 +306,74 @@ function efb_an_purchase( $data_layer, $order ) {
 	return $data_layer;
 }
 add_filter( 'gtm4wp_purchase_datalayer', 'efb_an_purchase', 20, 2 );
+
+/* ---------------------------------------------------------------------------
+ * First known visit, saved on the order next to WooCommerce's own attribution
+ * (which is the source of the visit that led to the order).
+ *
+ * The source tracker already keeps a "first" record in its cookies; these
+ * fields send it with the checkout, and WooCommerce stores every tracking
+ * field as `_wc_order_attribution_<field>` order meta. With the cookies kept
+ * for 90 days (Cookie Consent → Blocking), "first" is how the customer found
+ * the site, even when the order comes days later from a typed address.
+ * ------------------------------------------------------------------------- */
+
+/**
+ * Adds the first-visit fields to WooCommerce order attribution.
+ *
+ * @param string[] $fields Field name => sourcebuster accessor.
+ * @return string[]
+ */
+function efb_an_first_touch_fields( $fields ) {
+	return array_merge(
+		(array) $fields,
+		array(
+			'first_source_type'  => 'first.typ',
+			'first_utm_source'   => 'first.src',
+			'first_utm_medium'   => 'first.mdm',
+			'first_utm_campaign' => 'first.cmp',
+			'first_referrer'     => 'first_add.rf',
+			'first_entry'        => 'first_add.ep',
+			'first_visit_time'   => 'first_add.fd',
+		)
+	);
+}
+add_filter( 'wc_order_attribution_tracking_fields', 'efb_an_first_touch_fields' );
+
+/**
+ * Shows the first known visit on the order screen, under the order details.
+ *
+ * @param WC_Order $order Order.
+ */
+function efb_an_show_first_touch( $order ) {
+	if ( ! $order instanceof WC_Order ) {
+		return;
+	}
+	$type = (string) $order->get_meta( '_wc_order_attribution_first_source_type' );
+	if ( '' === $type ) {
+		return;
+	}
+	$source = (string) $order->get_meta( '_wc_order_attribution_first_utm_source' );
+	$medium = (string) $order->get_meta( '_wc_order_attribution_first_utm_medium' );
+	$entry  = (string) $order->get_meta( '_wc_order_attribution_first_entry' );
+	$when   = (string) $order->get_meta( '_wc_order_attribution_first_visit_time' );
+	$labels = array(
+		'organic'  => __( 'Organic search', 'ecofridge-blocks' ),
+		'referral' => __( 'Link from another website', 'ecofridge-blocks' ),
+		'utm'      => __( 'Campaign link', 'ecofridge-blocks' ),
+		'typein'   => __( 'Direct', 'ecofridge-blocks' ),
+	);
+	$text = $labels[ $type ] ?? $type;
+	if ( 'typein' !== $type && '' !== $source ) {
+		$text .= ': ' . $source . ( 'utm' === $type && '' !== $medium ? ' / ' . $medium : '' );
+	}
+	echo '<p class="form-field form-field-wide"><strong>' . esc_html__( 'First known visit:', 'ecofridge-blocks' ) . '</strong> ' . esc_html( $text );
+	if ( '' !== $when ) {
+		echo ' · ' . esc_html( substr( $when, 0, 10 ) );
+	}
+	if ( '' !== $entry ) {
+		echo '<br><small>' . esc_html__( 'Entry page:', 'ecofridge-blocks' ) . ' ' . esc_html( (string) wp_parse_url( $entry, PHP_URL_PATH ) ) . '</small>';
+	}
+	echo '</p>';
+}
+add_action( 'woocommerce_admin_order_data_after_order_details', 'efb_an_show_first_touch', 20 );
