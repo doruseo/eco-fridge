@@ -3109,3 +3109,17 @@ Produs creat pe 27.11.2026 pentru o comandă reală cu cardul (#14660, ștearsă
 **Produs șters definitiv (27.11.2026):** testul GA4 nu a mai fost necesar (site-ul are comenzi reale). Produsul a fost șters cu `wp post delete 14659 --force`; `wp_wc_order_product_lookup` — 0 rânduri pentru product_id 14659; cache LiteSpeed golit.
 
 **Alias SSH `ef-live` restaurat** în `~/.ssh/config` (lipsea după compactarea sesiunii precedente). Cheia `o2dev` a fost re-autorizată în Hostinger pe 27.11.2026.
+
+---
+
+## HPOS activat (28 noiembrie 2026)
+
+**WooCommerce → Settings → Advanced → Features → Order data storage** schimbat din „WordPress posts storage (legacy)" în „High-performance order storage (recommended)".
+
+Pași urmați:
+- Niciun plugin incompatibil detectat (Lloyds Cardnet, Jetpack/Analytics, toate OK).
+- „Sync orders now" pornit; 6.032 înregistrări sincronizate în câteva secunde (comenzile reale + metadate).
+- HPOS activat și salvat fără erori.
+- Verificat: WP Admin → Orders afișează corect toate cele 6.031 comenzi.
+
+Compatibility mode lăsat dezactivat (nu e nevoie — toate plugin-urile suportă HPOS nativ).
