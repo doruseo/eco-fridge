@@ -6,6 +6,7 @@
  * Requires at least: 6.5
  * Requires PHP:      8.1
  * Author:            O2 Digital
+ * Author URI:        https://seo2agency.com/
  * License:           GPL-2.0-or-later
  * Text Domain:       ef-cookie-consent
  *

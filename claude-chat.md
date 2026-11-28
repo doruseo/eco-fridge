@@ -3123,3 +3123,15 @@ Pași urmați:
 - Verificat: WP Admin → Orders afișează corect toate cele 6.031 comenzi.
 
 Compatibility mode lăsat dezactivat (nu e nevoie — toate plugin-urile suportă HPOS nativ).
+
+---
+
+## Cookie consent banner centrat și stilizat (28 noiembrie 2026)
+
+**Modificări în EF Cookie Consent:**
+
+- **Layout:** schimbat din „Bar at the bottom" în „Box in the centre" (WooCommerce → EF Cookie Consent → Banner → Appearance → Layout). Fără overlay — overlay-ul dezactivează scorul PSI (NO_LCP).
+- **CSS (`ef-cookie-consent/assets/efcc.css`):** lățime mărită de la `min(560px, ...)` la `min(720px, ...)`, border `#e3ebe3` (identic cu mega-menu-ul), shadow conform brandului: `0 28px 60px -18px rgba(16,52,30,.32)` + ring verde subtil — același stil cu cardurile mari din site.
+- **Plugin header (`ef-cookie-consent.php`):** adăugat `Author URI: https://seo2agency.com/`.
+
+**CWV:** neafectate — `position: fixed` nu cauzează CLS, bannerul apare după 500ms (LCP deja calculat), overlay dezactivat.

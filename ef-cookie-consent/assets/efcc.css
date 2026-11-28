@@ -59,7 +59,9 @@
 .efcc-banner--box-right { right: 20px; }
 .efcc-banner--center {
 	left: 50%; top: 50%; transform: translate(-50%, -50%);
-	width: min(560px, calc(100vw - 32px)); border-radius: var(--efcc-radius);
+	width: min(720px, calc(100vw - 32px)); border-radius: var(--efcc-radius);
+	border-color: #e3ebe3;
+	box-shadow: 0 28px 60px -18px rgba(16, 52, 30, .32), 0 6px 16px -8px rgba(0, 0, 0, .12), 0 0 0 1px rgba(34, 139, 34, .08);
 }
 .efcc-banner--box-left .efcc-banner__inner, .efcc-banner--box-right .efcc-banner__inner, .efcc-banner--center .efcc-banner__inner { padding: 22px; }
 .efcc-banner__text { flex: 1 1 auto; min-width: 0; }
