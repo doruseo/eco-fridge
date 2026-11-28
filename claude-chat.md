@@ -3130,8 +3130,20 @@ Compatibility mode lăsat dezactivat (nu e nevoie — toate plugin-urile suport�
 
 **Modificări în EF Cookie Consent:**
 
-- **Layout:** schimbat din „Bar at the bottom" în „Box in the centre" (WooCommerce → EF Cookie Consent → Banner → Appearance → Layout). Fără overlay — overlay-ul dezactivează scorul PSI (NO_LCP).
-- **CSS (`ef-cookie-consent/assets/efcc.css`):** lățime mărită de la `min(560px, ...)` la `min(720px, ...)`, border `#e3ebe3` (identic cu mega-menu-ul), shadow conform brandului: `0 28px 60px -18px rgba(16,52,30,.32)` + ring verde subtil — același stil cu cardurile mari din site.
+- **Layout:** schimbat din „Bar at the bottom" în „Box in the centre" (WP Admin → EF Cookie Consent → Appearance → Layout). Fără overlay — overlay-ul dezactivează scorul PSI (NO_LCP).
+- **CSS (`ef-cookie-consent/assets/efcc.css`):**
+  - Lățime: `min(90vw, 1100px)` — acoperă mare parte din ecran fără a tăia marginile.
+  - Border: `2px solid var(--efcc-primary)` — contur verde brand.
+  - Padding desktop: `110px 100px` — acoperă spațiu generos pe verticală și orizontală.
+  - Padding mobil (în `@media (max-width: 760px)`): `24px 20px` — compact, dar lizibil.
+  - Shadow 3D în cinci straturi progressive (subliniază adâncimea):
+    ```
+    0 2px 4px rgba(0,0,0,.10),
+    0 8px 16px rgba(0,0,0,.12),
+    0 24px 48px rgba(0,0,0,.14),
+    0 60px 100px -20px rgba(16,52,30,.45),
+    0 100px 140px -40px rgba(0,0,0,.20)
+    ```
 - **Plugin header (`ef-cookie-consent.php`):** adăugat `Author URI: https://seo2agency.com/`.
 
 **CWV:** neafectate — `position: fixed` nu cauzează CLS, bannerul apare după 500ms (LCP deja calculat), overlay dezactivat.
