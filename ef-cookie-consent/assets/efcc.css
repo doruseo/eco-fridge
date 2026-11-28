@@ -64,7 +64,7 @@
 	box-shadow: 0 28px 60px -18px rgba(16, 52, 30, .40), 0 6px 20px rgba(0, 0, 0, .18);
 }
 .efcc-banner--box-left .efcc-banner__inner, .efcc-banner--box-right .efcc-banner__inner { padding: 22px; }
-.efcc-banner--center .efcc-banner__inner { padding: 32px; }
+.efcc-banner--center .efcc-banner__inner { padding: 52px 56px; }
 .efcc-banner__text { flex: 1 1 auto; min-width: 0; }
 .efcc-banner__title { margin: 0 0 4px; font-weight: 700; font-size: 1.1em; }
 .efcc-banner__message { margin: 0; }
@@ -173,6 +173,7 @@ html.efcc-modal-open { overflow: hidden; }
 	.efcc-banner__buttons { flex-direction: column; }
 	.efcc-banner__buttons .efcc-btn { width: 100%; }
 	.efcc-banner--box-left, .efcc-banner--box-right { left: 12px; right: 12px; bottom: 12px; width: auto; }
+	.efcc-banner--center .efcc-banner__inner { padding: 24px 20px; }
 	.efcc-modal { padding: 0; align-items: stretch; }
 	.efcc-modal__dialog { max-height: 100vh; height: 100%; border-radius: 0; }
 	.efcc-modal__foot .efcc-btn { flex: 1 1 100%; }
