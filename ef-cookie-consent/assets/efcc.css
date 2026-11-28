@@ -74,11 +74,12 @@
 .efcc-banner__title { margin: 0 0 4px; font-weight: 700; font-size: 1.1em; }
 .efcc-banner--center .efcc-banner__title { font-size: 2em; }
 .efcc-banner__message { margin: 0; }
-.efcc-banner--center .efcc-banner__message { font-size: 1.05em; line-height: 1.6; }
+.efcc-banner--center .efcc-banner__message { font-size: 1.12em; line-height: 1.6; }
 .efcc-banner--center .efcc-btn { min-height: 60px; padding: 14px 36px; font-size: 1.15em; }
 .efcc-banner__message a, .efcc-modal a { color: var(--efcc-primary); text-decoration: underline; }
 .efcc-banner__buttons { display: flex; flex-wrap: wrap; gap: 10px; flex: 0 0 auto; }
-.efcc-banner--box-left .efcc-banner__buttons, .efcc-banner--box-right .efcc-banner__buttons, .efcc-banner--center .efcc-banner__buttons { margin-top: 16px; }
+.efcc-banner--box-left .efcc-banner__buttons, .efcc-banner--box-right .efcc-banner__buttons { margin-top: 16px; }
+.efcc-banner--center .efcc-banner__buttons { margin-top: 32px; }
 .efcc-banner--box-left .efcc-btn, .efcc-banner--box-right .efcc-btn, .efcc-banner--center .efcc-btn { flex: 1 1 auto; }
 
 /* —— grey overlay while the banner waits for a choice ——
