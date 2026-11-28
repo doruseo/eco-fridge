@@ -3131,12 +3131,15 @@ Compatibility mode lăsat dezactivat (nu e nevoie — toate plugin-urile suport�
 **Modificări în EF Cookie Consent:**
 
 - **Layout:** schimbat din „Bar at the bottom" în „Box in the centre" (WP Admin → EF Cookie Consent → Appearance → Layout). Fără overlay — overlay-ul dezactivează scorul PSI (NO_LCP).
-- **CSS (`ef-cookie-consent/assets/efcc.css`):**
+- **CSS (`ef-cookie-consent/assets/efcc.css`) — stare finală:**
   - Lățime: `min(90vw, 1100px)` — acoperă mare parte din ecran fără a tăia marginile.
   - Border: `2px solid var(--efcc-primary)` — contur verde brand.
-  - Padding desktop: `110px 100px` — acoperă spațiu generos pe verticală și orizontală.
-  - Padding mobil (în `@media (max-width: 760px)`): `24px 20px` — compact, dar lizibil.
-  - Shadow 3D în cinci straturi progressive (subliniază adâncimea):
+  - Padding desktop: `52px 72px`; mobil (`@media max-width: 760px`): `24px 20px`.
+  - Titlu (center): `font-size: 2em`.
+  - Mesaj (center): `font-size: 1.12em; line-height: 1.6`.
+  - Spațiu text → butoane: `margin-top: 48px`.
+  - Butoane (center): `min-height: 68px; padding: 16px 40px; font-size: 1.2em`.
+  - Shadow 3D în cinci straturi progressive:
     ```
     0 2px 4px rgba(0,0,0,.10),
     0 8px 16px rgba(0,0,0,.12),
@@ -3145,5 +3148,6 @@ Compatibility mode lăsat dezactivat (nu e nevoie — toate plugin-urile suport�
     0 100px 140px -40px rgba(0,0,0,.20)
     ```
 - **Plugin header (`ef-cookie-consent.php`):** adăugat `Author URI: https://seo2agency.com/`.
+- **`o2-cookie-consent-5.0.7.zip`** (`C:\p\WP Plugins`): aceleași reguli de design center aplicate; versiunile anterioare (5.0.2–5.0.6, generic, 1.2.1-backup) șterse.
 
 **CWV:** neafectate — `position: fixed` nu cauzează CLS, bannerul apare după 500ms (LCP deja calculat), overlay dezactivat.
